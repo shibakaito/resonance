@@ -22,11 +22,6 @@
   "exclude": [
     "node_modules",
     "src/app/App.tsx",
-    "src/app/components/browse-page.tsx",
-    "src/app/components/browse-filters.ts",
-    "src/app/components/filter-controls.tsx",
-    "src/app/components/filter-modal.tsx",
-    "src/app/components/listing-grid.tsx",
     "src/app/components/upload-page.tsx",
     "src/app/components/listing-search-page.tsx"
   ]

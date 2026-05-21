@@ -1,3 +1,4 @@
+'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
 import { subcategoriesFor } from '../data/catalog';
