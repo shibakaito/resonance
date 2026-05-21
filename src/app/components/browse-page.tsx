@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Heart, ChevronDown, ChevronUp, X, Search, SlidersHorizontal, Plus, Minus } from 'lucide-react';
+import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
 import { subcategoriesFor } from '../data/catalog';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
@@ -77,6 +77,8 @@ export { AMP_GROUPS, SPEAKER_GROUPS } from './browse-filters';
 import { FilterSection, RangeSection, FilterDropdown } from './filter-controls';
 // ── 분리: 전체 필터 모달은 filter-modal.tsx로 이동 ──
 import { FilterModal } from './filter-modal';
+// ── 분리: 매물 카드 그리드는 listing-grid.tsx로 이동 ──
+import { ListingGrid } from './listing-grid';
 export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePageProps) {
   const allListings = useMemo(() => buildListings(), []);
 
@@ -690,55 +692,13 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
             </div>
           </div>
 
-          {/* 매물 그리드 */}
-          {filtered.length === 0 ? (
-            <div className="bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg py-16 text-center text-gray-500">
-              조건에 맞는 매물이 없습니다. 필터를 조정해보세요.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {filtered.map((l) => (
-            <button
-              key={l.id}
-              onClick={onSelect}
-              className="group text-left bg-white border border-[#e0e0e0] rounded-lg overflow-hidden hover:border-[#000000] hover:shadow-md transition"
-            >
-              <div className="relative aspect-square bg-[#f7f7f7] flex items-center justify-center">
-                <img
-                  src="/images/no-image.png"
-                  alt={`${l.brand} ${l.model}`}
-                  className="w-full h-full object-cover opacity-70"
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).style.display = 'none';
-                  }}
-                />
-                <span className="absolute text-xs text-gray-400">이미지 없음</span>
-                <button
-                  onClick={(e) => toggleLike(l.id, e)}
-                  className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm"
-                  aria-label="찜하기"
-                >
-                  <Heart
-                    className={`w-4 h-4 ${liked.has(l.id) ? 'fill-[#000000] text-[#000000]' : 'text-gray-500'}`}
-                  />
-                </button>
-              </div>
-              <div className="p-3">
-                <p className="text-xs text-gray-500 mb-1">{l.brand}</p>
-                <h3 className="text-sm font-semibold text-[#000000] line-clamp-1 group-hover:text-[#000000] transition">
-                  {l.model}
-                </h3>
-                <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{l.year} · {l.category}</p>
-                <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price)}</p>
-                <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-                  <span>{l.condition}</span>
-                  <span>{l.location}</span>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+          {/* 매물 그리드 (listing-grid.tsx로 분리) */}
+          <ListingGrid
+            listings={filtered}
+            liked={liked}
+            onToggleLike={toggleLike}
+            onSelect={onSelect}
+          />
         </div>
       </div>
 
