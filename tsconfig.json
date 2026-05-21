@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "vite.config.ts",
+    "src/main.tsx",
+    "src/app/App.tsx",
+    "src/app/components/home-page.tsx",
+    "src/app/components/browse-page.tsx",
+    "src/app/components/browse-filters.ts",
+    "src/app/components/filter-controls.tsx",
+    "src/app/components/filter-modal.tsx",
+    "src/app/components/listing-grid.tsx",
+    "src/app/components/upload-page.tsx",
+    "src/app/components/listing-search-page.tsx"
+  ]
+}

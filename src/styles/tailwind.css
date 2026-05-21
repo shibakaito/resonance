@@ -1,4 +1,6 @@
 @import 'tailwindcss' source(none);
 @source '../**/*.{js,ts,jsx,tsx}';
+/* Next.js 라우트는 루트 app/ 폴더에 있으므로 함께 스캔 */
+@source '../../app/**/*.{js,ts,jsx,tsx}';
 
 @import 'tw-animate-css';
