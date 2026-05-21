@@ -1,3 +1,5 @@
+'use client';
+// 상태(useState)·효과(useEffect)·DOM 이벤트를 쓰므로 클라이언트 컴포넌트.
 import { useState, useEffect, useRef } from 'react';
 import { Search, Star, TrendingUp, Heart, Tag, Truck, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
 import {
@@ -1001,7 +1003,7 @@ export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
                 즉시 견적을 받거나 직접 등록할 수 있어요. 가격도, 조건도 직접 정합니다.
               </p>
               <button
-                onClick={onSell}
+                onClick={() => onSell()}
                 className="bg-[#000000] text-white font-semibold px-5 py-2 rounded-lg hover:bg-[#000000] transition"
               >
                 매물 등록하기

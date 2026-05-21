@@ -1,19 +1,33 @@
+'use client';
 // ============================================================================
-// app/page.tsx — 홈 경로("/")의 임시 자리표시 페이지
+// app/page.tsx — 홈 경로("/")
 // ----------------------------------------------------------------------------
-// Phase 1(골격) 단계의 임시 화면입니다. 실제 홈/카테고리/상세 페이지는
-// 라우팅 이전 단계에서 기존 컴포넌트(App.tsx, home-page 등)를 옮겨 채웁니다.
-// Tailwind 스타일이 정상 적용되는지 확인하는 용도도 겸합니다.
+// 기존 home-page.tsx(HomePage)를 그대로 렌더하고, HomePage가 요구하는 콜백
+// (상품 보기/카테고리 탐색/판매)을 Next 라우터 이동으로 연결해 줍니다.
+// HomePage가 클라이언트 컴포넌트라 콜백을 넘기는 이 페이지도 'use client'.
+//
+// 참고: home-page에는 react-slick 캐러셀이 없어 dynamic(ssr:false)이 불필요.
+//       react-slick은 상품 상세(PDP) 화면에 있으므로 그 단계에서 처리 예정.
 // ============================================================================
 
-export default function HomePage() {
+import { useRouter } from 'next/navigation';
+import { HomePage } from '@/app/components/home-page';
+import { categorySlug } from '@/app/data/category-slugs';
+
+export default function Page() {
+  const router = useRouter();
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center gap-4 bg-white text-[#000000] px-4">
-      <h1 className="text-3xl font-bold">Resonance</h1>
-      <p className="text-gray-600 text-sm">Next.js 이전 진행 중 — Phase 1 골격</p>
-      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-[#e0e0e0] text-xs font-medium">
-        App Router · TypeScript · Tailwind v4
-      </span>
-    </main>
+    <HomePage
+      // 상품 카드 클릭 → 상세 페이지 (PDP는 다음 단계에서 추가됨)
+      onViewItem={() => router.push('/listing/1')}
+      // 카테고리 탐색 → /browse/{영문 슬러그}
+      onBrowse={(cat) => {
+        const slug = categorySlug(cat);
+        router.push(slug ? `/browse/${slug}` : '/browse');
+      }}
+      // 판매하기 → /sell (판매 페이지는 다음 단계에서 추가됨)
+      onSell={() => router.push('/sell')}
+    />
   );
 }

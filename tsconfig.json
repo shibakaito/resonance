@@ -22,7 +22,6 @@
   "exclude": [
     "node_modules",
     "src/app/App.tsx",
-    "src/app/components/home-page.tsx",
     "src/app/components/browse-page.tsx",
     "src/app/components/browse-filters.ts",
     "src/app/components/filter-controls.tsx",
