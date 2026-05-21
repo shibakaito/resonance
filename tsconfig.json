@@ -21,8 +21,6 @@
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
   "exclude": [
     "node_modules",
-    "src/app/App.tsx",
-    "src/app/components/upload-page.tsx",
-    "src/app/components/listing-search-page.tsx"
+    "src/app/App.tsx"
   ]
 }

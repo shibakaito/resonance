@@ -1,3 +1,4 @@
+'use client';
 import { useState } from 'react';
 import { Search, Tag, Package, Upload, ArrowRight } from 'lucide-react';
 import { POPULAR_BRANDS, searchCatalog, searchBrands } from '../data/catalog';
