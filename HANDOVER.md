@@ -1,171 +1,125 @@
 # Grace Project — Resonance 마켓플레이스 인수인계
 
-> **최종 업데이트: 2026-05-19**
-> 새 세션에서 `cat HANDOVER.md` 또는 파일 첨부로 즉시 컨텍스트 복원 가능.
+> **최종 업데이트: 2026-05-21**
+> 새 세션에서 `cat "/Users/igeon-yeong/Downloads/Grace Project/HANDOVER.md"` 로 컨텍스트 복원.
 
-## 0. 프로젝트 개요
-- **이름**: Resonance (오디오 중고 마켓플레이스 프로토타입)
-- **위치**: `/Users/igeon-yeong/Downloads/Grace Project/`
-- **스택**: Vite + React + TypeScript + Tailwind v4 + React Router v6 + shadcn UI
-- **빌드/실행**: `npm run dev` (개발), `npm run build` (빌드)
-- **현재 코드 규모**: ~12,107 라인 (직접 작성 ~7K, shadcn UI ~5K)
+---
 
-## 1. 현재 카테고리 구조 (6개 최상위)
-```
-앰프 ─ BY TYPE: 프리/파워/인티/포노 스테이지/헤드폰/네트워크/리시버/AV 리시버
-       ETC: 액세서리 / 파워 서플라이 / 부품 / 소모품
+## ⚠️ 0. 먼저 읽을 것 — git 브랜치 상태 (중요)
 
-스피커 ─ BY TYPE: 북쉘프/플로어 스탠딩/톨보이/센터/사운드바/서브우퍼
-         ETC: 액세서리 / 케이블 / 드라이버 / 네트워크 / 기타 부품
-
-소스기기 ─ 아날로그 / 디지털 / 튜너 / AV (4그룹 14항목)
-
-액세서리 ─ 전원 장치 / 거치·받침 / 진동 제어 (3그룹 12항목)
-
-턴테이블 ─ BY TYPE / 카트리지+액세서리 / 포노 스테이지 / 톤암+액세서리 / 턴테이블 액세서리 (5그룹 25항목)
-
-케이블 ─ 평면 14항목 (RCA/XLR/스피커/파워/디지털 동축/광/USB/AES-EBU/BNC/HDMI/포노/점퍼/헤드폰/이어폰)
-```
-
-### 삭제됐던 카테고리 (백업 있음)
-- 부품/수리, 음반/미디어 → `backup/parts-media-2026-05-18.md`에 코드 보관
-
-### 카테고리 간 연동 (CROSS_LISTING)
-`browse-page.tsx`의 `CROSS_LISTING` 객체:
-- `포노 스테이지` ↔ `MM/MC 포노앰프` (앰프와 턴테이블이 동일 매물 공유)
-
-### 라우팅 재매핑 (`App.tsx` goBrowse)
-특수 케이스만 다른 top 페이지로 redirect:
-| 클릭 | → 이동 |
-|---|---|
-| 턴테이블 > 턴테이블 | 소스기기 > 턴테이블 |
-| 앰프/스피커 > 액세서리 | 액세서리 top |
-| 스피커 > 케이블 | 케이블 top |
-| 앰프 > 파워 서플라이 | 액세서리 > 리니어 전원장치 |
-
-## 2. 색상 팔레트 (모노톤)
-```
-배경:        #FFFFFF (white)
-보조 배경:   #F7F7F7
-구분선/칩:   #E0E0E0
-강조/텍스트: #000000 (pure black)
-중간 회색:   gray-400~800 (본문/보조 텍스트, 변경 안 함)
-```
-오렌지 액센트는 모두 검정으로 교체 완료. Tailwind 임의값 문법 (`bg-[#f7f7f7]`) 사용.
-
-푸터는 다크 — `bg-[#000000] text-white`, `text-gray-400` 보조.
-
-## 3. 핵심 파일
-| 파일 | 역할 | 라인 |
+| 브랜치 | 내용 | 비고 |
 |---|---|---|
-| `src/app/App.tsx` | 헤더·메가 메뉴·라우팅·PDP·푸터 | ~1,440 |
-| `src/app/components/browse-page.tsx` | 매물 브라우즈 + 필터 시스템 (가장 복잡) | 2,295 |
-| `src/app/components/home-page.tsx` | 홈 페이지 | 1,068 |
-| `src/app/components/upload-page.tsx` | 매물 업로드 (더미) | 667 |
-| `src/app/data/catalog.ts` | 카테고리 트리 + CATALOG 매물 데이터 | 519 |
-| `src/app/data/cable-terminals.ts` | 케이블 단자 매핑·시드 | 144 |
-| `src/app/data/category-slugs.ts` | URL 슬러그 매핑 (한↔영) | 138 |
-| `src/app/data/category-meta.ts` | 카테고리 메타 (제목·SEO) | 85 |
+| `migrate/nextjs` | **Next.js 이전 완료본 (최신/작업본)** | GitHub에 push됨. 현재 이 브랜치에서 작업 중 |
+| `main` | ⚠️ **현재 Next.js 커밋(48dacc4)으로 드리프트됨** | 원래는 "Vite 버전 보존" 의도였으나 어긋남 (로컬+원격 둘 다) |
+| `refactor/browse-page-split` | **Vite 버전 (분리 완료, 커밋 37d157a)** | 로컬 보존. "원래 main이 가리켜야 할 Vite 버전" |
 
-## 4. URL 라우팅 구조 (React Router)
+- **Vite 버전은 유실되지 않음**: 커밋 `37d157a` + `refactor/browse-page-split` 브랜치 + 백업 폴더 `~/Downloads/Grace Project-backup-20260521`.
+- **미해결 과제**: `main`을 Vite(`37d157a`)로 되돌릴지, 아니면 Next 버전을 main으로 받아들일지 결정 필요.
+  - Vite로 되돌리려면(파괴적, 강제 push 필요 — 명시 승인 후에만):
+    ```
+    git branch -f main 37d157a
+    git push --force origin main      # ⚠️ 강제 push, 신중히
+    ```
+
+---
+
+## 1. 프로젝트 개요
+- **이름**: Resonance (하이파이 오디오 중고 마켓플레이스 프로토타입)
+- **위치**: `/Users/igeon-yeong/Downloads/Grace Project/`
+- **GitHub**: `shibakaito/resonance`
+- **현재 스택 (migrate/nextjs)**: **Next.js 14.2 (App Router) + React 18.3 + TypeScript + Tailwind v4(PostCSS) + shadcn UI**
+- **실행**: `npm run dev` (개발), `npm run build` (빌드), `npm start` (프로덕션)
+- **백엔드 없음**: 매물은 `buildListings()`가 시드 기반으로 클라이언트 생성 (CATALOG 비어있음 + DUMMY_CATALOG 120개)
+
+---
+
+## 2. Next.js 이전 현황 (이번 세션 핵심 작업)
+
+"클라이언트 우선 → 점진적 SSR" 전략으로 Vite SPA를 Next.js App Router로 이전 완료 (Phase 0~3-6).
+
+### 라우트 구조 (루트 `app/`)
+| 경로 | 파일 | 비고 |
+|---|---|---|
+| `/` | `app/page.tsx` | HomePage 렌더 (client) |
+| `/browse/[[...slug]]` | `app/browse/[[...slug]]/page.tsx` | 옵셔널 캐치올. `/browse`, `/browse/amps`, `/browse/amps/preamp` |
+| `/listing/[id]` | `app/listing/[id]/page.tsx` | PDP. **react-slick은 `next/dynamic(ssr:false)`** |
+| `/sell` | `app/sell/page.tsx` | 판매 검색 → 선택 시 URL 쿼리로 데이터 전달 |
+| `/sell/upload` | `app/sell/upload/page.tsx` | 쿼리 읽어 UploadPage initialData로 (useSearchParams + Suspense) |
+| (공통) | `app/layout.tsx` | 루트 레이아웃 + `SiteHeader`(메가메뉴) + `SiteFooter` |
+
+### 핵심 기술 노트
+- **'use client'**: 상호작용 컴포넌트(site-header, browse-page, filter-*, listing-grid, listing-detail, home-page, upload-page, listing-search-page)에 부여.
+- **browse-filters.ts**: 순수 로직/데이터/타입 → directive 없이 유지 (향후 SSR 재사용 목적).
+- **react-slick (PDP 캐러셀)**: `next/dynamic`은 ref 전달 제약이 있어, **PDP 전체(ListingDetail)를 `dynamic(ssr:false)`로 로드**하고 react-slick은 그 안에서 정적 import → sliderRef(썸네일 이동) 정상 작동.
+- **Tailwind v4**: Vite 플러그인 → `@tailwindcss/postcss`(postcss.config.mjs). `src/styles/tailwind.css`의 `@source`에 루트 `app/` 추가됨.
+- **라우팅 변환**: react-router `useNavigate/useLocation` → Next `useRouter/usePathname/useParams`. 슬러그 변환은 `category-slugs.ts`의 `categoryFromSlug`/`categorySlug` 그대로 사용.
+- **tsconfig**: exclude는 `node_modules`만 (모든 소스 타입검사). React 18 고정(react-slick/react-dnd 호환).
+- 검증: `next build` 통과, 6개 라우트 모두 200 (dev 확인).
+
+### 파일 구조
 ```
-/                    → 홈
-/browse              → 전체 매물
-/browse/:cat         → 카테고리 (예: /browse/turntable)
-/browse/:cat/:sub    → 서브 (예: /browse/turntable/mm-cartridge)
-/listing/:id         → PDP (현재 /listing/1 하드코딩)
-/sell, /sell/upload  → 판매 흐름
+app/                        ← Next 라우트 (신규)
+  layout.tsx, page.tsx
+  browse/[[...slug]]/page.tsx
+  listing/[id]/page.tsx
+  sell/page.tsx, sell/upload/page.tsx
+src/app/components/         ← 화면 컴포넌트 (기존, 위치 유지)
+  site-header.tsx, site-footer.tsx   (레이아웃, 신규 분리)
+  home-page.tsx, listing-detail.tsx
+  browse-page.tsx + browse-filters.ts + filter-controls.tsx + filter-modal.tsx + listing-grid.tsx
+  listing-search-page.tsx, upload-page.tsx
+  ui/                       ← shadcn 컴포넌트
+src/app/data/              ← catalog / category-slugs / category-meta / cable-terminals / dummy-catalog
+src/styles/                ← index.css → fonts/tailwind/theme.css
+next.config.mjs, tsconfig.json, postcss.config.mjs
+(삭제됨: src/app/App.tsx, src/main.tsx, vite.config.ts, index.html)
 ```
 
-한글 카테고리 → 영문 슬러그 (`category-slugs.ts`):
-- 앰프 → `amps` / 스피커 → `speakers` / 소스기기 → `sources`
-- 액세서리 → `accessories` / 턴테이블 → `turntable` / 케이블 → `cables`
+---
 
-## 5. 헤더 메가 메뉴 (Shop by Category)
-- "Shop by Category" 알약 버튼 (로고 옆) — **클릭으로** 열림 (호버 X)
-- 사이드바(좌 256px) + 디테일(우) 구조 — Perfect Circuit 스타일
-- 박스 크기 **고정**: `w-[1120px] h-[680px]`
-- 백드롭: `fixed inset-0 bg-black/20 backdrop-blur-sm`
-- 사이드바 호버 시 우측 디테일 전환 (메가 메뉴 안에서)
-- 내부 스크롤 없음, 배경 스크롤 잠금 없음 (해제 완료)
-- 그룹 헤더 `text-[#000000]`, 항목 `text-[#000000]`, hover `opacity-60`
+## 3. 현재 카테고리 구조 (4개 최상위 — 이번에 축소됨)
+```
+앰프      ─ 프리/파워/인티/포노 스테이지/헤드폰/네트워크/리시버/AV 리시버 (8)
+스피커    ─ 북쉘프/플로어 스탠딩/톨보이/센터/사운드바/서브우퍼 (6)
+소스기기  ─ 턴테이블/카세트/오픈릴/CD/CD트랜스포트/SACD/DAC/네트워크플레이어/블루투스/FM/AM-FM/LD/DVD/블루레이 (14)
+케이블    ─ RCA/XLR/스피커/파워/디지털동축/광/USB/AES-EBU/BNC/HDMI/포노/점퍼/헤드폰/이어폰 (14)
+```
+- **삭제됨(백업 있음)**: 액세서리(대분류), 턴테이블(대분류), 앰프 ETC, 스피커 ETC → `backup/categories-removed-2026-05-20.md`
+- 카테고리 정의: `src/app/data/catalog.ts`의 `CATEGORY_TREE`. 수정 시 category-slugs.ts·category-meta.ts도 함께 점검.
 
-## 6. 케이블 필터 시스템 (특별히 정교한 부분)
-`cable-terminals.ts`
-- `CABLE_TERMINALS`: 14개 케이블 카테고리별 가용 단자 풀
-- `pickTerminalPair(category, seed)`: 매물별 입력/출력 단자 결정 (9개 분기)
-  - 이어폰 케이블: PLAYER → IEM (분리)
-  - 헤드폰 케이블: PLAYER → CUP (분리)
-  - USB 케이블: HOST → DEVICE (USB-C 양쪽 풀)
-  - 파워 케이블: 콘센트 → IEC
-  - 포노: DIN-DIN 금지 (60% DIN→RCA, 40% RCA-RCA)
-  - 점퍼: 100% 양쪽 동일
-  - HDMI: 94% HDMI-HDMI
-  - 광: Mini-Mini 금지
-  - 그 외: 75% 양쪽 동일
+---
 
-`browse-page.tsx`의 필터:
-- 입력/출력 단자 (각각 별도 드롭다운, 카테고리별 우선순위 정렬)
-- 도체 8종 (`일반 구리 / OFC / OCC / UP-OCC / 은도금 구리 / 순은 / 하이브리드 / 기타`)
-- 도금 5종 (`금도금 / 로듐 도금 / 은도금 / 니켈 도금 / 무도금`)
-- 차폐, 페어, 방향성, 길이 등
+## 4. 디자인/기능 메모
+- 모노톤 디자인 (#000000 / #FFFFFF / #F7F7F7 / #E0E0E0)
+- 메가 메뉴: Apple 스타일 풀폭 슬라이드 (열림 `mega-unroll` / 닫힘 `mega-roll-up`, theme.css), 좌 대분류 + 중앙 BY TYPE + 우 KEF식 이미지
+- browse 좌측 필터: 아코디언(FilterSection) + 범위입력(RangeSection). 브랜드 5개씩 더보기, 프리앰프=정격출력/임피던스 숨김, 헤드폰앰프=지원임피던스(Ω) 범위
+- **숨은 기능 — 관리자(이미지 편집) 모드**: 홈에서 `Ctrl + Shift + A` 토글. 히어로 이미지 드래그/확대/밝기 조절, localStorage 저장. (`home-page.tsx` ~407줄)
+- 더미 매물 120개: `src/app/data/dummy-catalog.ts` (`INCLUDE_DUMMY=false`로 끄거나 파일 삭제로 제거)
 
-## 7. 현재 데이터 상태
-- **CATALOG 비어 있음** (436개 더미 매물 모두 삭제)
-- 모든 카테고리 페이지에서 "매물 없음" 표시
-- 필터 UI는 정상, 다만 매칭 결과 0건
+---
 
-원래 있던 매물은 git 이전 커밋이나 시드 함수로 복원 가능 (현재 별도 백업 없음).
+## 5. 다음 단계 / 배포 전 점검
 
-## 8. 백엔드 상태
-**없음**. 순수 프론트엔드 SPA.
-- 이미지 업로드: 더미 (sampleImages 순환만)
-- 사용자 인증: 없음
-- 결제: 없음
-- DB: 없음 (catalog.ts 정적 데이터)
+### 배포 (Vercel 권장) — 사용자가 직접 진행 예정
+- GitHub `shibakaito/resonance` 연결 → `migrate/nextjs` 프리뷰 배포로 먼저 확인.
+- 빌드 명령 `next build` 자동 감지. 환경변수 현재 불필요.
 
-실서비스로 만들려면 Supabase/Firebase 같은 BaaS 추천.
+### 배포 전 점검
+1. 이미지 404 확인 (매물 카드는 대부분 `no-image.png` 폴백, PDP만 실제 webp)
+2. `next.config.mjs`에 `eslint.ignoreDuringBuilds:true` 임시 설정됨 → `next lint` 한 번 정리 권장
+3. 메타데이터: 전 페이지 동일 title("Resonance") → 카테고리/상세에 `generateMetadata` 추가 권장(점진적 SSR)
+4. 모바일 반응형(메가메뉴/PDP) 확인
+5. `Ctrl+Shift+A` 관리자 단축키가 브라우저 단축키와 겹치는지 확인
 
-## 9. 빌드 결과
-- 번들 JS: ~436 KB (gzipped ~125 KB)
-- React Router 도입 후 ~40 KB 증가했었음
-- 1,650+ modules transformed
+### 향후 후보
+- 백엔드(Supabase) + 실제 매물 데이터 → `/listing/[id]` 실제 id 라우팅
+- 이미지 업로드 기능
+- 카테고리별 SEO 메타 (SSR 전환)
 
-## 10. 진행 중인 작업 / 다음 단계 후보
-1. **백엔드 도입** — Supabase 추천 (Auth + DB + Storage 통합)
-2. **이미지 업로드** — `<input type="file">` + Storage presigned URL
-3. **카테고리별 더미 매물 생성** — Cabinet.ts CATALOG 채워넣기
-4. **부품/수리, 음반/미디어 재추가** (백업 파일 활용)
-5. **PDP에 실제 listing ID 라우팅** — 현재 `/listing/1` 하드코딩
-6. **검색 필터 쿼리 파라미터 URL 보존** — `/browse/cables?brand=...&min=...`
-7. **`browse-page.tsx` 2,295줄 분리 리팩토링** — 너무 비대함
+---
 
-## 11. 최근 작업 이력
-1. ✅ 케이블 입력/출력 단자 분리 + 카테고리별 단자 매핑
-2. ✅ 도체·도금 옵션 정비, NOS 등급 추가
-3. ✅ 턴테이블 액세서리 신설 → 턴테이블로 이름 변경 + 그룹 재구조화
-4. ✅ Perfect Circuit 스타일 메가 메뉴 (사이드바 + 디테일)
-5. ✅ React Router 도입, URL 라우팅, 슬러그 매핑, SEO 메타
-6. ✅ 다중 카테고리 등록 (CROSS_LISTING), 라우팅 재매핑
-7. ✅ 부품/수리·음반/미디어 일시 제거 (백업 있음)
-8. ✅ 오렌지 → 모노톤(블랙·#F7F7F7·#E0E0E0) 전체 교체
-9. ✅ 메가 메뉴 박스 크기 고정 (1120×680px), 스크롤 락 해제
-10. ✅ CATALOG 더미 매물 전부 삭제 (방금)
-
-## 12. 새 세션 시작 시
-1. `cat HANDOVER.md` 또는 파일 첨부로 컨텍스트 복원
-2. 작업 디렉토리: `/Users/igeon-yeong/Downloads/Grace Project`
-3. 메모리에 자동 로드되는 정보: 한국어 사용자, 코딩 초보, 한국어 맞춤법 검토 필요
-4. 빌드 검증 명령: `cd "/Users/igeon-yeong/Downloads/Grace Project" && npm run build`
-5. 백업 디렉토리: `backup/parts-media-2026-05-18.md`
-
-## 13. 작업 시 주의
-- 큰 파일(browse-page.tsx) 편집 전 항상 `Read`로 정확한 위치 확인
-- 카테고리·sub 이름 변경 시 **3~4곳 동시 수정 필수**:
-  - `catalog.ts` CATEGORY_TREE
-  - `browse-page.tsx` (GROUPS 상수, isXxx 플래그)
-  - `App.tsx` (MEGA_CATS, catGroups, 라우팅 재매핑)
-  - `category-slugs.ts` SUB_SLUGS
-  - (해당되면) `category-meta.ts`, `cable-terminals.ts`
-- 한국어 표기 검토: 외래어 한 단어는 붙여서 (모노블록, 톨보이 등)
-- 색상 변경 시 5개 파일 일괄 sed 권장
+## 6. 안전장치 요약
+- 백업 폴더: `~/Downloads/Grace Project-backup-20260521` (node_modules 제외 전체 소스)
+- Vite 버전: 커밋 `37d157a` + `refactor/browse-page-split` 브랜치
+- 카테고리 삭제 백업: `backup/categories-removed-2026-05-20.md`
+- 작업은 브랜치에서, 단계마다 커밋. main 강제 push 등 파괴적 작업은 사용자 승인 후에만.
