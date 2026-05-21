@@ -8,6 +8,8 @@
 
 import type { Metadata } from 'next';
 import '@/styles/index.css';
+import { SiteHeader } from '@/app/components/site-header';
+import { SiteFooter } from '@/app/components/site-footer';
 
 export const metadata: Metadata = {
   title: 'Resonance',
@@ -21,7 +23,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <body>{children}</body>
+      <body>
+        {/* 모든 페이지 공통: 헤더(+메가메뉴) → 페이지 내용 → 푸터 */}
+        <div className="min-h-screen bg-white">
+          <SiteHeader />
+          {children}
+          <SiteFooter />
+        </div>
+      </body>
     </html>
   );
 }
