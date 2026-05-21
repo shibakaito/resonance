@@ -1,0 +1,1460 @@
+import { useState, useRef, useEffect } from 'react';
+import { BrowserRouter, useNavigate, useLocation } from 'react-router-dom';
+import Slider from 'react-slick';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
+import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
+import { UploadPage } from './components/upload-page';
+import { ListingSearchPage } from './components/listing-search-page';
+import { HomePage } from './components/home-page';
+import {
+  BrowsePage,
+  AMP_GROUPS,
+  SPEAKER_GROUPS
+} from './components/browse-page';
+import { subcategoriesFor } from './data/catalog';
+import { categorySlug, categoryFromSlug, validateSlugMapping } from './data/category-slugs';
+
+// 개발 모드에서 슬러그 매핑 누락 자가진단
+if (import.meta.env?.DEV) {
+  const { missing } = validateSlugMapping();
+  if (missing.length > 0) {
+    console.warn('[category-slugs] 슬러그가 정의되지 않은 sub:', missing);
+  }
+}
+
+type SellInitialData = {
+  title?: string;
+  brand?: string;
+  model?: string;
+  year?: string;
+  category?: string;
+};
+
+function AppInner() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const pathname = location.pathname;
+
+  // URL → page 상태 derive
+  // /             → home
+  // /browse[/:cat[/:sub]]  → browse
+  // /listing/:id  → pdp
+  // /sell         → sell-search
+  // /sell/upload  → sell-upload
+  type Page = 'home' | 'browse' | 'pdp' | 'sell-search' | 'sell-upload';
+  const page: Page =
+    pathname === '/' ? 'home' :
+    pathname.startsWith('/browse') ? 'browse' :
+    pathname.startsWith('/listing/') ? 'pdp' :
+    pathname === '/sell' ? 'sell-search' :
+    pathname.startsWith('/sell/upload') ? 'sell-upload' :
+    'home';
+
+  // /browse/:slugTop/:slugSub 에서 카테고리·서브 추출
+  const browseMatch = pathname.match(/^\/browse(?:\/([^/]+))?(?:\/([^/]+))?$/);
+  const browseCategory: string | null = browseMatch ? (categoryFromSlug(browseMatch[1])) : null;
+  const browseInitialSub: string | null = browseMatch ? (categoryFromSlug(browseMatch[2])) : null;
+
+  // 네비게이션 헬퍼들 — 기존 setPage 호출처에서 그대로 쓸 수 있도록
+  const setPage = (p: Page) => {
+    if (p === 'home') navigate('/');
+    else if (p === 'browse') navigate('/browse');
+    else if (p === 'pdp') navigate('/listing/1');
+    else if (p === 'sell-search') navigate('/sell');
+    else if (p === 'sell-upload') navigate('/sell/upload');
+  };
+  // 카테고리/서브를 한번에 URL에 반영 (둘을 따로 호출하면 두 번 navigate 발생하므로)
+  const goBrowse = (cat: string | null, sub: string | null = null) => {
+    const top = categorySlug(cat);
+    const subSlug = categorySlug(sub);
+    if (top && subSlug) navigate(`/browse/${top}/${subSlug}`);
+    else if (top) navigate(`/browse/${top}`);
+    else navigate('/browse');
+  };
+  // 단일 호출 호환용 (기존 코드 패턴 유지)
+  const setBrowseCategory = (cat: string | null) => goBrowse(cat, null);
+  const setBrowseInitialSub = (sub: string | null) => goBrowse(browseCategory, sub);
+
+  const [megaOpen, setMegaOpen] = useState(false);
+  const [megaClosing, setMegaClosing] = useState(false); // 접히는 애니메이션 재생 중
+  const MEGA_CATS = ['앰프', '스피커', '소스기기', '케이블'] as const;
+  // 메가 메뉴 우측 이미지 (KEF 스타일) — 카테고리별 대표 이미지. 필요 시 교체하세요.
+  const MEGA_IMAGES: Record<string, string> = {
+    '앰프': '/images/2c6f7c1fc6fb6.jpg',
+    '스피커': '/images/bw-speakers-hero-new.jpg',
+    '소스기기': '/images/f4362b6cdce17.jpg',
+    '케이블': '/images/d4ba8a07c2a69.jpg'
+  };
+  // 메가 메뉴 우측 이미지 아래 짧은 설명
+  const MEGA_DESC: Record<string, string> = {
+    '앰프': '프리·파워·인티앰프부터 포노 스테이지, 헤드폰 앰프, 리시버까지 신호 증폭 기기 매물.',
+    '스피커': '북쉘프, 플로어 스탠딩, 톨보이, 센터, 사운드바, 서브우퍼 등 다양한 스피커 매물.',
+    '소스기기': '턴테이블, CD·SACD 플레이어, DAC, 네트워크 플레이어, 튜너 등 소스 컴포넌트.',
+    '케이블': 'RCA·XLR 인터커넥트, 스피커·파워 케이블, 디지털·USB·HDMI 케이블 등.'
+  };
+  const [hoverCat, setHoverCat] = useState<string | null>(MEGA_CATS[0]);
+
+  // 메가 메뉴 닫기: 접히는 모션 재생 후 언마운트 (CSS .mega-roll-up 360ms와 동기화)
+  const closeMega = () => {
+    setMegaClosing(true);
+    window.setTimeout(() => {
+      setMegaOpen(false);
+      setMegaClosing(false);
+    }, 360);
+  };
+
+  // 카테고리별 그룹 매핑 (Perfect Circuit 스타일의 우측 디테일 영역에서 사용)
+  const catGroups = (cat: string): { title: string; items: string[] }[] | null => {
+    if (cat === '앰프') return AMP_GROUPS;
+    if (cat === '스피커') return SPEAKER_GROUPS;
+    return null; // 소스기기·케이블 등은 BY TYPE 평면 표시
+  };
+  const [sellInitial, setSellInitial] = useState<SellInitialData>({});
+  const [mainImage, setMainImage] = useState(0);
+  const [reviewTab, setReviewTab] = useState<'all' | 'seller' | 'buyer'>('all');
+  const [reviewSort, setReviewSort] = useState<'latest' | 'rating-high' | 'rating-low'>('latest');
+  const [reviewPage, setReviewPage] = useState(1);
+  const [likedSimilar, setLikedSimilar] = useState<Set<number>>(new Set());
+  const [mainLiked, setMainLiked] = useState(false);
+  const mainLikeCount = 15 + (mainLiked ? 1 : 0);
+
+  const toggleSimilarLike = (idx: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setLikedSimilar(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
+
+  const allReviews = [
+    { id: 1, name: '최태원', rating: 5, daysAgo: 3, type: 'seller', text: '최고의 판매자입니다! 기타가 설명 그대로 도착했고 포장도 매우 꼼꼼했습니다. 빠른 배송과 친절한 소통이 인상적이었습니다.', product: '1965 펜더 텔레캐스터' },
+    { id: 2, name: '한지민', rating: 5, daysAgo: 7, type: 'buyer', text: '정말 좋은 경험이었어요! 기타 상태가 기대 이상이었습니다. 판매자가 질문에 친절하게 답변해 주셨고 배송도 매우 빨랐어요.', product: '1964 깁슨 레스폴' },
+    { id: 3, name: '정승우', rating: 4, daysAgo: 14, type: 'seller', text: '전반적으로 좋은 판매자예요. 작은 마감 이슈가 있었지만 판매자가 부분 환불을 제안해주셨어요. 합리적인 대응이었습니다.', product: '1962 펜더 재즈마스터' },
+    { id: 4, name: '김도윤', rating: 5, daysAgo: 21, type: 'buyer', text: '제품 상태가 사진과 동일했고, 사운드도 만족스럽습니다. 다음에도 이용하고 싶은 판매자입니다.', product: 'McIntosh MA252' },
+    { id: 5, name: '이서연', rating: 5, daysAgo: 30, type: 'seller', text: '응대가 정말 빠르고 친절했습니다. 포장 상태도 완벽했어요.', product: 'Marantz PM-15' },
+    { id: 6, name: '박민준', rating: 3, daysAgo: 35, type: 'buyer', text: '제품은 괜찮은데 배송이 예상보다 늦었습니다. 그래도 결과적으로 만족합니다.', product: 'Yamaha A-S2200' },
+    { id: 7, name: '강수진', rating: 5, daysAgo: 45, type: 'seller', text: '믿고 거래할 수 있는 판매자입니다. 추천합니다!', product: 'Luxman L-507' },
+    { id: 8, name: '오현우', rating: 5, daysAgo: 60, type: 'buyer', text: '오랜만에 만족스러운 거래였습니다. 상태 좋은 빈티지 앰프 구매했어요.', product: 'McIntosh MC275' },
+    { id: 9, name: '윤지원', rating: 2, daysAgo: 75, type: 'seller', text: '응대가 다소 늦었고 일부 설명과 다른 부분이 있었습니다.', product: 'Accuphase E-280' },
+    { id: 10, name: '신예린', rating: 5, daysAgo: 90, type: 'buyer', text: '아주 만족합니다. 다음에도 거래하고 싶어요.', product: 'Esoteric K-05XD' },
+    { id: 11, name: '조민혁', rating: 4, daysAgo: 100, type: 'seller', text: '전체적으로 만족합니다. 약간의 흠집은 있었지만 가격 대비 좋은 거래였습니다.', product: 'Bryston 4B³' },
+    { id: 12, name: '홍지수', rating: 5, daysAgo: 120, type: 'buyer', text: '신속하고 정확한 거래였습니다. 또 이용하겠습니다.', product: 'Naim Supernait 3' },
+    { id: 13, name: '문가영', rating: 5, daysAgo: 150, type: 'seller', text: '판매자분이 정말 친절하셨어요. 제품 컨디션도 좋았습니다.', product: 'Pass Labs INT-25' },
+    { id: 14, name: '서태민', rating: 4, daysAgo: 180, type: 'buyer', text: '좋은 거래였습니다. 약간 더 빨랐으면 하는 아쉬움은 있어요.', product: 'McIntosh C2700' }
+  ];
+
+  const reviewsToShow = (() => {
+    let filtered = allReviews;
+    if (reviewTab !== 'all') {
+      filtered = filtered.filter(r => r.type === reviewTab);
+    }
+    const sorted = [...filtered].sort((a, b) => {
+      if (reviewSort === 'latest') return a.daysAgo - b.daysAgo;
+      if (reviewSort === 'rating-high') return b.rating - a.rating;
+      return a.rating - b.rating;
+    });
+    return sorted;
+  })();
+
+  const reviewsPerPage = 5;
+  const totalPages = Math.max(1, Math.ceil(reviewsToShow.length / reviewsPerPage));
+  const currentPage = Math.min(reviewPage, totalPages);
+  const paginatedReviews = reviewsToShow.slice(
+    (currentPage - 1) * reviewsPerPage,
+    currentPage * reviewsPerPage
+  );
+
+  const formatDaysAgo = (days: number) => {
+    if (days < 7) return `${days}일 전`;
+    if (days < 30) return `${Math.floor(days / 7)}주 전`;
+    if (days < 365) return `${Math.floor(days / 30)}개월 전`;
+    return `${Math.floor(days / 365)}년 전`;
+  };
+
+  const sellerCount = allReviews.filter(r => r.type === 'seller').length;
+  const buyerCount = allReviews.filter(r => r.type === 'buyer').length;
+  const [priceHistoryOpen, setPriceHistoryOpen] = useState(false);
+  const [specsExpanded, setSpecsExpanded] = useState(false);
+  const [techSpecsExpanded, setTechSpecsExpanded] = useState(false);
+  const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [sellerReviewsOpen, setSellerReviewsOpen] = useState(false);
+  const [sellerDescExpanded, setSellerDescExpanded] = useState(false);
+  const [sellerSaved, setSellerSaved] = useState(false);
+  const [isStuck, setIsStuck] = useState(false);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const sliderRef = useRef<Slider>(null);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const thumbnailsRef = useRef<HTMLDivElement>(null);
+
+  const handleZoomMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!imageContainerRef.current) return;
+    const rect = imageContainerRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPos({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y))
+    });
+  };
+
+  const scrollThumbnails = (direction: 'up' | 'down') => {
+    if (!thumbnailsRef.current) return;
+    const amount = direction === 'up' ? -160 : 160;
+    thumbnailsRef.current.scrollBy({ top: amount, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (page !== 'pdp') {
+      setIsStuck(false);
+      return;
+    }
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsStuck(!entry.isIntersecting),
+      { rootMargin: '-80px 0px 0px 0px', threshold: [0] }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [page]);
+
+  const images = [
+    '/images/W8DNioOHTlZPyOR5Psp3u91wnETrB0lGMmWcB345Zyc.webp',
+    '/images/L2GaN7JtEwGJJMDjMbVbY8W_mgW_07tpAaCsJVqtECw.webp',
+    '/images/QeFrSn6TLNpreBs1OEI878geRwvhIgKTuPzZgXQZwo8.webp',
+    '/images/OZCT7NCWvb7WhYYiYL72mrF3nLoe-E5pDmMg1LPA3-Q.webp',
+    '/images/YydU-ggEdviNYlDbBOoJkkoeNzgL6-njfcnhlLRdHJQ.webp',
+    '/images/FnRLHKpqlkyyp0HXNkY9Tz_2VhBHpV9apaqGUilI0fc.webp',
+    '/images/Kbdf7NzJTFWIMj0Y90o9dwXjweZ_wzflnZLB0B6JmR8.webp',
+    '/images/ELxkL-3wNlVzD4mMuwsld7Whbr0GKQO-2RT8C6ymLhs.webp'
+  ];
+
+  const PrevArrow = ({ onClick }: { onClick?: () => void }) => (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+      aria-label="이전 사진"
+      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg active:scale-90 active:bg-[#e0e0e0] active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+    >
+      <ChevronLeft className="w-5 h-5 text-gray-700" />
+    </button>
+  );
+
+  const NextArrow = ({ onClick }: { onClick?: () => void }) => (
+    <button
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
+      aria-label="다음 사진"
+      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg active:scale-90 active:bg-[#e0e0e0] active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+    >
+      <ChevronRight className="w-5 h-5 text-gray-700" />
+    </button>
+  );
+
+  const sliderSettings = {
+    dots: false,
+    arrows: true,
+    infinite: true,
+    speed: 0,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    draggable: false,
+    swipe: false,
+    touchMove: false,
+    beforeChange: (current: number, next: number) => setMainImage(next),
+    prevArrow: <PrevArrow />,
+    nextArrow: <NextArrow />
+  };
+
+  return (
+    <div className="min-h-screen bg-white">
+      <header className="border-b border-[#e0e0e0] bg-white sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <button onClick={() => setPage('home')} className="text-2xl font-bold text-[#000000]">Resonance</button>
+
+              {/* Shop by Category 버튼 + 드롭다운 패널 (클릭으로 열림) */}
+              <div>
+                <button
+                  onClick={() => (megaOpen && !megaClosing ? closeMega() : setMegaOpen(true))}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition ${
+                    megaOpen && !megaClosing
+                      ? 'border-[#000000] bg-[#000000] text-white'
+                      : 'border-[#e0e0e0] bg-white text-gray-800 hover:border-gray-400'
+                  }`}
+                >
+                  <span>Shop by Category</span>
+                  <ChevronDown className={`w-4 h-4 transition ${megaOpen && !megaClosing ? 'rotate-180' : ''}`} />
+                </button>
+
+                {/* 드롭다운 패널 + 백드롭 (Apple MacBook Air 스타일 블러 오버레이) */}
+                {(megaOpen || megaClosing) && (
+                  <>
+                    {/* 래퍼: 헤더 바로 아래에서 시작 (패널 + 블러를 함께 담아 같이 내려감) */}
+                    <div className="absolute left-0 right-0 top-full z-40">
+                    {/* 패널: Apple 스토어 스타일 슬라이드 (열림=펼침 / 닫힘=말려 올라감) */}
+                    <div className={`${megaClosing ? 'mega-roll-up' : 'mega-unroll'} bg-white border-t border-[#e0e0e0] shadow-xl`}>
+                    {/* 내부 콘텐츠는 가운데 정렬 (좌측 대분류 + 우측 하위 구조 유지) */}
+                    <div className="max-w-7xl mx-auto px-4 flex h-[560px] overflow-hidden">
+                    {/* 좌측 사이드바: 카테고리 리스트 */}
+                    <div className="w-64 flex-shrink-0 border-r border-[#e0e0e0] py-4">
+                {MEGA_CATS.map((cat) => {
+                  const isActive = hoverCat === cat;
+                  return (
+                    <button
+                      key={cat}
+                      onMouseEnter={() => setHoverCat(cat)}
+                      onClick={() => {
+                        goBrowse(cat);
+                        setMegaOpen(false);
+                      }}
+                      className={`flex items-center justify-between w-full text-left px-6 py-3 text-sm transition ${
+                        isActive
+                          ? 'font-bold text-[#000000]'
+                          : 'font-medium text-[#000000] hover:bg-[#f7f7f7]'
+                      }`}
+                    >
+                      <span>{cat}</span>
+                      <ChevronRight
+                        className={`w-4 h-4 text-[#000000] transition-opacity ${
+                          isActive ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 우측 디테일: 선택된 카테고리의 서브 항목 (그룹별) */}
+              <div className="flex-1 px-8 py-6 overflow-y-auto">
+                {hoverCat && (
+                  <>
+                    <div className="flex items-center gap-3 mb-5 pb-3 border-b border-[#e0e0e0]">
+                      <h3 className="text-xl font-bold text-[#000000]">{hoverCat}</h3>
+                      <button
+                        onClick={() => {
+                          goBrowse(hoverCat);
+                          setMegaOpen(false);
+                        }}
+                        className="flex items-center gap-1 px-3 py-1 rounded bg-[#f7f7f7] hover:bg-[#e0e0e0] text-xs font-medium text-gray-700"
+                      >
+                        Shop All <ChevronRight className="w-3 h-3" />
+                      </button>
+                    </div>
+                    {(() => {
+                      const groups = catGroups(hoverCat);
+                      if (groups) {
+                        return (
+                          <div className="space-y-5">
+                            {groups.map((g) => (
+                              <div key={g.title}>
+                                <h4 className="text-sm font-bold text-[#000000] uppercase tracking-wider mb-2">{g.title}</h4>
+                                <ul className="grid grid-cols-3 gap-x-6 gap-y-1.5">
+                                  {g.items.map((sub) => (
+                                    <li key={sub}>
+                                      <button
+                                        onClick={() => {
+                                          goBrowse(hoverCat, sub);
+                                          setMegaOpen(false);
+                                        }}
+                                        className="text-xs text-[#000000] hover:opacity-60 transition text-left"
+                                      >
+                                        {sub}
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ))}
+                          </div>
+                        );
+                      }
+                      // 그룹이 없는 카테고리(앰프/스피커/케이블): BY TYPE 그룹 헤더 + 3컬럼 그리드
+                      return (
+                        <div>
+                          <h4 className="text-sm font-bold text-[#000000] uppercase tracking-wider mb-2">BY TYPE</h4>
+                          <ul className="grid grid-cols-3 gap-x-6 gap-y-1.5">
+                            {subcategoriesFor(hoverCat).map((sub) => (
+                              <li key={sub}>
+                                <button
+                                  onClick={() => {
+                                    goBrowse(hoverCat, sub);
+                                    setMegaOpen(false);
+                                  }}
+                                  className="text-xs text-[#000000] hover:opacity-60 transition text-left"
+                                >
+                                  {sub}
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      );
+                    })()}
+                  </>
+                )}
+                    </div>
+
+                    {/* 우측 이미지 (KEF 스타일): 선택된 카테고리 대표 이미지 + 하단 설명 */}
+                    {hoverCat && (
+                      <div className="hidden lg:block w-[340px] flex-shrink-0 p-6">
+                        <button
+                          key={hoverCat}
+                          onClick={() => {
+                            goBrowse(hoverCat);
+                            setMegaOpen(false);
+                          }}
+                          className="group block w-full text-left animate-in fade-in duration-300"
+                        >
+                          <div className="w-full aspect-square overflow-hidden bg-[#f7f7f7]">
+                            <img
+                              src={MEGA_IMAGES[hoverCat] ?? '/images/no-image.png'}
+                              alt={hoverCat}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                              onError={(e) => {
+                                (e.currentTarget as HTMLImageElement).src = '/images/no-image.png';
+                              }}
+                            />
+                          </div>
+                          <div className="mt-3">
+                            <p className="text-xs text-gray-500 leading-relaxed group-hover:text-[#000000] transition-colors">
+                              {MEGA_DESC[hoverCat] ?? ''}
+                            </p>
+                          </div>
+                        </button>
+                      </div>
+                    )}
+                    </div>
+                    </div>
+                    {/* 백드롭: 패널 바로 아래에 붙어 슬라이드에 맞춰 함께 내려감/올라감 */}
+                    <div
+                      className={`h-screen bg-black/20 backdrop-blur-sm ${
+                        megaClosing
+                          ? 'animate-out fade-out-0 fill-mode-forwards duration-300'
+                          : 'animate-in fade-in-0 duration-500'
+                      }`}
+                      onClick={closeMega}
+                    />
+                  </div>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <nav className="flex gap-6 items-center">
+              <button onClick={() => setPage('home')} className={`hover:text-[#000000] transition ${page === 'home' ? 'text-[#000000] font-semibold' : 'text-gray-700'}`}>홈</button>
+              <button
+                onClick={() => {
+                  setSellInitial({});
+                  setPage('sell-search');
+                }}
+                className={`hover:text-[#000000] transition ${page === 'sell-search' || page === 'sell-upload' ? 'text-[#000000] font-semibold' : 'text-gray-700'}`}
+              >
+                판매
+              </button>
+              <a href="#" className="text-gray-700 hover:text-[#000000]">장바구니</a>
+            </nav>
+          </div>
+        </div>
+      </header>
+
+      {page === 'home' ? (
+        <HomePage
+          onViewItem={() => setPage('pdp')}
+          onBrowse={(cat) => goBrowse(cat)}
+          onSell={(data) => {
+            if (data) {
+              setSellInitial(data);
+              setPage('sell-upload');
+            } else {
+              setSellInitial({});
+              setPage('sell-search');
+            }
+          }}
+        />
+      ) : page === 'browse' ? (
+        <BrowsePage onSelect={() => setPage('pdp')} category={browseCategory} initialSubCategory={browseInitialSub} />
+      ) : page === 'sell-search' ? (
+        <ListingSearchPage
+          onSelect={(data) => {
+            setSellInitial(data);
+            setPage('sell-upload');
+          }}
+        />
+      ) : page === 'sell-upload' ? (
+        <UploadPage initialData={sellInitial} />
+      ) : (
+      <main className="max-w-7xl mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-7 space-y-12 pt-6">
+            <div className="flex gap-3 relative">
+              <div className="relative group/thumbs flex-shrink-0">
+                <button
+                  onClick={() => scrollThumbnails('up')}
+                  aria-label="썸네일 위로"
+                  className="absolute top-0 left-0 right-0 z-10 h-7 bg-white/90 hover:bg-white shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
+                >
+                  <ChevronUp className="w-4 h-4 text-gray-700" />
+                </button>
+
+                <div
+                  ref={thumbnailsRef}
+                  className="flex flex-col gap-2 max-h-[480px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+                >
+                  {images.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onMouseEnter={() => {
+                        setIsZooming(false);
+                        sliderRef.current?.slickGoTo(idx, true);
+                      }}
+                      onClick={() => {
+                        setIsZooming(false);
+                        sliderRef.current?.slickGoTo(idx, true);
+                      }}
+                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
+                        mainImage === idx ? 'border-[#000000]' : 'border-[#e0e0e0]'
+                      }`}
+                    >
+                      <img src={img} alt={`썸네일 ${idx + 1}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => scrollThumbnails('down')}
+                  aria-label="썸네일 아래로"
+                  className="absolute bottom-0 left-0 right-0 z-10 h-7 bg-white/90 hover:bg-white shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
+                >
+                  <ChevronDown className="w-4 h-4 text-gray-700" />
+                </button>
+              </div>
+
+              <div
+                ref={imageContainerRef}
+                onClick={() => setIsZooming(prev => !prev)}
+                onMouseMove={handleZoomMouseMove}
+                className={`group relative bg-[#f7f7f7] rounded-lg overflow-hidden flex-1 aspect-[4/3] ${isZooming ? 'cursor-zoom-out' : 'cursor-zoom-in'} [&_.slick-slider]:h-full [&_.slick-list]:h-full [&_.slick-track]:h-full [&_.slick-slide>div]:h-full [&_.slick-slide]:!block`}
+              >
+                <Slider {...sliderSettings} ref={sliderRef}>
+                  {images.map((img, idx) => (
+                    <div key={idx} className="h-full">
+                      <img
+                        src={img}
+                        alt={`제품 사진 ${idx + 1}`}
+                        className="w-full h-full object-cover block"
+                        style={
+                          isZooming && idx === mainImage
+                            ? {
+                                transform: 'scale(2.5)',
+                                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`
+                              }
+                            : undefined
+                        }
+                      />
+                    </div>
+                  ))}
+                </Slider>
+
+                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-red-500 text-white text-xs font-semibold rounded-full pointer-events-none">
+                  3명의 장바구니에 담음
+                </div>
+
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMainLiked((v) => !v);
+                  }}
+                  aria-label="좋아요"
+                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e0e0e0] hover:border-gray-400 shadow-sm rounded-full active:scale-95 transition"
+                >
+                  <span className="text-sm font-semibold text-gray-700">{mainLikeCount}</span>
+                  <Heart
+                    className={`w-4 h-4 ${
+                      mainLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            <div className="relative group/carousel">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-lg font-bold">비슷한 제품</h3>
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <span>광고</span>
+                  <Info className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div
+                id="similar-carousel"
+                className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              >
+                {[
+                  { title: 'McIntosh MC275', price: '32,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
+                  { title: 'McIntosh MC312', price: '45,000,000원', img: '/images/4d097765a9285.jpg', condition: '새상품' },
+                  { title: 'McIntosh MA252', price: '38,200,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
+                  { title: 'McIntosh MC462', price: '60,500,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
+                  { title: 'McIntosh C2700', price: '42,800,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
+                  { title: 'McIntosh MA8950', price: '55,700,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 매우 좋음' },
+                  { title: 'McIntosh MC152 (블랙)', price: '24,900,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
+                  { title: 'McIntosh MA9000', price: '78,000,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' }
+                ].map((item, idx) => {
+                  const isNew = item.condition === '새상품';
+                  return (
+                    <div
+                      key={idx}
+                      className="flex-shrink-0 w-[170px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-[#e0e0e0] relative"
+                    >
+                      <button
+                        onClick={(e) => toggleSimilarLike(idx, e)}
+                        aria-label="좋아요"
+                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center active:scale-90 transition"
+                      >
+                        <Heart
+                          className={`w-4 h-4 ${
+                            likedSimilar.has(idx)
+                              ? 'fill-red-500 text-red-500'
+                              : 'text-gray-700'
+                          }`}
+                        />
+                      </button>
+                      <div className="aspect-square bg-[#f7f7f7]">
+                        <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="p-3">
+                        <h4 className="text-sm font-semibold truncate">{item.title}</h4>
+                        <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
+                        <p className="text-base font-bold text-[#000000] mt-1">{item.price}</p>
+                        {isNew && (
+                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-700">
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>무료 배송</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: -400, behavior: 'smooth' })}
+                aria-label="이전"
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
+              >
+                <ChevronLeft className="w-5 h-5 text-gray-700" />
+              </button>
+              <button
+                onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: 400, behavior: 'smooth' })}
+                aria-label="다음"
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
+              >
+                <ChevronRight className="w-5 h-5 text-gray-700" />
+              </button>
+            </div>
+
+            <div className="border border-[#e0e0e0] rounded-lg p-6">
+              <h3 className="text-2xl font-bold mb-6">
+                이 제품은 <span className="text-green-600">합리적인 가격</span>이에요
+              </h3>
+
+              <div className="flex items-start gap-6">
+                <div className="flex-shrink-0">
+                  <p className="text-gray-700 leading-relaxed">
+                    현재 평균 시장 가격대<br />
+                    안에 있어요
+                  </p>
+                  <Info className="w-5 h-5 mt-3 text-gray-500" />
+                </div>
+
+                <div className="flex-1 mt-2 relative pt-14">
+                  <div
+                    className="absolute top-0 -translate-x-1/2 px-4 py-1.5 bg-white border border-[#e0e0e0] rounded-full shadow-sm text-base font-bold whitespace-nowrap"
+                    style={{ left: '53.5%' }}
+                  >
+                    25,900,000원
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-white border-r border-b border-[#e0e0e0] rotate-45"></div>
+                  </div>
+
+                  <div className="relative">
+                    <div className="flex h-1.5 gap-0.5">
+                      <div className="flex-1 bg-purple-400 rounded-l-full"></div>
+                      <div className="flex-[2] bg-green-500"></div>
+                      <div className="flex-1 bg-gray-700 rounded-r-full"></div>
+                    </div>
+                    <div
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-green-500 rounded-full shadow-md flex items-center justify-center"
+                      style={{ left: '53.5%' }}
+                    >
+                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between text-sm text-gray-500 mt-3 px-[12.5%]">
+                    <span>23,100,000원</span>
+                    <span>28,000,000원</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-[#e0e0e0] mt-6 pt-4">
+                <button
+                  onClick={() => setPriceHistoryOpen(!priceHistoryOpen)}
+                  className="w-full flex items-center justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <h4 className="text-lg font-bold">가격 변동 내역</h4>
+                  </div>
+                  {priceHistoryOpen ? (
+                    <ChevronUp className="w-5 h-5" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5" />
+                  )}
+                </button>
+
+                {priceHistoryOpen && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-3 gap-4 text-sm font-bold pb-3">
+                      <div>날짜</div>
+                      <div>변동</div>
+                      <div className="text-right">가격</div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-[#e0e0e0] items-center">
+                      <div>2026/04/15</div>
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="w-4 h-4" />
+                        가격 인하
+                      </div>
+                      <div className="text-right font-semibold">25,900,000원</div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-[#e0e0e0] items-center">
+                      <div>2026/03/01</div>
+                      <div className="flex items-center gap-1.5">
+                        <Tag className="w-4 h-4" />
+                        등록
+                      </div>
+                      <div className="text-right font-semibold">30,800,000원</div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-[#e0e0e0]">
+                      가격 정보는 판매자가 제공한 가격 변동 내역 기준입니다.
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold mb-4">제품 정보</h2>
+              <div className="relative">
+                <div
+                  className={`grid grid-cols-[140px_1fr] gap-x-6 gap-y-3 ${
+                    !specsExpanded ? 'max-h-[200px] overflow-hidden' : ''
+                  }`}
+                >
+                  <div className="font-bold">브랜드</div>
+                  <div className="break-words">McIntosh</div>
+
+                  <div className="font-bold">모델</div>
+                  <div className="break-words">MC152</div>
+
+                  <div className="font-bold">출시년도</div>
+                  <div className="break-words">2015</div>
+
+                  <div className="font-bold">제조국</div>
+                  <div className="break-words">미국</div>
+
+                  <div className="font-bold">소유권</div>
+                  <div className="break-words">1인 소유</div>
+
+                  <div className="font-bold">구성품</div>
+                  <div className="break-words">본체, 정품 박스, 설명서, 전원 코드</div>
+
+                  <div className="font-bold">상태</div>
+                  <div className="break-words">
+                    중고 - 민트급{' '}
+                    <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
+                      등급 기준 자세히 보기
+                    </a>
+                  </div>
+
+                  <div className="font-bold">외관 상태</div>
+                  <div className="break-words">
+                    매우 좋음
+                    <p className="mt-1 text-sm text-gray-600">전면 패널은 훌륭한 상태이며, 섀시 측면 또는 상단에 작은 흠집이 하나 있습니다.</p>
+                  </div>
+
+                  <div className="font-bold">작동 상태</div>
+                  <div className="break-words">
+                    정상 작동
+                    <p className="mt-1 text-sm text-gray-600">완벽하게 작동하며, 연구실과 청음실에서 테스트를 완료했습니다.</p>
+                  </div>
+                </div>
+
+                {!specsExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                )}
+
+                {!specsExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                    <button
+                      onClick={() => setSpecsExpanded(true)}
+                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                    >
+                      더 보기
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
+              <div className="relative">
+                <div
+                  className={`grid grid-cols-[140px_1fr] gap-x-6 gap-y-3 ${
+                    !techSpecsExpanded ? 'max-h-[120px] overflow-hidden' : ''
+                  }`}
+                >
+                  <div className="font-bold">타입</div>
+                  <div className="break-words">스테레오 파워 앰프</div>
+
+                  <div className="font-bold">정격 출력</div>
+                  <div className="break-words">150W + 150W / 2Ω, 4Ω, 8Ω</div>
+
+                  <div className="font-bold">주파수 응답</div>
+                  <div className="break-words">10Hz–100kHz</div>
+
+                  <div className="font-bold">지원 임피던스</div>
+                  <div className="break-words">2Ω / 4Ω / 8Ω</div>
+
+                  <div className="font-bold">THD</div>
+                  <div className="break-words">0.005% 이하</div>
+
+                  <div className="font-bold">S/N</div>
+                  <div className="break-words">122dB</div>
+
+                  <div className="font-bold">댐핑 팩터</div>
+                  <div className="break-words">40 이상</div>
+
+                  <div className="font-bold">입력 단자</div>
+                  <div className="break-words">밸런스 XLR (1), 언밸런스 RCA (1)</div>
+
+                  <div className="font-bold">출력 단자</div>
+                  <div className="break-words">스피커 출력 터미널</div>
+
+                  <div className="font-bold">포노 입력</div>
+                  <div className="break-words">없음</div>
+
+                  <div className="font-bold">톤 컨트롤</div>
+                  <div className="break-words">없음</div>
+
+                  <div className="font-bold">전원</div>
+                  <div className="break-words">AC 120V / 50·60Hz</div>
+
+                  <div className="font-bold">크기</div>
+                  <div className="break-words">445 × 152 × 483mm</div>
+
+                  <div className="font-bold">무게</div>
+                  <div className="break-words">34.1kg</div>
+                </div>
+
+                {!techSpecsExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                )}
+
+                {!techSpecsExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                    <button
+                      onClick={() => setTechSpecsExpanded(true)}
+                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                    >
+                      더 보기
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="text-2xl font-bold mb-4">제품 설명</h2>
+              <div className="relative">
+                <div
+                  className={`prose max-w-none text-gray-700 space-y-4 leading-relaxed ${
+                    !descriptionExpanded ? 'max-h-[200px] overflow-hidden' : ''
+                  }`}
+                >
+                  <p>
+                    McIntosh MC152는 채널당 150W 출력을 내주는 스테레오 파워 앰프입니다.<br />
+                    2옴, 4옴, 8옴 어느 스피커를 연결해도 동일하게 150W를 내주는 맥킨토시 오토포머 방식이라, 스피커 매칭에 대한 부담이 적은 편입니다.
+                  </p>
+                  <p>
+                    맥킨토시 파워 앰프 중에서는 비교적 아담한 모델에 속하지만, 그렇다고 가볍게 볼 앰프는 아닙니다.<br />
+                    오히려 일반 가정에서 사용하기에는 출력도 충분하고, 크기도 부담스럽지 않아 실사용 만족도가 좋은 모델입니다.
+                  </p>
+                  <p>
+                    전면에는 맥킨토시 특유의 블랙 글라스 패널과 파란색 출력 미터가 들어가 있어, 딱 봐도 "맥킨토시구나" 싶은 분위기가 납니다.<br />
+                    높이가 약 6인치 정도로 슬림한 편이라, 큰 파워 앰프가 부담스러운 공간에도 비교적 수월하게 설치할 수 있습니다.
+                  </p>
+                  <p>
+                    입력은 밸런스와 언밸런스를 모두 지원해서 프리앰프 연결도 편하고, 맥킨토시의 Power Guard 회로가 들어가 있어 과도한 클리핑으로부터 스피커를 보호해주는 점도 장점입니다.
+                  </p>
+                  <p>
+                    소리 성향은 맥킨토시답게 힘이 있으면서도 거칠지 않고, 저역을 단단하게 잡아주는 느낌이 좋습니다.<br />
+                    큰 대출력 모델처럼 압도적인 체급을 내세우는 앰프는 아니지만, 음악을 편안하게 오래 듣기에는 오히려 과하지 않고 밸런스가 좋은 앰프라고 볼 수 있습니다.
+                  </p>
+                  <p>
+                    Hi-Fi World에서도 별 5개 만점 평가를 받은 모델로, 단순히 "작은 맥킨토시"가 아니라 MC152 자체로 완성도가 좋은 파워 앰프라는 평가를 받았습니다.
+                  </p>
+                  <p>
+                    정리하자면, MC152는 맥킨토시의 기본기와 디자인, 안정적인 구동력을 부담스럽지 않은 크기에서 즐길 수 있는 스테레오 파워 앰프입니다.<br />
+                    큰 공간보다는 일반 가정의 하이파이 시스템, 또는 홈시어터 서라운드 채널용으로도 잘 어울리는 모델입니다.
+                  </p>
+                </div>
+
+                {!descriptionExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                )}
+
+                {!descriptionExpanded && (
+                  <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                    <button
+                      onClick={() => setDescriptionExpanded(true)}
+                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                    >
+                      더 보기
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="border-t border-[#e0e0e0] pt-6">
+              <h2 className="text-2xl font-bold mb-6">판매자에 대하여</h2>
+              <div className="flex items-start justify-between gap-6 mb-6">
+                <div className="flex items-center gap-4 flex-1">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+                    몽
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <p className="text-2xl font-bold">몽키타르</p>
+                      <div className="relative group/badge inline-block">
+                        <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-100 cursor-help" />
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                          이 판매자는 뛰어난 서비스를 제공합니다.
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[#000000]"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                      <MapPin className="w-4 h-4" />
+                      <span>대한민국 서울</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                      <span className="font-semibold">Resonance 가입일 :</span>
+                      <span>2018년</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2 w-[280px] flex-shrink-0">
+                  <button className="bg-[#f7f7f7] hover:bg-[#e0e0e0] text-[#000000] py-3 px-6 rounded-full font-semibold transition text-sm">
+                    판매자에게 메시지 보내기
+                  </button>
+                  <button className="bg-[#f7f7f7] hover:bg-[#e0e0e0] text-[#000000] py-3 px-6 rounded-full font-semibold transition text-sm">
+                    이 상점의 더 많은 제품 보기
+                  </button>
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0] p-5">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#e0e0e0] flex items-center justify-center group-hover:bg-[#e0e0e0] transition">
+                        <BookOpen className="w-4 h-4 text-[#000000]" />
+                      </div>
+                      <span className="font-bold text-sm">브랜드 스토리</span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      2006년 설립된 <span className="font-semibold">'Monkey Guitar'</span>의 약자입니다.
+                    </p>
+                  </div>
+
+                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
+                        <Package className="w-4 h-4 text-blue-600" />
+                      </div>
+                      <span className="font-bold text-sm">취급 제품</span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      신품·중고 유명 브랜드. 구하기 어려운 제품을 <span className="font-semibold">합리적인 가격</span>에 제공합니다.
+                    </p>
+                  </div>
+
+                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition">
+                        <ShieldAlert className="w-4 h-4 text-amber-600" />
+                      </div>
+                      <span className="font-bold text-sm">거래 정책</span>
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      현 상태 그대로 판매 · <span className="font-semibold">환불 불가</span>
+                      <button
+                        onClick={() => setSellerDescExpanded(!sellerDescExpanded)}
+                        className="ml-1 text-[#000000] hover:text-[#000000] font-semibold text-xs"
+                      >
+                        {sellerDescExpanded ? '접기' : '자세히'}
+                      </button>
+                    </p>
+                    {sellerDescExpanded && (
+                      <p className="text-xs text-gray-600 leading-relaxed mt-2 pt-2 border-t border-[#f7f7f7]">
+                        모든 기타, 이펙터 및 액세서리는 현 상태 그대로 판매되며 환불이 불가합니다. 배송비에는 PayPal 수수료와 Reverb 수수료가 포함됩니다.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t border-[#e0e0e0] pt-6">
+              <button
+                onClick={() => setSellerReviewsOpen(!sellerReviewsOpen)}
+                className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition"
+              >
+                <div className="flex items-center gap-3">
+                  <h2 className="text-2xl font-bold">판매자 리뷰 (1,234)</h2>
+                  <div className="flex">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star key={star} className="w-5 h-5 fill-gray-700 text-gray-700" />
+                    ))}
+                  </div>
+                </div>
+                {sellerReviewsOpen ? (
+                  <ChevronUp className="w-6 h-6 text-gray-700" />
+                ) : (
+                  <ChevronDown className="w-6 h-6 text-gray-700" />
+                )}
+              </button>
+
+              {sellerReviewsOpen && (
+              <>
+              <div className="bg-[#f7f7f7] rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="text-center">
+                    <div className="text-4xl font-bold text-[#000000]">4.9</div>
+                    <div className="flex justify-center mt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="w-4 h-4 fill-gray-700 text-gray-700" />
+                      ))}
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">종합 평점</p>
+                  </div>
+                  <div className="flex-1 border-l border-[#e0e0e0] pl-6">
+                    <div className="grid grid-cols-3 gap-4 text-center">
+                      <div>
+                        <div className="text-2xl font-bold text-green-600">99%</div>
+                        <p className="text-xs text-gray-600">긍정 평가</p>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold">1,234</div>
+                        <p className="text-xs text-gray-600">총 리뷰</p>
+                      </div>
+                      <div>
+                        <div className="text-2xl font-bold">2020</div>
+                        <p className="text-xs text-gray-600">가입 연도</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600 mb-1">정확도</p>
+                      <p className="font-semibold">100%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 mb-1">배송</p>
+                      <p className="font-semibold">99%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 mb-1">소통</p>
+                      <p className="font-semibold">100%</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="text-gray-600 mb-1">가격</p>
+                      <p className="font-semibold">4.9 / 5.0</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 mb-1">속도</p>
+                      <p className="font-semibold">4.8 / 5.0</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-600 mb-1">서비스</p>
+                      <p className="font-semibold">5.0 / 5.0</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-4 flex items-center justify-between pb-2 border-b border-[#e0e0e0]">
+                <span className="font-semibold text-gray-700">전체 리뷰 ({allReviews.length})</span>
+                <select
+                  value={reviewSort}
+                  onChange={(e) => { setReviewSort(e.target.value as 'latest' | 'rating-high' | 'rating-low'); setReviewPage(1); }}
+                  className="text-xs border border-[#e0e0e0] rounded-md px-2 py-1 bg-white hover:border-gray-400 cursor-pointer focus:outline-none focus:border-[#000000]"
+                >
+                  <option value="latest">최신순</option>
+                  <option value="rating-high">별점 높은 순</option>
+                  <option value="rating-low">별점 낮은 순</option>
+                </select>
+              </div>
+
+              <div className="space-y-4">
+                {paginatedReviews.map((review) => (
+                  <div key={review.id} className="border-b border-[#e0e0e0] pb-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="flex">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`w-4 h-4 ${star <= review.rating ? 'fill-gray-700 text-gray-700' : 'text-[#e0e0e0]'}`}
+                          />
+                        ))}
+                      </div>
+                      <span className="font-semibold">{review.name}</span>
+                      <span className="text-sm text-gray-500">• {formatDaysAgo(review.daysAgo)}</span>
+                    </div>
+                    <p className="text-gray-700 mb-2">{review.text}</p>
+                    <p className="text-sm text-gray-500">제품: {review.product}</p>
+                  </div>
+                ))}
+              </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <button
+                    onClick={() => setReviewPage(Math.max(1, currentPage - 1))}
+                    disabled={currentPage === 1}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e0e0e0] hover:bg-[#f7f7f7] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    aria-label="이전 페이지"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setReviewPage(page)}
+                      className={`w-9 h-9 flex items-center justify-center rounded-lg font-semibold transition ${
+                        currentPage === page
+                          ? 'bg-[#000000] text-white'
+                          : 'border border-[#e0e0e0] hover:bg-[#f7f7f7]'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                  <button
+                    onClick={() => setReviewPage(Math.min(totalPages, currentPage + 1))}
+                    disabled={currentPage === totalPages}
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e0e0e0] hover:bg-[#f7f7f7] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    aria-label="다음 페이지"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+              </>
+              )}
+            </div>
+          </div>
+
+          <div className="lg:col-span-5">
+            <div ref={sentinelRef} className="h-0"></div>
+            <div className="sticky top-20">
+              <div className={`bg-white rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">맥킨토시 MC152 앰프</h1>
+                  <div className="flex items-center gap-2 text-gray-600 mb-2">
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">중고 - 매우 좋음</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <Star key={star} className="w-4 h-4 fill-gray-700 text-gray-700" />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-600">(리뷰 124개)</span>
+                  </div>
+                </div>
+
+                <div className={`border-t border-t-[#e0e0e0] border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-[#e0e0e0]'}`}>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-4xl font-bold">25,900,000원</span>
+                    <span className="text-xl text-gray-500 line-through">30,800,000원</span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">가격 인하! 4,900,000원 절약</p>
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <button className="w-full bg-[#000000] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#000000] transition">
+                    장바구니 담기
+                  </button>
+                  <button className="w-full bg-slate-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-slate-800 transition">
+                    바로 구매
+                  </button>
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setMainLiked((v) => !v)}
+                    className="flex-1 border-2 border-[#e0e0e0] text-gray-700 hover:border-gray-400 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-sm"
+                  >
+                    <Heart className={`w-4 h-4 ${mainLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    관심 제품
+                  </button>
+                  <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 hover:border-gray-400 transition text-sm">
+                    <MessageCircle className="w-4 h-4" />
+                    가격 제안
+                  </button>
+                  <button className="border-2 border-[#e0e0e0] text-gray-700 py-2 px-3 rounded-lg hover:border-gray-400 transition">
+                    <Share2 className="w-4 h-4" />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 py-2">
+                  <div className="text-center">
+                    <span className="font-bold text-gray-700">등록일:</span> 13일 전
+                  </div>
+                  <div className="text-center">
+                    <span className="font-bold text-gray-700">조회수:</span> 197
+                  </div>
+                  <div className="text-center">
+                    <span className="font-bold text-gray-700">제안:</span> 3
+                  </div>
+                </div>
+
+                <div className="border-t border-t-[#e0e0e0] py-8 flex items-center gap-3 relative">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    몽
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-bold">몽키타르</span>
+                      <div className="relative group/badge2 inline-block">
+                        <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-100 cursor-help" />
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                          이 판매자는 뛰어난 서비스를 제공합니다.
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[#000000]"></div>
+                        </div>
+                      </div>
+                      <div className="flex ml-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star key={star} className="w-3.5 h-3.5 fill-gray-700 text-gray-700" />
+                        ))}
+                      </div>
+                      <span className="text-sm text-gray-600">(245)</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>대한민국 서울</span>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setSellerSaved((v) => !v)}
+                    aria-label="판매자 저장"
+                    className="flex items-center gap-1.5 px-3 py-2 border border-[#e0e0e0] hover:border-gray-400 rounded-full text-sm font-semibold text-gray-700 active:scale-95 transition flex-shrink-0"
+                  >
+                    <Heart
+                      className={`w-4 h-4 ${
+                        sellerSaved ? 'fill-red-500 text-red-500' : 'text-gray-700'
+                      }`}
+                    />
+                    판매자 저장
+                  </button>
+                  <div
+                    className={`absolute left-0 right-0 bottom-0 h-px bg-[#e0e0e0] transition-all duration-500 ease-in-out ${
+                      isStuck ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
+                    }`}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {[
+          {
+            sectionTitle: '비슷한 제품',
+            scrollId: 'similar-carousel-bottom',
+            items: [
+              { title: 'McIntosh MC275', price: '32,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'McIntosh MC312', price: '45,000,000원', img: '/images/4d097765a9285.jpg', condition: '새상품' },
+              { title: 'McIntosh MA252', price: '38,200,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
+              { title: 'McIntosh MC462', price: '60,500,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
+              { title: 'McIntosh C2700', price: '42,800,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
+              { title: 'McIntosh MA8950', price: '55,700,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'McIntosh MC152 (블랙)', price: '24,900,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
+              { title: 'McIntosh MA9000', price: '78,000,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' },
+              { title: 'McIntosh MC611', price: '85,000,000원', img: '/images/618155823824e.jpg', condition: '새상품' },
+              { title: 'McIntosh MA12000', price: '95,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'McIntosh C12000', price: '98,000,000원', img: '/images/f4362b6cdce17.jpg', condition: '새상품' },
+              { title: 'McIntosh MC1.25KW', price: '120,000,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 좋음' }
+            ]
+          },
+          {
+            sectionTitle: '최근 조회에 기반한 추천 제품',
+            scrollId: 'recent-carousel',
+            items: [
+              { title: 'McIntosh MA352', price: '42,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
+              { title: 'Marantz PM-15S2', price: '15,500,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'Yamaha A-S2200', price: '12,800,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
+              { title: 'Luxman L-507uXII', price: '18,900,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 좋음' },
+              { title: 'Accuphase E-280', price: '21,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
+              { title: 'Bryston 4B³', price: '28,700,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'Naim Supernait 3', price: '16,200,000원', img: '/images/618155823824e.jpg', condition: '새상품' },
+              { title: 'Pass Labs INT-25', price: '32,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '중고 - 민트' },
+              { title: 'Hegel H190', price: '11,500,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
+              { title: 'Esoteric F-03A', price: '27,800,000원', img: '/images/fd5b7a6adbead.jpg', condition: '새상품' },
+              { title: 'Mark Levinson No.5805', price: '52,000,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
+              { title: 'Krell K-300i', price: '24,500,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' }
+            ]
+          }
+        ].map((section, sectionIdx) => (
+          <div key={sectionIdx} className="mt-16 relative group/sec">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">{section.sectionTitle}</h2>
+              {section.sectionTitle.includes('최근 조회') && (
+                <div className="flex items-center gap-1 text-xs text-gray-500">
+                  <span>광고</span>
+                  <Info className="w-3.5 h-3.5" />
+                </div>
+              )}
+            </div>
+
+            <div
+              id={section.scrollId}
+              className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            >
+              {section.items.map((item, idx) => {
+                const isNew = item.condition === '새상품';
+                const likedKey = sectionIdx * 1000 + idx;
+                return (
+                  <div
+                    key={idx}
+                    className="flex-shrink-0 w-[240px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-[#e0e0e0] relative"
+                  >
+                    <button
+                      onClick={(e) => toggleSimilarLike(likedKey, e)}
+                      aria-label="좋아요"
+                      className="absolute top-1.5 right-1.5 z-10 w-7 h-7 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center active:scale-90 transition"
+                    >
+                      <Heart
+                        className={`w-3.5 h-3.5 ${
+                          likedSimilar.has(likedKey)
+                            ? 'fill-red-500 text-red-500'
+                            : 'text-gray-700'
+                        }`}
+                      />
+                    </button>
+                    <div className="aspect-square bg-[#f7f7f7]">
+                      <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="p-3">
+                      <h4 className="text-sm font-semibold truncate">{item.title}</h4>
+                      <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
+                      <p className="text-base font-bold text-[#000000] mt-1">{item.price}</p>
+                      {isNew && (
+                        <div className="flex items-center gap-1 mt-2 text-xs text-gray-700">
+                          <Truck className="w-3 h-3" />
+                          <span>무료 배송</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: -400, behavior: 'smooth' })}
+              aria-label="이전"
+              className="absolute left-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-700" />
+            </button>
+            <button
+              onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: 400, behavior: 'smooth' })}
+              aria-label="다음"
+              className="absolute right-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-700" />
+            </button>
+          </div>
+        ))}
+      </main>
+      )}
+
+      <footer className="bg-[#000000] text-white mt-16 py-12">
+        <div className="max-w-7xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h4 className="font-bold mb-4">구매</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">기타</a></li>
+                <li><a href="#" className="hover:text-white">베이스</a></li>
+                <li><a href="#" className="hover:text-white">드럼</a></li>
+                <li><a href="#" className="hover:text-white">키보드</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">판매</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">판매 시작하기</a></li>
+                <li><a href="#" className="hover:text-white">판매자 허브</a></li>
+                <li><a href="#" className="hover:text-white">가격 가이드</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">고객 지원</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">도움말 센터</a></li>
+                <li><a href="#" className="hover:text-white">구매자 보호</a></li>
+                <li><a href="#" className="hover:text-white">배송 안내</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-bold mb-4">회사</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">회사 소개</a></li>
+                <li><a href="#" className="hover:text-white">채용</a></li>
+                <li><a href="#" className="hover:text-white">보도자료</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; 2026 Resonance. 모든 권리 보유.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppInner />
+    </BrowserRouter>
+  );
+}
