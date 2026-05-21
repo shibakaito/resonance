@@ -25,8 +25,8 @@ export default function BrowseRoute() {
 
   return (
     <BrowsePage
-      // 매물 카드 클릭 → 상세 페이지 (PDP는 다음 단계에서 추가됨)
-      onSelect={() => router.push('/listing/1')}
+      // 매물 카드 클릭 → 그 매물의 실제 id로 상세 페이지 이동
+      onSelect={(id) => router.push(`/listing/${id}`)}
       category={category}
       initialSubCategory={initialSubCategory}
     />

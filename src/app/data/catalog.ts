@@ -21,7 +21,7 @@ export type CatalogItem = {
   description: string;  // 한 줄 설명
 };
 
-// 실제 상품 목록. 지금은 비어 있음(더미 매물은 dummy-catalog.ts에서 따로 합쳐짐).
+// 실제 상품 목록. 지금은 비어 있음.
 // CatalogItem[] = "CatalogItem 들이 들어가는 배열"이라는 뜻.
 export const CATALOG: CatalogItem[] = [
 ];

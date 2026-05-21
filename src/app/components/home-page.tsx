@@ -1,7 +1,7 @@
 'use client';
 // 상태(useState)·효과(useEffect)·DOM 이벤트를 쓰므로 클라이언트 컴포넌트.
-import { useState, useEffect, useRef } from 'react';
-import { Search, Star, TrendingUp, Heart, Tag, Truck, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef } from 'react';
+import { Search, TrendingUp, Heart, Tag, Truck, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
 import {
   POPULAR_BRANDS,
   searchCatalog,
@@ -13,6 +13,8 @@ import {
   CATEGORY_TREE,
   subcategoriesFor
 } from '../data/catalog';
+import type { Listing } from './browse-filters';
+import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
 
@@ -299,21 +301,6 @@ const sellImgFor = (_model: string) => NO_IMAGE;
 
 const CATEGORY_TABS = ['앰프', '스피커', '소스기기', '케이블'];
 
-const FEATURED = [
-  { title: 'McIntosh MC275', price: '32,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
-  { title: 'McIntosh MC312', price: '45,000,000원', img: '/images/4d097765a9285.jpg', condition: '새상품' },
-  { title: 'McIntosh MA252', price: '38,200,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
-  { title: 'McIntosh MC462', price: '60,500,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
-  { title: 'McIntosh C2700', price: '42,800,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' }
-];
-
-const SAVED = [
-  { title: 'McIntosh MA8950', price: '55,700,000원', img: '/images/fd5b7a6adbead.jpg' },
-  { title: 'Marantz PM-15S2', price: '15,500,000원', img: '/images/f4362b6cdce17.jpg' },
-  { title: 'Yamaha A-S2200', price: '12,800,000원', img: '/images/618155823824e.jpg' },
-  { title: 'Luxman L-507uXII', price: '18,900,000원', img: '/images/4d097765a9285.jpg' }
-];
-
 const TRENDING = [
   '빈티지 맥킨토시 파워 앰프',
   '1000만원 이하 인티앰프',
@@ -334,13 +321,29 @@ type SellData = {
 };
 
 type HomePageProps = {
-  onViewItem: () => void;
+  onViewItem: (id: string) => void;
   onBrowse: (category: string | null) => void;
   onSell: (data?: SellData) => void;
 };
 
 export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
   const [activeCat, setActiveCat] = useState(CATEGORY_TABS[0]);
+  // ── Supabase 연동: 가짜 매물 대신 DB에서 매물을 불러옴 ──
+  const [dbListings, setDbListings] = useState<Listing[]>([]);
+  useEffect(() => {
+    let active = true;
+    fetchListings()
+      .then((rows) => { if (active) setDbListings(rows); })
+      .catch((err) => console.error('매물 불러오기 실패:', err));
+    return () => { active = false; };
+  }, []);
+  // 추천 매물: 선택된 카테고리 탭에 속하는 DB 매물만
+  const featuredListings = useMemo(() => {
+    const subs = subcategoriesFor(activeCat);
+    return dbListings.filter((l) => l.categories.some((c) => subs.includes(c)));
+  }, [dbListings, activeCat]);
+  // 관심 있게 본 매물: (로그인 기능 전이라) 임시로 최신 DB 매물 표시
+  const savedListings = useMemo(() => dbListings.slice(0, 4), [dbListings]);
   const [query, setQuery] = useState('');
   const [heroTab, setHeroTab] = useState<'shop' | 'sell'>('shop');
   const [condition, setCondition] = useState('----');
@@ -880,27 +883,35 @@ export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
           </button>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-            {SAVED.map((item, idx) => (
-              <button
-                key={idx}
-                onClick={onViewItem}
-                className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
-              >
-                <div className="aspect-square bg-[#f7f7f7] relative">
-                  <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
-                  <span className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
-                    <Heart className="w-4 h-4 fill-red-500 text-red-500" />
-                  </span>
-                </div>
-                <div className="p-3">
-                  <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
-                    {item.title}
-                  </p>
-                  <p className="font-bold text-[#000000]">{item.price}</p>
-                </div>
-              </button>
-            ))}
+          <div className="lg:col-span-8">
+            {savedListings.length === 0 ? (
+              <div className="bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg py-12 text-center text-gray-500">
+                아직 매물이 없습니다.
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {savedListings.map((l) => (
+                  <button
+                    key={l.id}
+                    onClick={() => onViewItem(l.id)}
+                    className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
+                  >
+                    <div className="aspect-square bg-[#f7f7f7] relative">
+                      <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-cover" />
+                      <span className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
+                        <Heart className="w-4 h-4 fill-red-500 text-red-500" />
+                      </span>
+                    </div>
+                    <div className="p-3">
+                      <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
+                        {l.brand} {l.model}
+                      </p>
+                      <p className="font-bold text-[#000000]">{l.price.toLocaleString('ko-KR')}원</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
           <div className="lg:col-span-4">
             <div className="bg-gradient-to-br from-[#f7f7f7] to-amber-50 border border-[#e0e0e0] rounded-xl p-5 h-full flex flex-col">
@@ -945,32 +956,34 @@ export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {FEATURED.map((item, idx) => (
-            <button
-              key={idx}
-              onClick={onViewItem}
-              className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
-            >
-              <div className="aspect-square bg-[#f7f7f7]">
-                <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
-              </div>
-              <div className="p-3">
-                <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">
-                  {item.condition}
-                </span>
-                <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
-                  {item.title}
-                </p>
-                <p className="font-bold text-[#000000] mb-1">{item.price}</p>
-                <div className="flex items-center gap-1 text-xs text-gray-600">
-                  <Star className="w-3 h-3 fill-gray-700 text-gray-700" />
-                  <span>4.8 (89)</span>
+        {featuredListings.length === 0 ? (
+          <div className="bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg py-16 text-center text-gray-500">
+            {activeCat} 카테고리에 등록된 매물이 없습니다.
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            {featuredListings.map((l) => (
+              <button
+                key={l.id}
+                onClick={() => onViewItem(l.id)}
+                className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
+              >
+                <div className="aspect-square bg-[#f7f7f7]">
+                  <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-cover" />
                 </div>
-              </div>
-            </button>
-          ))}
-        </div>
+                <div className="p-3">
+                  <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">
+                    {l.condition}
+                  </span>
+                  <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
+                    {l.brand} {l.model}
+                  </p>
+                  <p className="font-bold text-[#000000] mb-1">{l.price.toLocaleString('ko-KR')}원</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-10">

@@ -4,3 +4,8 @@ dist
 out
 .DS_Store
 *.log
+*.tsbuildinfo
+
+# 환경변수 (실제 키 — git에 올리지 않음). .env.example은 추적됨(틀만 들어있음)
+.env
+.env*.local

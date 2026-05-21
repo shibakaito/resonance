@@ -19,8 +19,8 @@ export default function Page() {
 
   return (
     <HomePage
-      // 상품 카드 클릭 → 상세 페이지 (PDP는 다음 단계에서 추가됨)
-      onViewItem={() => router.push('/listing/1')}
+      // 상품 카드 클릭 → 그 매물의 실제 id로 상세 페이지 이동
+      onViewItem={(id) => router.push(`/listing/${id}`)}
       // 카테고리 탐색 → /browse/{영문 슬러그}
       onBrowse={(cat) => {
         const slug = categorySlug(cat);

@@ -1,0 +1,115 @@
+// ============================================================================
+// listings.ts — Supabase listings 테이블 → 사이트 Listing 형태로 변환
+// ----------------------------------------------------------------------------
+// DB는 영문 키(+카테고리 슬러그)로 저장돼 있어서, 화면/필터가 쓰는 한글 값으로
+// 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에)
+// ============================================================================
+import { supabase } from './supabase';
+import type { Listing } from '@/app/components/browse-filters';
+import { categoryFromSlug } from '@/app/data/category-slugs';
+import { label } from './labels';
+
+// DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
+type ListingRow = {
+  id: string;
+  created_at: string;
+  brand: string;
+  model: string;
+  year: string | null;
+  release_year: number | null;
+  category: string;
+  categories: string[] | null;
+  description: string | null;
+  price: number;
+  condition: string;
+  location: string | null;
+  ownership: string | null;
+  country: string | null;
+  specs: Record<string, any> | null;
+};
+
+// 카테고리 슬러그 → 한글 (없으면 원본 그대로)
+const cat = (slug: string | null | undefined) => categoryFromSlug(slug ?? undefined) ?? (slug ?? '');
+
+function mapRow(row: ListingRow): Listing {
+  const s = row.specs ?? {};
+  const yn = (v: unknown) => label('yes_no', v as string);
+  return {
+    id: row.id,
+    brand: row.brand,
+    model: row.model,
+    year: row.year ?? '',
+    releaseYear: row.release_year ?? 0,
+    category: cat(row.category),
+    categories: (row.categories && row.categories.length > 0 ? row.categories : [row.category]).map(cat),
+    description: row.description ?? '',
+    price: row.price,
+    condition: label('condition', row.condition),
+    location: label('location', row.location),
+    ownership: label('ownership', row.ownership),
+    country: label('country', row.country),
+    daysAgo: row.created_at
+      ? Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86400000))
+      : 0,
+    // 앰프
+    ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
+    ampDetail: label('ampDetail', s.ampDetail),
+    ampMethod: label('ampMethod', s.ampMethod),
+    power: s.power ?? 0,
+    headphoneImpedance: s.headphoneImpedance ?? 0,
+    impedances: Array.isArray(s.impedances) ? s.impedances.map((x: string) => label('impedance', x)) : [],
+    phono: label('phono', s.phono),
+    toneControl: yn(s.toneControl),
+    remote: yn(s.remote),
+    voltage: label('voltage', s.voltage),
+    // 스피커
+    speakerDetail: label('speakerDetail', s.speakerDetail),
+    driverConfig: label('driverConfig', s.driverConfig),
+    enclosure: label('enclosure', s.enclosure),
+    speakerImpedance: label('impedance', s.speakerImpedance),
+    connection: label('connection', s.connection),
+    wooferSize: label('wooferSize', s.wooferSize),
+    sensitivity: s.sensitivity ?? 0,
+    recPower: s.recPower ?? 0,
+    // 턴테이블
+    driveType: label('driveType', s.driveType),
+    tonearm: label('tonearm', s.tonearm),
+    cartridge: label('cartridge', s.cartridge),
+    speeds: Array.isArray(s.speeds) ? s.speeds.map((x: string) => label('speeds', x)) : [],
+    autoMode: label('autoMode', s.autoMode),
+    dustCover: label('dustCover', s.dustCover),
+    // 전원 장치
+    ratedCapacity: s.ratedCapacity ?? 0,
+    // 케이블
+    cableLength: s.cableLength ?? 0,
+    terminalIn: s.terminalIn ?? '',
+    terminalOut: s.terminalOut ?? '',
+    directional: yn(s.directional),
+    conductor: label('conductor', s.conductor),
+    plating: label('plating', s.plating),
+    shield: label('shield', s.shield),
+    pair: label('pair', s.pair),
+  };
+}
+
+// listings 테이블에서 판매중(active) 매물을 최신순으로 가져옴
+export async function fetchListings(): Promise<Listing[]> {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map((row) => mapRow(row as ListingRow));
+}
+
+// id로 매물 1건을 가져옴 (상세 페이지용). 없으면 null.
+export async function fetchListingById(id: string): Promise<Listing | null> {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapRow(data as ListingRow) : null;
+}

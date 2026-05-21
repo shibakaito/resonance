@@ -14,8 +14,21 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
+import type { Listing } from './browse-filters';
+import { fetchListingById } from '@/lib/listings';
 
-export function ListingDetail() {
+export function ListingDetail({ id }: { id?: string }) {
+  // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
+  const [listing, setListing] = useState<Listing | null>(null);
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    fetchListingById(id)
+      .then((row) => { if (active) setListing(row); })
+      .catch((err) => console.error('매물 불러오기 실패:', err));
+    return () => { active = false; };
+  }, [id]);
+
   const [mainImage, setMainImage] = useState(0);
   const [reviewTab, setReviewTab] = useState<'all' | 'seller' | 'buyer'>('all');
   const [reviewSort, setReviewSort] = useState<'latest' | 'rating-high' | 'rating-low'>('latest');
@@ -442,26 +455,26 @@ export function ListingDetail() {
                   }`}
                 >
                   <div className="font-bold">브랜드</div>
-                  <div className="break-words">McIntosh</div>
+                  <div className="break-words">{listing?.brand ?? ''}</div>
 
                   <div className="font-bold">모델</div>
-                  <div className="break-words">MC152</div>
+                  <div className="break-words">{listing?.model ?? ''}</div>
 
                   <div className="font-bold">출시년도</div>
-                  <div className="break-words">2015</div>
+                  <div className="break-words">{listing?.year ?? ''}</div>
 
                   <div className="font-bold">제조국</div>
-                  <div className="break-words">미국</div>
+                  <div className="break-words">{listing?.country ?? ''}</div>
 
                   <div className="font-bold">소유권</div>
-                  <div className="break-words">1인 소유</div>
+                  <div className="break-words">{listing?.ownership ?? ''}</div>
 
                   <div className="font-bold">구성품</div>
                   <div className="break-words">본체, 정품 박스, 설명서, 전원 코드</div>
 
                   <div className="font-bold">상태</div>
                   <div className="break-words">
-                    중고 - 민트급{' '}
+                    {listing?.condition ?? ''}{' '}
                     <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
                       등급 기준 자세히 보기
                     </a>
@@ -868,9 +881,9 @@ export function ListingDetail() {
             <div className="sticky top-20">
               <div className={`bg-white rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
                 <div>
-                  <h1 className="text-3xl font-bold mb-2">맥킨토시 MC152 앰프</h1>
+                  <h1 className="text-3xl font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">중고 - 매우 좋음</span>
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">{listing?.condition ?? ''}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
@@ -884,10 +897,8 @@ export function ListingDetail() {
 
                 <div className={`border-t border-t-[#e0e0e0] border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-[#e0e0e0]'}`}>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">25,900,000원</span>
-                    <span className="text-xl text-gray-500 line-through">30,800,000원</span>
+                    <span className="text-4xl font-bold">{listing ? `${listing.price.toLocaleString('ko-KR')}원` : ''}</span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">가격 인하! 4,900,000원 절약</p>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -951,7 +962,7 @@ export function ListingDetail() {
                     </div>
                     <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>대한민국 서울</span>
+                      <span>{listing?.location ? `대한민국 ${listing.location}` : ''}</span>
                     </div>
                   </div>
                   <button

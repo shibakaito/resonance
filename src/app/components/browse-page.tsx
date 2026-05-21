@@ -6,7 +6,7 @@ import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
 interface BrowsePageProps {
-  onSelect: () => void;
+  onSelect: (id: string) => void;
   category?: string | null;
   initialSubCategory?: string | null;
 }
@@ -46,12 +46,10 @@ import {
   SHIELD_OPTS,
   SHIELD_RELEVANT,
   SORT_OPTIONS,
-  SOURCE_BRANDS,
   SOURCE_GROUPS,
   SPEAKER_DETAILS,
   SPEAKER_GROUPS,
   SPEAKER_IMPEDANCE,
-  SPEAKER_REDIST,
   SPEED_OPTS,
   TONEARM_OPTS,
   TONE_OPTS,
@@ -60,16 +58,13 @@ import {
   VOLTAGE_OPTS,
   WOOFER_SIZES,
   applyFilters,
-  buildListings,
   cloneFilters,
   computeCategories,
   countBy,
   countFilters,
   emptyFilters,
   fmtPrice,
-  hash,
   parseYear,
-  pickPrice,
 } from './browse-filters';
 // App.tsx가 browse-page에서 이 둘을 import하므로 그대로 다시 내보냄(re-export)
 export { AMP_GROUPS, SPEAKER_GROUPS } from './browse-filters';
@@ -80,8 +75,20 @@ import { FilterSection, RangeSection, FilterDropdown } from './filter-controls';
 import { FilterModal } from './filter-modal';
 // ── 분리: 매물 카드 그리드는 listing-grid.tsx로 이동 ──
 import { ListingGrid } from './listing-grid';
+// ── Supabase 연동: DB에서 실제 매물을 불러옴 ──
+import { fetchListings } from '@/lib/listings';
 export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePageProps) {
-  const allListings = useMemo(() => buildListings(), []);
+  // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
+  const [allListings, setAllListings] = useState<Listing[]>([]);
+  const [listingsLoading, setListingsLoading] = useState(true);
+  useEffect(() => {
+    let active = true;
+    fetchListings()
+      .then((rows) => { if (active) setAllListings(rows); })
+      .catch((err) => console.error('매물 불러오기 실패:', err))
+      .finally(() => { if (active) setListingsLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   // 문서 <title>·메타 디스크립션을 카테고리 컨텍스트에 맞춰 동기화 (SEO + 공유 URL용)
   useEffect(() => {
@@ -677,7 +684,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
           {/* 결과 수 + 정렬 */}
           <div className="flex items-center justify-between mb-4">
             <p className="text-sm text-gray-700">
-              <b className="text-[#000000]">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물
+              {listingsLoading
+                ? '매물을 불러오는 중…'
+                : <><b className="text-[#000000]">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물</>}
             </p>
             <div className="relative">
               <select

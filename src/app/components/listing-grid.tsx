@@ -22,7 +22,7 @@ export function ListingGrid({
   listings: Listing[];
   liked: Set<string>;
   onToggleLike: (id: string, e: MouseEvent) => void;
-  onSelect: () => void;
+  onSelect: (id: string) => void;
 }) {
   // 결과가 하나도 없을 때
   if (listings.length === 0) {
@@ -39,7 +39,7 @@ export function ListingGrid({
       {listings.map((l) => (
         <button
           key={l.id}
-          onClick={onSelect}
+          onClick={() => onSelect(l.id)}
           className="group text-left bg-white border border-[#e0e0e0] rounded-lg overflow-hidden hover:border-[#000000] hover:shadow-md transition"
         >
           <div className="relative aspect-square bg-[#f7f7f7] flex items-center justify-center">
