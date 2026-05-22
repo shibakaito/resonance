@@ -34,6 +34,7 @@ function BrowseInner() {
       category={category}
       initialSubCategory={initialSubCategory}
       searchQuery={searchQuery}
+      onSearch={(q) => router.push(`/browse?q=${encodeURIComponent(q)}`)}
     />
   );
 }

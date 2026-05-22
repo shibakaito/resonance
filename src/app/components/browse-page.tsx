@@ -1,6 +1,6 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
+import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES } from '../data/catalog';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
@@ -9,7 +9,8 @@ interface BrowsePageProps {
   onSelect: (id: string) => void;
   category?: string | null;
   initialSubCategory?: string | null;
-  searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어 (적용은 B단계)
+  searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어
+  onSearch?: (query: string) => void; // browse에서 검색어 수정·재검색
 }
 
 // ── 분리: 필터 로직/데이터/타입은 browse-filters.ts로 이동했습니다 ──
@@ -84,7 +85,7 @@ const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
 
-export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery }: BrowsePageProps) {
+export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -96,6 +97,10 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       .finally(() => { if (active) setListingsLoading(false); });
     return () => { active = false; };
   }, []);
+
+  // 편집 검색창 입력값 (URL의 ?q와 동기화). 제출 시 onSearch로 재검색.
+  const [searchInput, setSearchInput] = useState(searchQuery ?? '');
+  useEffect(() => { setSearchInput(searchQuery ?? ''); }, [searchQuery]);
 
   // 문서 <title>·메타 디스크립션을 카테고리 컨텍스트에 맞춰 동기화 (SEO + 공유 URL용)
   useEffect(() => {
@@ -511,7 +516,33 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             </>
           )}
         </nav>
-        {(() => {
+        {searchQuery ? (
+          <div>
+            <h1 className="text-3xl font-bold mb-3">
+              ‘{searchQuery}’ 검색 결과{' '}
+              <span className="text-2xl font-semibold text-gray-500">{filtered.length.toLocaleString('ko-KR')}건</span>
+            </h1>
+            {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
+            <form
+              onSubmit={(e) => { e.preventDefault(); if (searchInput.trim()) onSearch?.(searchInput.trim()); }}
+              className="relative max-w-md"
+            >
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="검색어 수정"
+                className="w-full border border-[#e0e0e0] rounded-full pl-5 pr-10 py-2.5 focus:outline-none focus:border-[#000000]"
+              />
+              <button
+                type="submit"
+                aria-label="검색"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full hover:bg-[#f7f7f7] flex items-center justify-center"
+              >
+                <Search className="w-4 h-4 text-gray-700" />
+              </button>
+            </form>
+          </div>
+        ) : (() => {
           const activeSub = subCategories.size === 1 ? [...subCategories][0] : null;
           const meta = metaFor(category ?? null, activeSub);
           const title = meta?.title ?? category ?? 'ALL';
