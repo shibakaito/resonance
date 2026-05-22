@@ -19,7 +19,6 @@ import {
   AMP_METHODS,
   AMP_TYPES,
   AUTO_OPTS,
-  BRANDS,
   CARTRIDGE_OPTS,
   CONDITIONS,
   CONDITION_DISPLAY,
@@ -222,9 +221,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
     [categoryListings, subCatCounts]
   );
 
-  // 브랜드를 매물 수 내림차순으로 정렬
+  // 실제 매물이 있는 브랜드만(=DB 집계 키) 매물 수 내림차순으로 정렬
   const brandsByCount = useMemo(
-    () => [...BRANDS].sort((a, b) => (counts.brand[b] ?? 0) - (counts.brand[a] ?? 0)),
+    () => Object.keys(counts.brand).sort((a, b) => (counts.brand[b] ?? 0) - (counts.brand[a] ?? 0)),
     [counts.brand]
   );
 

@@ -9,11 +9,6 @@
 // 화면 컴포넌트들은 이 파일에서 필요한 것을 import 해서 사용합니다.
 // ============================================================================
 
-// 필터에 노출할 브랜드
-export const BRANDS = [
-  'McIntosh', 'Marantz', 'Accuphase', 'Luxman', 'Yamaha',
-  'Sansui', 'Pioneer', 'Denon', 'NAD', 'Cambridge Audio'
-] as const;
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
 export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
 // NOS(New Old Stock) = 신품이지만 오래된 재고. 중고 등급이 아니라 별도 항목.
