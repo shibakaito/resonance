@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Upload,
   X,
@@ -17,17 +18,22 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor } from '../data/catalog';
+import { insertListing } from '@/lib/listings';
 
 const CATEGORIES = TOP_CATEGORIES;
 
 const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '대만', '이탈리아', '프랑스', '캐나다'];
 
+// 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
 const CONDITIONS = [
-  { value: 'mint', label: '민트', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
-  { value: 'excellent', label: '매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },
-  { value: 'very-good', label: '좋음', desc: '약간의 외관 흠집이 있으나 깨끗한 상태' },
-  { value: 'good', label: '사용감 있음', desc: '눈에 띄는 사용감, 작동은 정상' },
-  { value: 'fair', label: '하드 유즈', desc: '상당한 사용감 또는 수리 이력 있음' }
+  { value: 'new', label: '새상품', desc: '미개봉 또는 사용하지 않은 새 제품' },
+  { value: 'nos', label: 'NOS', desc: '신품이지만 오래 보관된 재고품 (New Old Stock)' },
+  { value: 'used_mint', label: '중고 - 민트', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
+  { value: 'used_excellent', label: '중고 - 매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },
+  { value: 'used_good', label: '중고 - 좋음', desc: '약간의 외관 흠집이 있으나 깨끗한 상태' },
+  { value: 'used_fair', label: '중고 - 보통', desc: '눈에 띄는 사용감, 작동은 정상' },
+  { value: 'used_needs_service', label: '중고 - 점검 필요', desc: '작동 이상 또는 점검/수리가 필요' },
+  { value: 'used_not_working', label: '중고 - 작동 불가', desc: '부품용 또는 수리를 전제로 한 상태' }
 ];
 
 const PHOTO_EXAMPLES = [
@@ -57,6 +63,7 @@ interface UploadPageProps {
 }
 
 export function UploadPage({ initialData }: UploadPageProps = {}) {
+  const router = useRouter();
   const [images, setImages] = useState<string[]>([
     '/images/W8DNioOHTlZPyOR5Psp3u91wnETrB0lGMmWcB345Zyc.webp'
   ]);
@@ -69,7 +76,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [finish, setFinish] = useState('');
   const [country, setCountry] = useState('');
   const [handmade, setHandmade] = useState(false);
-  const [condition, setCondition] = useState('excellent');
+  const [condition, setCondition] = useState('used_excellent');
   const [description, setDescription] = useState('');
   const [asDescribed, setAsDescribed] = useState(false);
   const [skuOpen, setSkuOpen] = useState(false);
@@ -82,6 +89,29 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [shippingCost, setShippingCost] = useState('');
   const [localPickup, setLocalPickup] = useState(false);
   const [activeStep, setActiveStep] = useState('info');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
+  const handleSubmit = async () => {
+    setSubmitError(null);
+    if (!brand || !model) { setSubmitError('브랜드와 모델명을 입력해주세요.'); return; }
+    if (!category) { setSubmitError('카테고리를 선택해주세요.'); return; }
+    if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
+    setSubmitting(true);
+    try {
+      const id = await insertListing({
+        images, title, category, subcategory, brand, model, year, finish, country,
+        handmade, condition, description, sku, youtubeLink, price, comparePrice,
+        acceptOffers, shippingType, shippingCost, localPickup,
+      });
+      router.push(`/listing/${id}`); // 저장된 매물 상세로 이동
+    } catch (e: any) {
+      console.error('매물 저장 실패:', e);
+      setSubmitError('저장에 실패했습니다: ' + (e?.message ?? '알 수 없는 오류'));
+      setSubmitting(false);
+    }
+  };
 
   const sampleImages = [
     '/images/L2GaN7JtEwGJJMDjMbVbY8W_mgW_07tpAaCsJVqtECw.webp',
@@ -648,10 +678,19 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
             </div>
 
+            {submitError && (
+              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                {submitError}
+              </div>
+            )}
             <div className="flex flex-col sm:flex-row gap-2">
-              <button className="flex-1 bg-[#000000] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#000000] transition flex items-center justify-center gap-2">
+              <button
+                onClick={handleSubmit}
+                disabled={submitting}
+                className="flex-1 bg-[#000000] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#000000] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+              >
                 <Plus className="w-5 h-5" />
-                상품 등록하기
+                {submitting ? '등록 중…' : '상품 등록하기'}
               </button>
               <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-lg font-semibold hover:border-gray-400 transition">
                 임시 저장

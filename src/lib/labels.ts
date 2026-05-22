@@ -35,6 +35,7 @@ export const LABELS: Record<string, LabelMap> = {
   country: {
     us: { ko: '미국' }, jp: { ko: '일본' }, uk: { ko: '영국' }, de: { ko: '독일' },
     fr: { ko: '프랑스' }, dk: { ko: '덴마크' }, ca: { ko: '캐나다' }, cn: { ko: '중국' },
+    kr: { ko: '한국' }, tw: { ko: '대만' }, it: { ko: '이탈리아' },
   },
   ownership: {
     single_owner: { ko: '1인 소유' },
@@ -79,4 +80,15 @@ export function label(field: string, key: string | null | undefined, locale: Loc
   if (!key) return '';
   const m = LABELS[field] ?? SPEC_LABELS[field];
   return m?.[key]?.[locale] ?? m?.[key]?.ko ?? key;
+}
+
+// 역방향: 한국어 라벨 → 영문 키 (폼 입력값을 DB에 저장할 때 사용). 못 찾으면 undefined.
+export function keyFor(field: string, koLabel: string | null | undefined): string | undefined {
+  if (!koLabel) return undefined;
+  const m = LABELS[field] ?? SPEC_LABELS[field];
+  if (!m) return undefined;
+  for (const [key, val] of Object.entries(m)) {
+    if (val.ko === koLabel) return key;
+  }
+  return undefined;
 }

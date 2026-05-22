@@ -6,8 +6,9 @@
 // ============================================================================
 import { supabase } from './supabase';
 import type { Listing } from '@/app/components/browse-filters';
-import { categoryFromSlug } from '@/app/data/category-slugs';
-import { label } from './labels';
+import { computeCategories, parseYear } from '@/app/components/browse-filters';
+import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
+import { label, keyFor } from './labels';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -112,4 +113,74 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? mapRow(data as ListingRow) : null;
+}
+
+// ── 등록(INSERT) ──────────────────────────────────────────────────────────
+// 판매 폼이 넘기는 입력값. 선택지(category/country)는 한글, condition은 이미 영문 키.
+export type ListingInput = {
+  images: string[];
+  title: string;
+  category: string;       // 대분류 한글 (예: '앰프')
+  subcategory: string;    // 하위 한글 (예: '파워앰프')
+  brand: string;
+  model: string;
+  year: string;
+  finish: string;
+  country: string;        // 한글 (예: '미국')
+  handmade: boolean;
+  condition: string;      // 영문 키 (예: 'used_excellent')
+  description: string;
+  sku: string;
+  youtubeLink: string;
+  price: string;          // 폼 문자열 (콤마 등 포함 가능)
+  comparePrice: string;
+  acceptOffers: boolean;
+  shippingType: 'free' | 'flat' | 'calculated';
+  shippingCost: string;
+  localPickup: boolean;
+};
+
+// 문자열 → 양의 정수(원). 비었거나 0이면 null.
+const toMoney = (s: string): number | null => {
+  const n = Number((s ?? '').replace(/[^0-9]/g, ''));
+  return Number.isFinite(n) && n > 0 ? n : null;
+};
+
+// 판매 폼 입력값을 DB 영문 키/슬러그로 변환해 listings 테이블에 INSERT. 새 매물 id 반환.
+export async function insertListing(form: ListingInput): Promise<string> {
+  const primaryKo = form.subcategory || form.category; // 하위 카테고리 우선
+  const categoriesKo = computeCategories(primaryKo);    // 교차 등록 규칙 적용(한글)
+  const row = {
+    status: 'active',
+    seller_id: null, // 로그인 기능 전이라 null
+    title: form.title || null,
+    description: form.description || null,
+    brand: form.brand,
+    model: form.model,
+    year: form.year || null,
+    release_year: form.year ? (parseYear(form.year) || null) : null,
+    category: categorySlug(primaryKo),                       // 슬러그 (예: 'power-amp')
+    categories: categoriesKo.map((c) => categorySlug(c) ?? c), // 슬러그 배열
+    finish: form.finish || null,
+    country: keyFor('country', form.country) ?? null,        // 한글 → 키 (예: '미국'→'us')
+    handmade: form.handmade,
+    condition: form.condition,                              // 폼이 이미 영문 키
+    price: toMoney(form.price) ?? 0,
+    compare_price: toMoney(form.comparePrice),
+    accept_offers: form.acceptOffers,
+    sku: form.sku || null,
+    youtube_link: form.youtubeLink || null,
+    images: form.images ?? [],
+    shipping_type: form.shippingType,
+    shipping_cost: toMoney(form.shippingCost),
+    local_pickup: form.localPickup,
+    specs: {},                                             // 폼이 상세 스펙은 아직 안 받음
+  };
+  const { data, error } = await supabase
+    .from('listings')
+    .insert(row)
+    .select('id')
+    .single();
+  if (error) throw error;
+  return data.id as string;
 }
