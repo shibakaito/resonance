@@ -10,18 +10,22 @@
 // (예전 App.tsx의 정규식 파싱 [1]=대분류, [2]=하위 와 동일한 규칙)
 // ============================================================================
 
-import { useParams, useRouter } from 'next/navigation';
+import { Suspense } from 'react';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { BrowsePage } from '@/app/components/browse-page';
 import { categoryFromSlug } from '@/app/data/category-slugs';
 
-export default function BrowseRoute() {
+function BrowseInner() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const slug = params.slug as string[] | undefined;
 
   // 첫 번째 슬러그 = 대분류, 두 번째 = 하위 카테고리
   const category = categoryFromSlug(slug?.[0]);
   const initialSubCategory = categoryFromSlug(slug?.[1]);
+  // 검색어(?q) — 홈 메인 검색에서 넘어옴
+  const searchQuery = searchParams.get('q') ?? undefined;
 
   return (
     <BrowsePage
@@ -29,6 +33,16 @@ export default function BrowseRoute() {
       onSelect={(id) => router.push(`/listing/${id}`)}
       category={category}
       initialSubCategory={initialSubCategory}
+      searchQuery={searchQuery}
     />
+  );
+}
+
+// useSearchParams는 Suspense 경계가 필요 (sell/upload 라우트와 동일 패턴)
+export default function BrowseRoute() {
+  return (
+    <Suspense fallback={null}>
+      <BrowseInner />
+    </Suspense>
   );
 }

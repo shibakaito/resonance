@@ -28,6 +28,8 @@ export default function Page() {
       }}
       // 판매하기 → /sell (판매 페이지는 다음 단계에서 추가됨)
       onSell={() => router.push('/sell')}
+      // 메인 검색 → /browse?q=검색어 (browse가 ?q를 읽어 매물 검색)
+      onSearch={(q) => router.push(`/browse?q=${encodeURIComponent(q)}`)}
     />
   );
 }

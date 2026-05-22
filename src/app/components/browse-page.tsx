@@ -9,6 +9,7 @@ interface BrowsePageProps {
   onSelect: (id: string) => void;
   category?: string | null;
   initialSubCategory?: string | null;
+  searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어 (적용은 B단계)
 }
 
 // ── 분리: 필터 로직/데이터/타입은 browse-filters.ts로 이동했습니다 ──

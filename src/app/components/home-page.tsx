@@ -324,9 +324,10 @@ type HomePageProps = {
   onViewItem: (id: string) => void;
   onBrowse: (category: string | null) => void;
   onSell: (data?: SellData) => void;
+  onSearch: (query: string) => void;
 };
 
-export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
+export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePageProps) {
   const [activeCat, setActiveCat] = useState(CATEGORY_TABS[0]);
   // ── Supabase 연동: 가짜 매물 대신 DB에서 매물을 불러옴 ──
   const [dbListings, setDbListings] = useState<Listing[]>([]);
@@ -353,11 +354,10 @@ export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
 
   const isReal = (v: string, allLabel: string) => v && v !== '----' && v !== allLabel;
 
-  // 메인 검색창: 카테고리 키워드가 있으면 해당 카테고리로, 없으면 전체 탐색으로 이동
+  // 메인 검색창: 검색어로 매물 검색 (browse 결과 페이지로 이동, ?q에 검색어 반영)
   const handleHeroSearch = () => {
     const q = query.trim();
-    const matched = TOP_CATEGORIES.find((cat) => q.includes(cat));
-    onBrowse(matched ?? null);
+    if (q) onSearch(q);
   };
 
   const isCategorySelected = isReal(category, '전체 카테고리');
