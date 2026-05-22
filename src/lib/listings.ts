@@ -16,6 +16,7 @@ type ListingRow = {
   created_at: string;
   brand: string;
   model: string;
+  title: string | null;
   year: string | null;
   release_year: number | null;
   category: string;
@@ -39,6 +40,7 @@ function mapRow(row: ListingRow): Listing {
     id: row.id,
     brand: row.brand,
     model: row.model,
+    title: row.title ?? '',
     year: row.year ?? '',
     releaseYear: row.release_year ?? 0,
     category: cat(row.category),

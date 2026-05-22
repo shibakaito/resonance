@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
-import { subcategoriesFor, BRAND_DIRECTORY } from '../data/catalog';
+import { subcategoriesFor, BRAND_DIRECTORY, searchBrands } from '../data/catalog';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -84,7 +84,7 @@ const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
 
-export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePageProps) {
+export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -149,11 +149,25 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
     });
   };
 
+  // 검색어(?q) 1차 필터 — brand/model/title/description 매칭 + 한글 별칭(searchBrands)
+  const searchedListings = useMemo(() => {
+    const q = (searchQuery ?? '').trim();
+    if (!q) return allListings;
+    const nq = q.replace(/[\s&\-/]+/g, '').toLowerCase();
+    // 검색어와 일치하는 브랜드명 집합 (예: '매킨토시' → 'McIntosh')
+    const brandHits = new Set(searchBrands(q).map((b) => b.name));
+    return allListings.filter((l) => {
+      if (brandHits.has(l.brand)) return true;
+      const hay = `${l.brand} ${l.model} ${l.title} ${l.description}`.replace(/[\s&\-/]+/g, '').toLowerCase();
+      return hay.includes(nq);
+    });
+  }, [allListings, searchQuery]);
+
   // 대분류만 적용된 풀 (카테고리 칩의 개수 집계 기준 — subCategories 미적용)
   const baseCategoryListings = useMemo(() => {
-    if (categorySubs.length === 0) return allListings;
-    return allListings.filter((l) => l.categories.some((c) => categorySubs.includes(c)));
-  }, [allListings, categorySubs]);
+    if (categorySubs.length === 0) return searchedListings;
+    return searchedListings.filter((l) => l.categories.some((c) => categorySubs.includes(c)));
+  }, [searchedListings, categorySubs]);
 
   // subCategories까지 적용된 풀
   const categoryListings = useMemo(() => {

@@ -126,6 +126,7 @@ export type Listing = {
   id: string;
   brand: string;
   model: string;
+  title: string;             // 판매글 제목 (검색 대상)
   year: string;
   releaseYear: number;
   category: string;          // 표시용 메인 카테고리 (브래드크럼, 카드 라벨 등)
