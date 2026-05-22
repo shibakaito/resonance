@@ -534,6 +534,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
                 onToggle={toggleField('condition')}
                 counts={counts.condition}
                 maxVisible={3}
+                disableZero
+                alwaysEnabled={[USED_ALL]}
               />
               {sidebarCategoryGroups.map((g) => (
                 <FilterSection
@@ -544,6 +546,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
                   onToggle={toggleSubCategory}
                   counts={subCatCounts}
                   maxVisible={g.items.length > 8 ? 8 : undefined}
+                  disableZero
                 />
               ))}
               {/* 앰프: 세부 카테고리·증폭 방식·정격 출력은 브랜드 위에 표시 */}
