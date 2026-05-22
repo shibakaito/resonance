@@ -100,17 +100,13 @@ export function CheckGroup({
   selected,
   onToggle,
   counts,
-  maxVisible,
-  disableZero = false,
-  alwaysEnabled
+  maxVisible
 }: {
   options: readonly string[];
   selected: Set<string>;
   onToggle: (v: string) => void;
   counts?: Record<string, number>;
   maxVisible?: number;
-  disableZero?: boolean; // true면 0건 옵션을 회색·비활성 처리 (사이드바와 동일)
-  alwaysEnabled?: readonly string[]; // disableZero여도 항상 활성으로 둘 옵션
 }) {
   const [showAll, setShowAll] = useState(false);
   const hasMore = maxVisible != null && options.length > maxVisible;
@@ -119,28 +115,21 @@ export function CheckGroup({
   return (
     <div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
-        {visible.map((opt) => {
-          const cnt = counts?.[opt] ?? 0;
-          const isDisabled = disableZero && cnt === 0 && !alwaysEnabled?.includes(opt);
-          return (
-            <label
-              key={opt}
-              className={`flex items-center gap-2 text-sm ${
-                isDisabled ? 'cursor-not-allowed text-gray-300' : 'text-gray-700 cursor-pointer hover:text-[#000000]'
-              }`}
-            >
-              <input
-                type="checkbox"
-                checked={selected.has(opt)}
-                disabled={isDisabled}
-                onChange={() => !isDisabled && onToggle(opt)}
-                className="accent-[#000000] disabled:opacity-40"
-              />
-              <span>{opt}</span>
-              {counts && <span className={isDisabled ? 'text-gray-300' : 'text-gray-400'}>({cnt})</span>}
-            </label>
-          );
-        })}
+        {visible.map((opt) => (
+          <label
+            key={opt}
+            className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-[#000000]"
+          >
+            <input
+              type="checkbox"
+              checked={selected.has(opt)}
+              onChange={() => onToggle(opt)}
+              className="accent-[#000000]"
+            />
+            <span>{opt}</span>
+            {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
+          </label>
+        ))}
       </div>
       {hasMore && (
         <button
@@ -540,7 +529,6 @@ export function FilterModal({
                 selected={draftSubCategories}
                 onToggle={toggleDraftSubCategory}
                 counts={counts.subcategory}
-                disableZero
               />
             </Section>
           )}
@@ -552,7 +540,6 @@ export function FilterModal({
                   selected={draftSubCategories}
                   onToggle={toggleDraftSubCategory}
                   counts={counts.subcategory}
-                  disableZero
                 />
               </Section>
             ))}
@@ -564,7 +551,6 @@ export function FilterModal({
                   selected={draftSubCategories}
                   onToggle={toggleDraftSubCategory}
                   counts={counts.subcategory}
-                  disableZero
                 />
               </Section>
             ))}
@@ -576,7 +562,6 @@ export function FilterModal({
                   selected={draftSubCategories}
                   onToggle={toggleDraftSubCategory}
                   counts={counts.subcategory}
-                  disableZero
                 />
               </Section>
             ))}
@@ -719,7 +704,6 @@ export function FilterModal({
               selected={draft.condition}
               onToggle={toggleIn('condition')}
               counts={counts.condition}
-              disableZero
             />
           </Section>
           <Section title="가격" defaultOpen>

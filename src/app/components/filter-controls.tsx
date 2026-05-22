@@ -28,8 +28,6 @@ export function FilterSection({
   step,
   searchable = false,
   defaultOpen = true,
-  disableZero = false,
-  alwaysEnabled,
   getAliases
 }: {
   label: string;
@@ -41,8 +39,6 @@ export function FilterSection({
   step?: number; // 지정 시 "+더보기"가 step개씩 펼침 (미지정 시 한 번에 전체)
   searchable?: boolean;
   defaultOpen?: boolean;
-  disableZero?: boolean; // true면 0건 옵션을 회색·비활성 처리
-  alwaysEnabled?: readonly string[]; // disableZero여도 항상 활성으로 둘 옵션(예: '중고')
   getAliases?: (opt: string) => readonly string[]; // 옵션의 검색용 별칭(예: 브랜드 한글명)
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -103,33 +99,23 @@ export function FilterSection({
             </div>
           )}
           <div className={visible.length > 12 ? 'max-h-72 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
-            {visible.map((opt) => {
-              const cnt = counts?.[opt] ?? 0;
-              // 0건이면 비활성 — 단, alwaysEnabled(예: '중고')은 예외로 항상 활성
-              const isDisabled = disableZero && cnt === 0 && !alwaysEnabled?.includes(opt);
-              return (
-                <label
-                  key={opt}
-                  className={`flex items-center gap-2 py-1 text-sm ${
-                    isDisabled
-                      ? 'cursor-not-allowed text-gray-300'
-                      : 'cursor-pointer text-gray-700 hover:text-[#000000]'
-                  }`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={selected.has(opt)}
-                    disabled={isDisabled}
-                    onChange={() => !isDisabled && onToggle(opt)}
-                    className="accent-[#000000] w-3.5 h-3.5 disabled:opacity-40"
-                  />
-                  <span className="flex-1 truncate">{opt}</span>
-                  {counts && (
-                    <span className={`text-xs ${isDisabled ? 'text-gray-300' : 'text-gray-400'}`}>({cnt})</span>
-                  )}
-                </label>
-              );
-            })}
+            {visible.map((opt) => (
+              <label
+                key={opt}
+                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-gray-700 hover:text-[#000000]"
+              >
+                <input
+                  type="checkbox"
+                  checked={selected.has(opt)}
+                  onChange={() => onToggle(opt)}
+                  className="accent-[#000000] w-3.5 h-3.5"
+                />
+                <span className="flex-1 truncate">{opt}</span>
+                {counts && (
+                  <span className="text-xs text-gray-400">({counts[opt] ?? 0})</span>
+                )}
+              </label>
+            ))}
           </div>
           {(hasMore || expanded) && (
             <div className="mt-1 flex items-center gap-3">
