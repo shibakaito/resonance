@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
-import { subcategoriesFor, BRAND_DIRECTORY, searchBrands } from '../data/catalog';
+import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES } from '../data/catalog';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -149,17 +149,26 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     });
   };
 
-  // 검색어(?q) 1차 필터 — brand/model/title/description 매칭 + 한글 별칭(searchBrands)
+  // 검색어(?q) 1차 필터 — brand/model/title/description + 한글 별칭(브랜드) + 카테고리 한글
   const searchedListings = useMemo(() => {
     const q = (searchQuery ?? '').trim();
     if (!q) return allListings;
-    const nq = q.replace(/[\s&\-/]+/g, '').toLowerCase();
+    const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
+    const nq = norm(q);
     // 검색어와 일치하는 브랜드명 집합 (예: '매킨토시' → 'McIntosh')
     const brandHits = new Set(searchBrands(q).map((b) => b.name));
+    // 카테고리 한글 매칭: 대분류는 정확 매칭 → 그 하위 전체, 세부는 부분일치
+    const matchedSubs = new Set<string>();
+    for (const top of TOP_CATEGORIES)
+      if (norm(top) === nq) subcategoriesFor(top).forEach((s) => matchedSubs.add(s));
+    for (const sub of ALL_SUBCATEGORIES)
+      if (norm(sub).includes(nq)) matchedSubs.add(sub);
     return allListings.filter((l) => {
       if (brandHits.has(l.brand)) return true;
-      const hay = `${l.brand} ${l.model} ${l.title} ${l.description}`.replace(/[\s&\-/]+/g, '').toLowerCase();
-      return hay.includes(nq);
+      const hay = norm(`${l.brand} ${l.model} ${l.title} ${l.description}`);
+      if (hay.includes(nq)) return true;
+      if (matchedSubs.size > 0 && l.categories.some((c) => matchedSubs.has(c))) return true;
+      return false;
     });
   }, [allListings, searchQuery]);
 
