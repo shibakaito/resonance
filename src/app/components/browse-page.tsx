@@ -576,7 +576,6 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
                 onToggle={toggleField('brand')}
                 counts={counts.brand}
                 maxVisible={5}
-                step={5}
                 searchable
                 getAliases={(name) => BRAND_ALIASES[name] ?? []}
               />

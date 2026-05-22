@@ -25,7 +25,6 @@ export function FilterSection({
   onToggle,
   counts,
   maxVisible,
-  step,
   searchable = false,
   defaultOpen = true,
   getAliases
@@ -36,7 +35,6 @@ export function FilterSection({
   onToggle: (v: string) => void;
   counts?: Record<string, number>;
   maxVisible?: number;
-  step?: number; // 지정 시 "+더보기"가 step개씩 펼침 (미지정 시 한 번에 전체)
   searchable?: boolean;
   defaultOpen?: boolean;
   getAliases?: (opt: string) => readonly string[]; // 옵션의 검색용 별칭(예: 브랜드 한글명)
@@ -44,6 +42,7 @@ export function FilterSection({
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(maxVisible ?? Infinity);
+  const scrollRef = useRef<HTMLDivElement>(null); // 옵션 스크롤 컨테이너
 
   const filtered = useMemo(() => {
     if (!searchable || query.trim() === '') return options;
@@ -67,8 +66,11 @@ export function FilterSection({
   const hasMore = limited && filtered.length > visibleCount;
   const expanded = limited && visibleCount > (maxVisible ?? 0);
 
-  const showMore = () =>
-    setVisibleCount((c) => (step ? Math.min(c + step, filtered.length) : filtered.length));
+  // 한 번에 전부 펼치고, 스크롤은 항상 맨 위에서 시작
+  const showMore = () => {
+    setVisibleCount(filtered.length);
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0 }));
+  };
   const collapse = () => setVisibleCount(maxVisible ?? Infinity);
 
   return (
@@ -98,7 +100,8 @@ export function FilterSection({
               />
             </div>
           )}
-          <div className={visible.length > 12 ? 'max-h-72 overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
+          {/* max-h를 행 높이(28px)의 정확한 배수(10행=280px)로 → 마지막 행이 반쪽으로 삐져나오지 않음 */}
+          <div ref={scrollRef} className={visible.length > 12 ? 'max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
             {visible.map((opt) => (
               <label
                 key={opt}
@@ -116,27 +119,28 @@ export function FilterSection({
                 )}
               </label>
             ))}
+            {/* 버튼은 스크롤 영역 안에 둠 → '접기'가 목록 맨 끝(스크롤 하단)에 보임 */}
+            {(hasMore || expanded) && (
+              <div className="mt-1 flex items-center gap-3">
+                {hasMore && (
+                  <button
+                    onClick={showMore}
+                    className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
+                  >
+                    모두 보기
+                  </button>
+                )}
+                {expanded && (
+                  <button
+                    onClick={collapse}
+                    className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
+                  >
+                    접기
+                  </button>
+                )}
+              </div>
+            )}
           </div>
-          {(hasMore || expanded) && (
-            <div className="mt-1 flex items-center gap-3">
-              {hasMore && (
-                <button
-                  onClick={showMore}
-                  className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
-                >
-                  + 더보기
-                </button>
-              )}
-              {expanded && (
-                <button
-                  onClick={collapse}
-                  className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
-                >
-                  접기
-                </button>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>
@@ -348,7 +352,7 @@ export function FilterDropdown({
             ) : (
               <>
                 <Plus className="w-4 h-4" />
-                더보기 ({options.length - maxVisible!})
+                모두 보기
               </>
             )}
           </button>

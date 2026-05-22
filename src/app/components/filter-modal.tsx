@@ -144,7 +144,7 @@ export function CheckGroup({
           ) : (
             <>
               <Plus className="w-4 h-4" />
-              더보기 ({options.length - maxVisible!})
+              모두 보기
             </>
           )}
         </button>
