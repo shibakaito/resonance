@@ -14,10 +14,13 @@ export const BRANDS = [
   'McIntosh', 'Marantz', 'Accuphase', 'Luxman', 'Yamaha',
   'Sansui', 'Pioneer', 'Denon', 'NAD', 'Cambridge Audio'
 ] as const;
-export const CONDITIONS = ['새상품', 'NOS', '중고 - 민트', '중고 - 매우 좋음', '중고 - 좋음', '중고 - 보통', '중고 - 점검 필요', '중고 - 작동 불가'];
-// 사이드바용 표시 옵션 — '중고 - 전체'는 UI 단축키 (선택 시 모든 중고-* 매물 매칭)
-export const USED_ALL = '중고 - 전체';
-export const CONDITION_DISPLAY = ['새상품', 'NOS', USED_ALL, '중고 - 민트', '중고 - 매우 좋음', '중고 - 좋음', '중고 - 보통', '중고 - 점검 필요', '중고 - 작동 불가'];
+// 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
+export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
+// NOS(New Old Stock) = 신품이지만 오래된 재고. 중고 등급이 아니라 별도 항목.
+export const CONDITIONS = ['새상품', 'NOS', ...USED_GRADES];
+// 사이드바용 표시 옵션 — '중고'는 UI 단축키 (선택 시 모든 중고 등급 매물 매칭)
+export const USED_ALL = '중고';
+export const CONDITION_DISPLAY = ['새상품', 'NOS', USED_ALL, ...USED_GRADES];
 export const LOCATIONS = ['서울', '경기', '부산', '대구', '인천', '광주', '대전', '울산', '강원', '제주'];
 export const OWNERSHIP_OPTS = ['1인 소유', '다중 소유'];
 export const COUNTRY_OPTS = ['미국', '일본', '영국', '독일', '프랑스', '덴마크', '캐나다', '중국'];
@@ -382,7 +385,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     const usedAllSelected = f.condition.has(USED_ALL);
     r = r.filter((l) => {
       if (f.condition.has(l.condition)) return true;
-      if (usedAllSelected && l.condition.startsWith('중고 -')) return true;
+      if (usedAllSelected && USED_GRADES.includes(l.condition)) return true;
       return false;
     });
   }

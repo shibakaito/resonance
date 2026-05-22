@@ -20,12 +20,12 @@ export const LABELS: Record<string, LabelMap> = {
   condition: {
     new: { ko: '새상품' },
     nos: { ko: 'NOS' },
-    used_mint: { ko: '중고 - 민트' },
-    used_excellent: { ko: '중고 - 매우 좋음' },
-    used_good: { ko: '중고 - 좋음' },
-    used_fair: { ko: '중고 - 보통' },
-    used_needs_service: { ko: '중고 - 점검 필요' },
-    used_not_working: { ko: '중고 - 작동 불가' },
+    used_mint: { ko: '민트급' },
+    used_excellent: { ko: '매우 좋음' },
+    used_good: { ko: '좋음' },
+    used_fair: { ko: '보통' },
+    used_needs_service: { ko: '점검 필요' },
+    used_not_working: { ko: '작동 불가' },
   },
   location: {
     seoul: { ko: '서울' }, gyeonggi: { ko: '경기' }, busan: { ko: '부산' }, daegu: { ko: '대구' },

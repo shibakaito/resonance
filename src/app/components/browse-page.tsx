@@ -55,6 +55,7 @@ import {
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
   USED_ALL,
+  USED_GRADES,
   VOLTAGE_OPTS,
   WOOFER_SIZES,
   applyFilters,
@@ -181,9 +182,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
       brand: countBy(categoryListings, (l) => l.brand),
       condition: (() => {
         const c = countBy(categoryListings, (l) => l.condition);
-        // '중고 - 전체' = 모든 중고-* 매물 수 합계 (UI 단축키용)
+        // '중고' = 모든 중고 등급 매물 수 합계 (UI 단축키용)
         c[USED_ALL] = Object.entries(c)
-          .filter(([k]) => k.startsWith('중고 -') && k !== USED_ALL)
+          .filter(([k]) => USED_GRADES.includes(k))
           .reduce((s, [, v]) => s + v, 0);
         return c;
       })(),

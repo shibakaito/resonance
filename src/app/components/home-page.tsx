@@ -698,13 +698,14 @@ export function HomePage({ onViewItem, onBrowse, onSell }: HomePageProps) {
                     options={[
                       '전체',
                       '새상품',
-                      '중고 - 전체',
-                      '중고 - 민트',
-                      '중고 - 매우 좋음',
-                      '중고 - 좋음',
-                      '중고 - 보통',
-                      '중고 - 점검 필요',
-                      '중고 - 작동 불가'
+                      'NOS',
+                      '중고',
+                      '민트급',
+                      '매우 좋음',
+                      '좋음',
+                      '보통',
+                      '점검 필요',
+                      '작동 불가'
                     ]}
                     allLabel="전체"
                     searchable={false}

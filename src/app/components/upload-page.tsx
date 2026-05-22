@@ -28,12 +28,12 @@ const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '
 const CONDITIONS = [
   { value: 'new', label: '새상품', desc: '미개봉 또는 사용하지 않은 새 제품' },
   { value: 'nos', label: 'NOS', desc: '신품이지만 오래 보관된 재고품 (New Old Stock)' },
-  { value: 'used_mint', label: '중고 - 민트', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
-  { value: 'used_excellent', label: '중고 - 매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },
-  { value: 'used_good', label: '중고 - 좋음', desc: '약간의 외관 흠집이 있으나 깨끗한 상태' },
-  { value: 'used_fair', label: '중고 - 보통', desc: '눈에 띄는 사용감, 작동은 정상' },
-  { value: 'used_needs_service', label: '중고 - 점검 필요', desc: '작동 이상 또는 점검/수리가 필요' },
-  { value: 'used_not_working', label: '중고 - 작동 불가', desc: '부품용 또는 수리를 전제로 한 상태' }
+  { value: 'used_mint', label: '민트급', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
+  { value: 'used_excellent', label: '매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },
+  { value: 'used_good', label: '좋음', desc: '약간의 외관 흠집이 있으나 깨끗한 상태' },
+  { value: 'used_fair', label: '보통', desc: '눈에 띄는 사용감, 작동은 정상' },
+  { value: 'used_needs_service', label: '점검 필요', desc: '작동 이상 또는 점검/수리가 필요' },
+  { value: 'used_not_working', label: '작동 불가', desc: '부품용 또는 수리를 전제로 한 상태' }
 ];
 
 const PHOTO_EXAMPLES = [
