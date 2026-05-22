@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal } from 'lucide-react';
-import { subcategoriesFor } from '../data/catalog';
+import { subcategoriesFor, BRAND_DIRECTORY } from '../data/catalog';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -77,6 +77,12 @@ import { FilterModal } from './filter-modal';
 import { ListingGrid } from './listing-grid';
 // ── Supabase 연동: DB에서 실제 매물을 불러옴 ──
 import { fetchListings } from '@/lib/listings';
+
+// 브랜드 영문명 → 한글 별칭 목록 (검색용). 홈 콤보박스와 동일하게 BRAND_DIRECTORY 재사용.
+const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
+  BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
+);
+
 export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
@@ -575,6 +581,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory }: BrowsePag
                 maxVisible={5}
                 step={5}
                 searchable
+                getAliases={(name) => BRAND_ALIASES[name] ?? []}
               />
               <RangeSection
                 label="가격"

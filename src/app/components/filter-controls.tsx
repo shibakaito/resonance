@@ -13,6 +13,10 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, ChevronUp, X, Search, Plus, Minus } from 'lucide-react';
 
+// 검색어 정규화: 공백·&·-·/ 제거 + 소문자 (catalog.ts의 normalize와 동일 규칙)
+// 예: "바워스 앤 윌킨스" / "B&W" → 비교 가능한 형태로
+const normalizeSearch = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
+
 // 좌측 사이드바용 아코디언 섹션 필터 (Perfect Circuit 스타일)
 export function FilterSection({
   label,
@@ -25,7 +29,8 @@ export function FilterSection({
   searchable = false,
   defaultOpen = true,
   disableZero = false,
-  alwaysEnabled
+  alwaysEnabled,
+  getAliases
 }: {
   label: string;
   options: readonly string[];
@@ -38,6 +43,7 @@ export function FilterSection({
   defaultOpen?: boolean;
   disableZero?: boolean; // true면 0건 옵션을 회색·비활성 처리
   alwaysEnabled?: readonly string[]; // disableZero여도 항상 활성으로 둘 옵션(예: '중고')
+  getAliases?: (opt: string) => readonly string[]; // 옵션의 검색용 별칭(예: 브랜드 한글명)
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
@@ -45,9 +51,15 @@ export function FilterSection({
 
   const filtered = useMemo(() => {
     if (!searchable || query.trim() === '') return options;
-    const q = query.trim().toLowerCase();
-    return options.filter((o) => o.toLowerCase().includes(q));
-  }, [options, searchable, query]);
+    const q = normalizeSearch(query);
+    if (!q) return options;
+    return options.filter((o) => {
+      if (normalizeSearch(o).includes(q)) return true; // 옵션명(영문) 매칭
+      // 별칭(예: '매킨토시') 매칭 — getAliases가 주어진 경우
+      if (getAliases) return getAliases(o).some((a) => normalizeSearch(a).includes(q));
+      return false;
+    });
+  }, [options, searchable, query, getAliases]);
 
   // 옵션/검색어 변경 시 표시 개수 초기화
   useEffect(() => {
