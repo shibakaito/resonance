@@ -1,0 +1,82 @@
+/* ============================================================================
+ * Paperlogy(페이퍼로지) 폰트 등록
+ * ----------------------------------------------------------------------------
+ * 굵기 9종을 모두 "대기"시켜 둡니다. 단, 브라우저는 실제로 화면에 쓰인
+ * 굵기만 그때 내려받으므로(지연 로딩), 9종을 등록해도 한꺼번에 다운로드되지
+ * 않습니다. 안 쓰는 굵기는 다운로드되지 않아 빠릅니다.
+ *
+ * font-display: swap → 폰트 받는 동안 기본 글꼴로 먼저 보여주고,
+ *                      다 받으면 Paperlogy로 자연스럽게 교체(글자 안 보임 방지).
+ * ============================================================================ */
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 100; /* Thin */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-1Thin.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 200; /* ExtraLight */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-2ExtraLight.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 300; /* Light */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-3Light.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 400; /* Regular (본문 기본) */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-4Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 500; /* Medium */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-5Medium.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 600; /* SemiBold */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-6SemiBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 700; /* Bold (굵게) */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-7Bold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 800; /* ExtraBold */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-8ExtraBold.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Paperlogy';
+  font-weight: 900; /* Black */
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Paperlogy-9Black.ttf') format('truetype');
+}
