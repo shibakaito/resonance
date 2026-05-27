@@ -2,6 +2,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES } from '../data/catalog';
+import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -155,26 +156,61 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   };
 
   // 검색어(?q) 1차 필터 — brand/model/title/description + 한글 별칭(브랜드) + 카테고리 한글
+  // + 한영 자판 오타 매칭 (lazy fallback): 원본으로 결과 적을 때만 변환 후보 추가
   const searchedListings = useMemo(() => {
     const q = (searchQuery ?? '').trim();
     if (!q) return allListings;
     const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
-    const nq = norm(q);
-    // 검색어와 일치하는 브랜드명 집합 (예: '매킨토시' → 'McIntosh')
-    const brandHits = new Set(searchBrands(q).map((b) => b.name));
-    // 카테고리 한글 매칭: 대분류는 정확 매칭 → 그 하위 전체, 세부는 부분일치
-    const matchedSubs = new Set<string>();
-    for (const top of TOP_CATEGORIES)
-      if (norm(top) === nq) subcategoriesFor(top).forEach((s) => matchedSubs.add(s));
-    for (const sub of ALL_SUBCATEGORIES)
-      if (norm(sub).includes(nq)) matchedSubs.add(sub);
-    return allListings.filter((l) => {
-      if (brandHits.has(l.brand)) return true;
-      const hay = norm(`${l.brand} ${l.model} ${l.title} ${l.description}`);
-      if (hay.includes(nq)) return true;
-      if (matchedSubs.size > 0 && l.categories.some((c) => matchedSubs.has(c))) return true;
-      return false;
-    });
+
+    // 단일 검색어 → 매칭 listing 배열 (기존 매칭 로직 캡슐화)
+    const matchByQuery = (query: string) => {
+      const nq = norm(query);
+      if (!nq) return [];
+      const brandHits = new Set(searchBrands(query).map((b) => b.name));
+      const matchedSubs = new Set<string>();
+      for (const top of TOP_CATEGORIES)
+        if (norm(top) === nq) subcategoriesFor(top).forEach((s) => matchedSubs.add(s));
+      for (const sub of ALL_SUBCATEGORIES)
+        if (norm(sub).includes(nq)) matchedSubs.add(sub);
+      return allListings.filter((l) => {
+        if (brandHits.has(l.brand)) return true;
+        const hay = norm(`${l.brand} ${l.model} ${l.title} ${l.description}`);
+        if (hay.includes(nq)) return true;
+        if (matchedSubs.size > 0 && l.categories.some((c) => matchedSubs.has(c))) return true;
+        return false;
+      });
+    };
+
+    // 1차: 원본 query 그대로 검색
+    const primary = matchByQuery(q);
+
+    // 결과 충분하면 그대로 반환 (lazy fallback 발동 안 함)
+    const SMALL_RESULT = 3;
+    if (primary.length >= SMALL_RESULT) return primary;
+
+    // 2차 fallback: 한영 자판 변환 후보 추가
+    // 노이즈 가드 — 변환 결과가 의미 있는 글자(한글 음절 ≥2 또는 영문 ≥2)일 때만 채택
+    const hasKoreanSyllables = (s: string) => (s.match(/[가-힣]/g)?.length ?? 0) >= 2;
+    const hasEnglishLetters = (s: string) => (s.match(/[a-zA-Z]/g)?.length ?? 0) >= 2;
+    const variants: string[] = [];
+    const ko = en2ko(q);
+    if (ko !== q && hasKoreanSyllables(ko)) variants.push(ko);
+    const en = ko2en(q);
+    if (en !== q && hasEnglishLetters(en)) variants.push(en);
+    if (variants.length === 0) return primary;
+
+    // 원본 결과 + 변환 후보 결과 합치고 id로 중복 제거
+    const seen = new Set(primary.map((l) => l.id));
+    const merged = [...primary];
+    for (const v of variants) {
+      for (const l of matchByQuery(v)) {
+        if (!seen.has(l.id)) {
+          seen.add(l.id);
+          merged.push(l);
+        }
+      }
+    }
+    return merged;
   }, [allListings, searchQuery]);
 
   // 대분류만 적용된 풀 (카테고리 칩의 개수 집계 기준 — subCategories 미적용)
