@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Upload,
@@ -17,10 +17,24 @@ import {
   Youtube,
   HelpCircle
 } from 'lucide-react';
-import { TOP_CATEGORIES, subcategoriesFor } from '../data/catalog';
+import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
 
 const CATEGORIES = TOP_CATEGORIES;
+
+/**
+ * 카테고리 풀패스 목록 (예: '앰프 > 프리앰프')
+ * - subs가 있으면 각 sub마다 풀패스 1줄
+ * - subs가 없으면 top만 (leaf는 빈 문자열)
+ * - 사용자가 입력으로 검색·선택할 때 사용
+ */
+const CATEGORY_PATHS: { path: string; top: string; leaf: string }[] = CATEGORY_TREE.flatMap(
+  ({ top, subs }) =>
+    subs.length === 0
+      ? [{ path: top, top, leaf: '' }]
+      : subs.map((s) => ({ path: `${top} > ${s}`, top, leaf: s }))
+);
+const CATEGORY_PATH_STRINGS = CATEGORY_PATHS.map((p) => p.path);
 
 const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '대만', '이탈리아', '프랑스', '캐나다'];
 
@@ -72,6 +86,248 @@ const SPEC_FIELDS = [
   { key: 'weight', label: '무게' },
 ];
 
+/**
+ * 매칭된 부분을 노란 배경으로 강조.
+ * - 공백·하이픈·&·/ 무시 (예: 'C22' 검색 → 'C 22' 또는 'C-22' 안의 'C 22' 전체가 강조됨)
+ * - 첫 번째 매칭만 강조
+ */
+function highlightMatch(text: string, q: string) {
+  const trimmed = q.trim();
+  if (!trimmed) return text;
+  const isStripped = (ch: string) => /[\s&\-/]/.test(ch);
+
+  // 원본 텍스트의 각 위치 → 정규화 후 인덱스 매핑 (정규화에서 제거되는 문자는 -1)
+  const origToNorm: number[] = [];
+  const normChars: string[] = [];
+  for (let i = 0; i < text.length; i++) {
+    if (isStripped(text[i])) {
+      origToNorm.push(-1);
+    } else {
+      origToNorm.push(normChars.length);
+      normChars.push(text[i].toLowerCase());
+    }
+  }
+  const textNorm = normChars.join('');
+  const qNorm = trimmed.replace(/[\s&\-/]+/g, '').toLowerCase();
+  if (!qNorm) return text;
+  const startNorm = textNorm.indexOf(qNorm);
+  if (startNorm < 0) return text;
+  const endNorm = startNorm + qNorm.length;
+
+  // 정규화 인덱스 → 원본 인덱스 역매핑 (양 끝)
+  let startOrig = -1;
+  let endOrig = -1;
+  for (let i = 0; i < origToNorm.length; i++) {
+    if (origToNorm[i] === startNorm) {
+      startOrig = i;
+      break;
+    }
+  }
+  for (let i = origToNorm.length - 1; i >= 0; i--) {
+    if (origToNorm[i] === endNorm - 1) {
+      endOrig = i + 1;
+      break;
+    }
+  }
+  if (startOrig < 0 || endOrig < 0) return text;
+  return (
+    <>
+      {text.slice(0, startOrig)}
+      <span className="bg-yellow-200">{text.slice(startOrig, endOrig)}</span>
+      {text.slice(endOrig)}
+    </>
+  );
+}
+
+/**
+ * 검색형 입력 (메인홈 검색 패턴)
+ * - input에 키 입력 → 매칭되는 옵션을 드롭다운에 표시
+ * - 항목 클릭하면 선택되고 드롭다운 닫힘
+ * - filter prop으로 커스텀 매칭 로직 주입 가능 (예: 브랜드 한글 별칭)
+ * - 옵션 텍스트는 입력어와 매칭되는 글자가 노란 배경으로 강조됨
+ */
+function Typeahead({
+  value,
+  onChange,
+  options,
+  filter,
+  freeText = false,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  filter?: (q: string, opts: string[]) => string[];
+  /** true면 매칭 없는 사용자 입력도 그대로 저장 가능 (드롭다운에 "직접 입력: …" 옵션 표시) */
+  freeText?: boolean;
+}) {
+  const [query, setQuery] = useState('');
+  const [open, setOpen] = useState(false);
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  // 공백·하이픈·&·/ 제거 + 소문자 (예: 'C 22'·'C-22'·'C22' 모두 같은 키로 비교)
+  const normalize = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
+  const qNorm = normalize(query);
+  const matched = !qNorm
+    ? options
+    : filter
+    ? filter(query.trim().toLowerCase(), options)
+    : options.filter((o) => normalize(o).includes(qNorm));
+
+  // ↑/↓ 로 activeIdx 바뀔 때마다 그 항목이 보이도록 스크롤
+  useEffect(() => {
+    if (activeIdx < 0 || !listRef.current) return;
+    const el = listRef.current.querySelector(
+      `[data-idx="${activeIdx}"]`
+    ) as HTMLElement | null;
+    if (el) el.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx]);
+
+  // '직접 입력' 옵션은 매칭이 0개일 때만 표시 (즉 데이터가 없을 때만)
+  const showFreeText = freeText && !!qNorm && matched.length === 0;
+  // 키보드 네비게이션용 통합 리스트 (매칭 + 직접 입력)
+  const navList: { kind: 'match' | 'free'; text: string }[] = [
+    ...matched.map((m) => ({ kind: 'match' as const, text: m })),
+    ...(showFreeText ? [{ kind: 'free' as const, text: query }] : []),
+  ];
+
+  const commit = (item: { kind: 'match' | 'free'; text: string }) => {
+    onChange(item.text);
+    setQuery('');
+    setOpen(false);
+    setActiveIdx(-1);
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="text"
+        value={open ? query : value}
+        onFocus={() => {
+          // 자유 입력 모드: 기존 값에서 편집 시작 / 옵션 선택 모드: 빈 칸에서 검색 시작
+          setQuery(freeText ? value : '');
+          setOpen(true);
+          setActiveIdx(-1);
+        }}
+        onChange={(e) => {
+          setQuery(e.target.value);
+          setOpen(true);
+          setActiveIdx(-1);
+        }}
+        onBlur={() =>
+          setTimeout(() => {
+            // 자유 입력 모드 + 매칭 0개 + 입력값 있음 → 자동 저장 (직접 입력 옵션 안 눌렀어도)
+            if (freeText && query.trim() && matched.length === 0) {
+              onChange(query);
+            }
+            setOpen(false);
+            setActiveIdx(-1);
+          }, 150)
+        }
+        onKeyDown={(e) => {
+          // 한글 IME 조합 중인 키 이벤트는 무시 — '프리앰프' + Enter 시 끝에 '프'가
+          // 한 번 더 붙는 현상(IME 확정용 Enter가 따로 발생) 방지.
+          if ((e.nativeEvent as { isComposing?: boolean }).isComposing) return;
+          // 닫혀 있을 때 ↓ 또는 Enter → 펼치기
+          if (!open && (e.key === 'ArrowDown' || e.key === 'Enter')) {
+            e.preventDefault();
+            setOpen(true);
+            return;
+          }
+          const n = Math.max(navList.length, 1);
+          if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setActiveIdx((i) => (i + 1) % n);
+          } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setActiveIdx((i) => (i - 1 + n) % n);
+          } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (activeIdx >= 0 && navList[activeIdx]) {
+              // ↓ 키로 선택해 둔 항목이 있으면 그것
+              commit(navList[activeIdx]);
+            } else if (navList.length > 0) {
+              // 활성 항목이 없으면 첫 번째 매칭(또는 직접 입력) 자동 선택
+              commit(navList[0]);
+            } else if (freeText && query.trim()) {
+              commit({ kind: 'free', text: query });
+            }
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            setOpen(false);
+            setActiveIdx(-1);
+          }
+        }}
+        placeholder=""
+        className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+      />
+      {/* 값이 있으면 오른쪽 끝에 X 버튼 — 클릭 시 선택값/검색어 초기화 */}
+      {value && (
+        <button
+          type="button"
+          aria-label="지우기"
+          onMouseDown={(e) => {
+            // mousedown 단계에서 처리 → input의 onBlur보다 먼저 동작
+            e.preventDefault();
+            onChange('');
+            setQuery('');
+            setOpen(false);
+            setActiveIdx(-1);
+          }}
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
+      {open && (
+        <div
+          ref={listRef}
+          className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg"
+        >
+          {matched.length === 0 && (
+            <div className="px-3 py-2 text-sm text-gray-500">검색 결과 없음</div>
+          )}
+          {navList.length > 0 &&
+            navList.map((item, idx) => {
+              const isActive = idx === activeIdx;
+              const isFree = item.kind === 'free';
+              return (
+                <button
+                  key={`${item.kind}-${idx}`}
+                  type="button"
+                  data-idx={idx}
+                  onMouseEnter={() => setActiveIdx(idx)}
+                  onMouseDown={(e) => {
+                    // mousedown 단계에서 처리 → input의 onBlur보다 먼저 동작
+                    e.preventDefault();
+                    commit(item);
+                  }}
+                  className={`w-full text-left px-3 py-2 text-sm ${
+                    isActive ? 'bg-[#f7f7f7]' : ''
+                  } ${
+                    isFree
+                      ? 'text-blue-700 border-t border-[#e0e0e0]'
+                      : value === item.text
+                      ? 'font-semibold text-[#000000]'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {isFree ? (
+                    <>
+                      직접 입력: <span className="font-semibold">{item.text}</span>
+                    </>
+                  ) : (
+                    highlightMatch(item.text, query)
+                  )}
+                </button>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface UploadPageProps {
   initialData?: {
     title?: string;
@@ -109,7 +365,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [activeStep, setActiveStep] = useState('info');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  // 제품 정보 추가 필드 (소유권/구성품/상태 3종)
+  // 제품 정보 추가 필드
   const [ownership, setOwnership] = useState('');
   const [components, setComponents] = useState('');
   const [conditionGeneral, setConditionGeneral] = useState('');
@@ -247,65 +503,80 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
 
             <div className="space-y-4">
-              {/* 카테고리 (가장 위) */}
+              {/* 카테고리 — 풀패스("앰프 > 프리앰프")로 검색·표시. 선택 시 상위/하위 분리 저장 */}
               <div>
                 <label className="block font-semibold mb-1">
                   카테고리 <span className="text-[#000000]">*</span>
                 </label>
-                <select
-                  value={category}
-                  onChange={(e) => {
-                    setCategory(e.target.value);
-                    setSubcategory('');
+                <Typeahead
+                  value={
+                    category && subcategory
+                      ? `${category} > ${subcategory}`
+                      : category
+                  }
+                  onChange={(path) => {
+                    // X 버튼 등으로 빈 값이 오면 카테고리/하위 둘 다 초기화
+                    if (!path) {
+                      setCategory('');
+                      setSubcategory('');
+                      return;
+                    }
+                    const found = CATEGORY_PATHS.find((p) => p.path === path);
+                    if (found) {
+                      setCategory(found.top);
+                      setSubcategory(found.leaf);
+                    }
                   }}
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
-                >
-                  <option value="">선택하세요</option>
-                  {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                  options={CATEGORY_PATH_STRINGS}
+                />
               </div>
 
-              {/* 하위 카테고리 */}
-              <div>
-                <label className="block font-semibold mb-1">하위 카테고리</label>
-                <select
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                  disabled={!category}
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:cursor-not-allowed"
-                >
-                  <option value="">{category ? '선택하세요' : '먼저 카테고리를 선택하세요'}</option>
-                  {category && subcategoriesFor(category).map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 1. 브랜드 */}
+              {/* 1. 브랜드 — 한글 별칭(예: '맥킨토시' → McIntosh) 매칭 지원 */}
               <div>
                 <label className="block font-semibold mb-1">
                   브랜드 <span className="text-[#000000]">*</span>
                 </label>
-                <input
+                <Typeahead
                   value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  onChange={(v) => {
+                    setBrand(v);
+                    setModel(''); // 브랜드 바꾸면 모델 초기화
+                  }}
+                  options={ALL_BRAND_NAMES}
+                  freeText
+                  filter={(q, opts) => {
+                    const ranked = searchBrands(q, 50).map((b) => b.name);
+                    const set = new Set(opts);
+                    return ranked.filter((n) => set.has(n));
+                  }}
                 />
               </div>
 
-              {/* 2. 모델 */}
+              {/* 2. 모델 — 브랜드 + 카테고리(subcategory)가 둘 다 일치하는 모델만 후보로
+                  - 브랜드 미선택 → 후보 없음 (직접 입력만 가능)
+                  - 카테고리 미선택 → 해당 브랜드의 전체 모델
+                  - 카테고리 선택됨 → 해당 브랜드 + 그 카테고리(예: '프리앰프')만 */}
               <div>
                 <label className="block font-semibold mb-1">
                   모델 <span className="text-[#000000]">*</span>
                 </label>
-                <input
+                <Typeahead
                   value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  onChange={setModel}
+                  freeText
+                  options={
+                    brand
+                      ? Array.from(
+                          new Set(
+                            CATALOG.filter(
+                              (c) =>
+                                c.brand === brand &&
+                                (!subcategory || c.category === subcategory)
+                            ).map((c) => c.model)
+                          )
+                        )
+                      : []
+                  }
                 />
               </div>
 
@@ -323,16 +594,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 4. 제조국 */}
               <div>
                 <label className="block font-semibold mb-1">제조국</label>
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
-                >
-                  <option value="">선택하세요</option>
-                  {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>{c}</option>
-                  ))}
-                </select>
+                <Typeahead value={country} onChange={setCountry} options={COUNTRIES} />
               </div>
 
               {/* 5. 소유권 */}
@@ -357,15 +619,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 7. 상태 */}
+              {/* 7. 상태 — 아래에 있던 CONDITIONS 드롭다운을 여기로 가져옴 */}
               <div>
                 <label className="block font-semibold mb-1">상태</label>
-                <input
-                  value={conditionGeneral}
-                  onChange={(e) => setConditionGeneral(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
+                <select
+                  value={condition}
+                  onChange={(e) => setCondition(e.target.value)}
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
+                >
+                  {CONDITIONS.map((c) => (
+                    <option key={c.value} value={c.value}>{c.label}</option>
+                  ))}
+                </select>
               </div>
 
               {/* 8. 외관 상태 */}
@@ -636,7 +901,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             * - 사용자가 입력한 price 기준으로 보라(저렴) / 초록(적정) / 검정(비쌈) 영역에
             *   현재 가격 위치를 점·말풍선으로 표시.
             * - MARKET_MIN/MAX는 ⚠️ 임시 하드코딩. 추후 시장 데이터 기반 로직으로 교체 예정.
-            * - hasMarketData=false일 땐 '데이터 없음' 안내만 표시.
             * ============================================================ */}
           {(() => {
             const priceNum = parseInt(price || '0', 10);
@@ -742,6 +1006,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     </div>
                   </div>
                 </div>
+
               </section>
             );
           })()}
