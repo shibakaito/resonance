@@ -1,25 +1,57 @@
 # Grace Project — Resonance 마켓플레이스 인수인계
 
-> **최종 업데이트: 2026-05-21**
+> **최종 업데이트: 2026-05-22**
 > 새 세션에서 `cat "/Users/igeon-yeong/Downloads/Grace Project/HANDOVER.md"` 로 컨텍스트 복원.
 
 ---
 
-## ⚠️ 0. 먼저 읽을 것 — git 브랜치 상태 (중요)
+## ⚠️ 0. 먼저 읽을 것 — 현재 상태 (2026-05-22)
 
-| 브랜치 | 내용 | 비고 |
-|---|---|---|
-| `migrate/nextjs` | **Next.js 이전 완료본 (최신/작업본)** | GitHub에 push됨. 현재 이 브랜치에서 작업 중 |
-| `main` | ⚠️ **현재 Next.js 커밋(48dacc4)으로 드리프트됨** | 원래는 "Vite 버전 보존" 의도였으나 어긋남 (로컬+원격 둘 다) |
-| `refactor/browse-page-split` | **Vite 버전 (분리 완료, 커밋 37d157a)** | 로컬 보존. "원래 main이 가리켜야 할 Vite 버전" |
+### git
+- **`main`이 정식 브랜치** (Next.js + Supabase + Paperlogy 폰트 전부 포함). Vercel 자동 배포 연결.
+- 작업 트리 깨끗, `origin/main` 동기화 완료. 최신 커밋: `c07649c feat(font): Paperlogy 폰트 적용`
+- (옛 "main=Vite 보존" 논의는 **폐기**. Vite 백업은 `~/Downloads/Grace Project-backup-20260521` + 커밋 `37d157a`에 남음)
+- **GitHub 인증**: `gh` CLI 설치·로그인 완료 (`gh auth login` → keyring 저장). 이후 `git push` 자동 인증.
 
-- **Vite 버전은 유실되지 않음**: 커밋 `37d157a` + `refactor/browse-page-split` 브랜치 + 백업 폴더 `~/Downloads/Grace Project-backup-20260521`.
-- **미해결 과제**: `main`을 Vite(`37d157a`)로 되돌릴지, 아니면 Next 버전을 main으로 받아들일지 결정 필요.
-  - Vite로 되돌리려면(파괴적, 강제 push 필요 — 명시 승인 후에만):
-    ```
-    git branch -f main 37d157a
-    git push --force origin main      # ⚠️ 강제 push, 신중히
-    ```
+### ⚠️ 배포 사이트가 깨지면 1순위: Vercel 환경변수
+- 코드가 Supabase 키를 **필수**로 읽음. `.env.local`은 git 제외 → Vercel에 별도 등록 필요.
+- 변수: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Vercel → Settings → Environment Variables → 등록 후 재배포. (로컬 dev는 `.env.local` 있어 정상)
+
+### Supabase (백엔드)
+- **URL**: `https://yooozcdvwvyzxzlhpnfs.supabase.co` (anon 키는 `.env.local`)
+- **테이블**: `listings` (설계 SQL: `supabase/listings.sql`), 현재 약 52건 (더미 50 + MC2105/MC275)
+- **RLS**: select 전체 허용 / 등록은 임시 `listings_insert_temp`(누구나 INSERT) — 로그인 생기면 본인만으로 조일 것
+- **저장 규칙**: 선택지는 **영문 키/슬러그**로 저장 (condition=`used_excellent`, country=`us`, category=`power-amp`). 화면엔 한글 변환(다국어 대비).
+
+### 새 핵심 파일 `src/lib/`
+- `supabase.ts` — 클라이언트
+- `listings.ts` — `fetchListings()` / `fetchListingById(id)` / `insertListing(form)` + `mapRow(DB행→Listing, 영문키→한글)`
+- `labels.ts` — 영문키↔한글 변환표 `label()`/`keyFor()` (condition·country·location·ownership·shipping_type + specs)
+
+### 폰트 — Paperlogy (2026-05-22 적용)
+- 9종(`Thin~Black`) → `public/fonts/Paperlogy-*.ttf`
+- `src/styles/fonts.css`에 `@font-face` 9개 등록 (`font-display: swap`, 지연 로딩 → **쓰는 굵기만 다운로드**)
+- `src/styles/theme.css`의 `body` 기본 글꼴 + `--font-sans`를 `'Paperlogy', ui-sans-serif, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif` 로 지정
+- 실제 사용 굵기: **400(본문) · 500(제목/버튼/라벨) · 600(font-semibold) · 700(font-bold)** — 나머지 5종은 등록만 됨
+
+### 이번 세션(2026-05-21 ~ 22) 완료
+- **Supabase 연동** — browse·홈·PDP가 DB에서 매물 읽음, 카드→실제 id PDP
+- **더미 완전 삭제** — `buildListings`·`dummy-catalog` 제거
+- **판매 폼→INSERT** — `/sell/upload` 등록 시 DB 저장→상세 이동
+- **상태 등급 통일** — '중고 -' 제거: 새상품/NOS/중고/민트급/매우 좋음/좋음/보통/점검 필요/작동 불가
+- **필터 개선** — 브랜드=DB 실제만, 브랜드 검색 한글별칭, "모두 보기"(전부 펼침·스크롤 맨위·접기 끝·행 정확 잘림). 0건 회색비활성은 도입 후 되돌림(항상 선택 가능)
+- **홈 메인 검색(C-2)** — 검색어→`/browse?q=`, brand/model/title/description + 한글 별칭 + 카테고리 한글 매칭, 상단 "'OO' 검색 결과 N건" + 편집 검색창
+- **Paperlogy 폰트 적용** (위 "폰트" 항목 참조)
+
+### 미해결 / 다음 할 일
+- PDP "비슷한 매물"·리뷰: 아직 하드코딩 더미 → 매물 쌓이면 DB 연결
+- 검색 다듬기: "스피커" 검색에 "스피커 케이블" 섞임(부분일치 부작용) — 보류
+- RLS insert 조이기 / 이미지(Storage 업로드 미구현, "이미지 없음" 표시) / 로그인·회원 미구현
+- (참고) Perfect Circuit 사이트 폰트 = 본문 Libre Franklin / 제목 Roboto(700) — 적용은 보류
+- (참고) 네트워크 보안 차단 점검: "새롭게 발견된 도메인" / "DGA 도메인"이 켜져 있으면 Vercel·Supabase 접속이 막힐 수 있음 (현재는 영향 없음 확인)
+
+> ⚠️ 아래 2장 이후(Next.js 이전 설명)는 대부분 유효하나, **"백엔드 없음 / buildListings" 부분은 폐기**(이제 Supabase 사용).
 
 ---
 
@@ -27,9 +59,9 @@
 - **이름**: Resonance (하이파이 오디오 중고 마켓플레이스 프로토타입)
 - **위치**: `/Users/igeon-yeong/Downloads/Grace Project/`
 - **GitHub**: `shibakaito/resonance`
-- **현재 스택 (migrate/nextjs)**: **Next.js 14.2 (App Router) + React 18.3 + TypeScript + Tailwind v4(PostCSS) + shadcn UI**
+- **현재 스택 (main)**: **Next.js 14.2 (App Router) + React 18.3 + TypeScript + Tailwind v4(PostCSS) + shadcn UI + Supabase + Paperlogy 폰트**
 - **실행**: `npm run dev` (개발), `npm run build` (빌드), `npm start` (프로덕션)
-- **백엔드 없음**: 매물은 `buildListings()`가 시드 기반으로 클라이언트 생성 (CATALOG 비어있음 + DUMMY_CATALOG 120개)
+- **백엔드**: Supabase (`listings` 테이블). 클라이언트는 `src/lib/listings.ts`의 `fetchListings()` / `fetchListingById()` / `insertListing()` 사용. ⚠️ 옛 `buildListings`·`dummy-catalog`는 **삭제됨**.
 
 ---
 
