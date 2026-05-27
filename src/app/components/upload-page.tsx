@@ -64,9 +64,7 @@ interface UploadPageProps {
 
 export function UploadPage({ initialData }: UploadPageProps = {}) {
   const router = useRouter();
-  const [images, setImages] = useState<string[]>([
-    '/images/W8DNioOHTlZPyOR5Psp3u91wnETrB0lGMmWcB345Zyc.webp'
-  ]);
+  const [images, setImages] = useState<string[]>([]);
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [category, setCategory] = useState(initialData?.category ?? '');
   const [subcategory, setSubcategory] = useState('');
@@ -91,6 +89,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [activeStep, setActiveStep] = useState('info');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  // 제품 정보 추가 필드 (소유권/구성품/상태 3종)
+  const [ownership, setOwnership] = useState('');
+  const [components, setComponents] = useState('');
+  const [conditionGeneral, setConditionGeneral] = useState('');
+  const [conditionAppearance, setConditionAppearance] = useState('');
+  const [conditionWorking, setConditionWorking] = useState('');
 
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
@@ -216,69 +220,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
 
             <div className="space-y-4">
-              <div>
-                <label className="block font-semibold mb-1">
-                  상표 <span className="text-[#000000]">*</span>
-                </label>
-                <input
-                  value={brand}
-                  onChange={(e) => setBrand(e.target.value)}
-                  placeholder="McIntosh"
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">
-                  모델 <span className="text-[#000000]">*</span>
-                </label>
-                <input
-                  value={model}
-                  onChange={(e) => setModel(e.target.value)}
-                  placeholder="MC152"
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">연도</label>
-                <input
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  placeholder="2015"
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  정확한 연도를 모르는 경우 "90년대 중반" 또는 "2015년경"과 같이 대략적인 시기를 입력해도 됩니다.
-                </p>
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">색상 / 마감</label>
-                <input
-                  value={finish}
-                  onChange={(e) => setFinish(e.target.value)}
-                  placeholder="블랙 글라스"
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold mb-1">제조국</label>
-                <select
-                  value={country}
-                  onChange={(e) => setCountry(e.target.value)}
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
-                >
-                  <option value="">선택하세요</option>
-                  {COUNTRIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
+              {/* 카테고리 (가장 위) */}
               <div>
                 <label className="block font-semibold mb-1">
                   카테고리 <span className="text-[#000000]">*</span>
@@ -291,15 +233,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }}
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
                 >
-                  <option value="">카테고리를 선택하세요</option>
+                  <option value="">선택하세요</option>
                   {CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c}
-                    </option>
+                    <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
               </div>
 
+              {/* 하위 카테고리 */}
               <div>
                 <label className="block font-semibold mb-1">하위 카테고리</label>
                 <select
@@ -309,41 +250,117 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:cursor-not-allowed"
                 >
                   <option value="">{category ? '선택하세요' : '먼저 카테고리를 선택하세요'}</option>
-                  {category &&
-                    subcategoriesFor(category).map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
+                  {category && subcategoriesFor(category).map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
                 </select>
               </div>
 
+              {/* 1. 브랜드 */}
               <div>
                 <label className="block font-semibold mb-1">
-                  목록 제목 <span className="text-[#000000]">*</span>
+                  브랜드 <span className="text-[#000000]">*</span>
                 </label>
                 <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="예) McIntosh MC152 2015 블랙 글라스"
+                  value={brand}
+                  onChange={(e) => setBrand(e.target.value)}
+                  placeholder=""
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
-                <p className="text-xs text-gray-500 mt-1">
-                  연도 · 브랜드 · 모델 · 색상을 함께 적으면 검색 노출에 유리합니다.
-                </p>
               </div>
 
-              <div className="pt-2">
-                <p className="font-semibold mb-1">이거 수제품인가요?</p>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={handmade}
-                    onChange={(e) => setHandmade(e.target.checked)}
-                    className="accent-[#000000] w-4 h-4"
-                  />
-                  <span className="text-sm">이 제품은 제가 직접 만들었습니다.</span>
+              {/* 2. 모델 */}
+              <div>
+                <label className="block font-semibold mb-1">
+                  모델 <span className="text-[#000000]">*</span>
                 </label>
+                <input
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 3. 출시년도 */}
+              <div>
+                <label className="block font-semibold mb-1">출시년도</label>
+                <input
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 4. 제조국 */}
+              <div>
+                <label className="block font-semibold mb-1">제조국</label>
+                <select
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
+                >
+                  <option value="">선택하세요</option>
+                  {COUNTRIES.map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 5. 소유권 */}
+              <div>
+                <label className="block font-semibold mb-1">소유권</label>
+                <input
+                  value={ownership}
+                  onChange={(e) => setOwnership(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 6. 구성품 */}
+              <div>
+                <label className="block font-semibold mb-1">구성품</label>
+                <input
+                  value={components}
+                  onChange={(e) => setComponents(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 7. 상태 */}
+              <div>
+                <label className="block font-semibold mb-1">상태</label>
+                <input
+                  value={conditionGeneral}
+                  onChange={(e) => setConditionGeneral(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 8. 외관 상태 */}
+              <div>
+                <label className="block font-semibold mb-1">외관 상태</label>
+                <input
+                  value={conditionAppearance}
+                  onChange={(e) => setConditionAppearance(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+              </div>
+
+              {/* 9. 작동 상태 */}
+              <div>
+                <label className="block font-semibold mb-1">작동 상태</label>
+                <input
+                  value={conditionWorking}
+                  onChange={(e) => setConditionWorking(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
               </div>
             </div>
           </section>
@@ -428,27 +445,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
-            <h3 className="text-xl font-bold mb-4">상태를 선택하고 항목을 설명하세요.</h3>
-
-            <div className="mb-5">
-              <label className="block font-semibold mb-1">
-                상태 <span className="text-[#000000]">*</span>
-              </label>
-              <select
-                value={condition}
-                onChange={(e) => setCondition(e.target.value)}
-                className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
-              >
-                {CONDITIONS.map((c) => (
-                  <option key={c.value} value={c.value}>
-                    {c.label}
-                  </option>
-                ))}
-              </select>
-              <button className="text-sm text-[#000000] hover:text-[#000000] font-semibold mt-2 inline-flex items-center gap-1">
-                상태를 판단하는 방법 <ChevronRight className="w-3 h-3" />
-              </button>
-            </div>
+            <h3 className="text-xl font-bold mb-4">항목을 설명하세요.</h3>
 
             <div>
               <label className="block font-semibold mb-1">
@@ -469,7 +466,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="제품의 상태, 수리/개조 이력, 포함된 구성품, 배송 관련 안내 등을 자세히 적어주세요."
+                  placeholder=""
                   rows={6}
                   className="w-full px-3 py-2 focus:outline-none resize-y"
                 />
@@ -509,7 +506,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <input
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
-                    placeholder="고유 재고 번호 (선택)"
+                    placeholder=""
                     className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                   />
                 </div>
@@ -528,14 +525,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <input
                   value={youtubeLink}
                   onChange={(e) => setYoutubeLink(e.target.value)}
-                  placeholder="유튜브 링크"
+                  placeholder=""
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">유튜브 영상을 검색하세요</label>
                 <input
-                  placeholder="찾기"
+                  placeholder=""
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
@@ -556,7 +553,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     <input
                       value={price}
                       onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="25,900,000"
+                      placeholder=""
                       className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">원</span>
@@ -570,7 +567,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     <input
                       value={comparePrice}
                       onChange={(e) => setComparePrice(e.target.value.replace(/[^0-9]/g, ''))}
-                      placeholder="30,800,000"
+                      placeholder=""
                       className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">원</span>
@@ -588,6 +585,121 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </label>
             </div>
           </section>
+
+          {/* ============================================================
+            * 시장 가격 비교 카드
+            * - 사용자가 입력한 price 기준으로 보라(저렴) / 초록(적정) / 검정(비쌈) 영역에
+            *   현재 가격 위치를 점·말풍선으로 표시.
+            * - MARKET_MIN/MAX는 ⚠️ 임시 하드코딩. 추후 시장 데이터 기반 로직으로 교체 예정.
+            * - hasMarketData=false일 땐 '데이터 없음' 안내만 표시.
+            * ============================================================ */}
+          {(() => {
+            const priceNum = parseInt(price || '0', 10);
+            // ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체.
+            const hasMarketData = true;
+            if (!hasMarketData) {
+              return (
+                <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+                  <h3 className="text-xl font-bold mb-2">가격 변동 내역</h3>
+                  <p className="text-sm text-gray-500">
+                    해당 제품의 시장 가격 데이터가 아직 없습니다.
+                  </p>
+                </section>
+              );
+            }
+            const MARKET_MIN = 23_100_000;
+            const MARKET_MAX = 28_000_000;
+            const SPAN = MARKET_MAX - MARKET_MIN;
+            const DISPLAY_MIN = MARKET_MIN - SPAN; // 막대 좌측 끝(0%)
+            const DISPLAY_MAX = MARKET_MAX + SPAN; // 막대 우측 끝(100%)
+            const positionPct = Math.max(
+              0,
+              Math.min(
+                100,
+                ((priceNum - DISPLAY_MIN) / (DISPLAY_MAX - DISPLAY_MIN)) * 100
+              )
+            );
+            const zone =
+              priceNum < MARKET_MIN
+                ? 'low'
+                : priceNum > MARKET_MAX
+                ? 'high'
+                : 'fair';
+            const zoneLabel =
+              zone === 'low'
+                ? '저렴한 가격'
+                : zone === 'high'
+                ? '비싼 가격'
+                : '합리적인 가격';
+            const zoneColor =
+              zone === 'low'
+                ? 'text-purple-500'
+                : zone === 'high'
+                ? 'text-slate-700'
+                : 'text-green-600';
+            const zoneMessage =
+              zone === 'low'
+                ? '평균 시장 가격대보다 저렴해요'
+                : zone === 'high'
+                ? '평균 시장 가격대보다 비싸요'
+                : '현재 평균 시장 가격대 안에 있어요';
+
+            return (
+              <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4">
+                  이 제품은 <span className={zoneColor}>{zoneLabel}</span>이에요
+                </h3>
+
+                <div className="flex items-start gap-6">
+                  <div className="flex items-start gap-1.5 text-sm text-gray-600 max-w-[160px] flex-shrink-0">
+                    <span>{zoneMessage}</span>
+                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" />
+                  </div>
+
+                  <div className="flex-1 pt-10">
+                    <div className="relative">
+                      {/* 현재 가격 말풍선 */}
+                      {priceNum > 0 && (
+                        <div
+                          className="absolute -top-9 -translate-x-1/2 px-3 py-1 bg-white border border-[#e0e0e0] rounded-full shadow-sm font-bold whitespace-nowrap text-sm"
+                          style={{ left: `${positionPct}%` }}
+                        >
+                          {priceNum.toLocaleString()}원
+                          <span className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-2.5 h-2.5 bg-white border-r border-b border-[#e0e0e0] rotate-45" />
+                        </div>
+                      )}
+
+                      {/* 가격대 막대 (보라/초록/검정 3등분) */}
+                      <div className="relative h-2 rounded-full overflow-visible">
+                        <div className="absolute inset-0 flex rounded-full overflow-hidden">
+                          <div className="flex-1 bg-purple-400" />
+                          <div className="flex-1 bg-green-500" />
+                          <div className="flex-1 bg-slate-700" />
+                        </div>
+                        {/* 현재 가격 핸들(원형) */}
+                        {priceNum > 0 && (
+                          <div
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-[3px] border-green-500 shadow"
+                            style={{ left: `${positionPct}%` }}
+                          />
+                        )}
+                      </div>
+
+                      {/* 양 경계 가격 라벨 */}
+                      <div className="relative h-5 mt-3">
+                        <span className="absolute left-[33.333%] -translate-x-1/2 text-sm text-gray-500">
+                          {MARKET_MIN.toLocaleString()}원
+                        </span>
+                        <span className="absolute left-[66.666%] -translate-x-1/2 text-sm text-gray-500">
+                          {MARKET_MAX.toLocaleString()}원
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            );
+          })()}
 
           <h2 id="section-shipping" className="text-2xl font-bold pl-2 pt-2">
             배송
@@ -629,7 +741,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <input
                     value={shippingCost}
                     onChange={(e) => setShippingCost(e.target.value.replace(/[^0-9]/g, ''))}
-                    placeholder="50,000"
+                    placeholder=""
                     className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                   />
                   <span className="absolute right-3 top-2 text-gray-500">원</span>
