@@ -52,6 +52,26 @@ const STEPS = [
   { id: 'shipping', label: '배송' }
 ];
 
+// 기술 사양 입력 필드 — specs 객체의 key/label 매핑
+const SPEC_FIELDS = [
+  { key: 'type', label: '타입' },
+  { key: 'channel', label: '채널' },
+  { key: 'device', label: '소자' },
+  { key: 'powerRated', label: '정격 출력' },
+  { key: 'freqResponse', label: '주파수 응답' },
+  { key: 'impedance', label: '지원 임피던스' },
+  { key: 'thd', label: 'THD' },
+  { key: 'snr', label: 'S/N' },
+  { key: 'damping', label: '댐핑 팩터' },
+  { key: 'inputs', label: '입력 단자' },
+  { key: 'outputs', label: '출력 단자' },
+  { key: 'phono', label: '포노 입력' },
+  { key: 'toneControl', label: '톤 컨트롤' },
+  { key: 'power', label: '전원' },
+  { key: 'dimensions', label: '크기' },
+  { key: 'weight', label: '무게' },
+];
+
 interface UploadPageProps {
   initialData?: {
     title?: string;
@@ -95,6 +115,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionGeneral, setConditionGeneral] = useState('');
   const [conditionAppearance, setConditionAppearance] = useState('');
   const [conditionWorking, setConditionWorking] = useState('');
+  // 기술 사양 (16개 필드를 객체 하나로 관리)
+  const [specs, setSpecs] = useState<Record<string, string>>({
+    type: '', channel: '', device: '', powerRated: '',
+    freqResponse: '', impedance: '', thd: '', snr: '',
+    damping: '', inputs: '', outputs: '', phono: '',
+    toneControl: '', power: '', dimensions: '', weight: '',
+  });
 
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
@@ -362,6 +389,24 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
+            </div>
+          </section>
+
+          {/* 기술 사양 (16개 필드를 SPEC_FIELDS 배열로 자동 렌더) */}
+          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+            <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
+            <div className="space-y-4">
+              {SPEC_FIELDS.map((f) => (
+                <div key={f.key}>
+                  <label className="block font-semibold mb-1">{f.label}</label>
+                  <input
+                    value={specs[f.key] || ''}
+                    onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
+                    placeholder=""
+                    className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  />
+                </div>
+              ))}
             </div>
           </section>
 
