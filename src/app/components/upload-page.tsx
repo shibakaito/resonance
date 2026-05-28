@@ -20,6 +20,7 @@ import {
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
+import { uploadListingImage } from '@/lib/upload-image';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -367,6 +368,10 @@ interface UploadPageProps {
 export function UploadPage({ initialData }: UploadPageProps = {}) {
   const router = useRouter();
   const [images, setImages] = useState<string[]>([]);
+  // 이미지 업로드 상태
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [title, setTitle] = useState(initialData?.title ?? '');
   const [category, setCategory] = useState(initialData?.category ?? '');
   const [subcategory, setSubcategory] = useState('');
@@ -426,17 +431,44 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     }
   };
 
-  const sampleImages = [
-    '/images/L2GaN7JtEwGJJMDjMbVbY8W_mgW_07tpAaCsJVqtECw.webp',
-    '/images/QeFrSn6TLNpreBs1OEI878geRwvhIgKTuPzZgXQZwo8.webp',
-    '/images/OZCT7NCWvb7WhYYiYL72mrF3nLoe-E5pDmMg1LPA3-Q.webp',
-    '/images/YydU-ggEdviNYlDbBOoJkkoeNzgL6-njfcnhlLRdHJQ.webp'
-  ];
-
-  const addImage = () => {
-    const next = sampleImages[images.length % sampleImages.length];
-    setImages([...images, next]);
+  // 파일 선택/드롭 → Supabase Storage 업로드 → 받은 공개 URL을 images state에 추가
+  const MAX_IMAGES = 10;
+  const handleFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setUploadError(null);
+    const remaining = MAX_IMAGES - images.length;
+    if (remaining <= 0) {
+      setUploadError(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있어요.`);
+      return;
+    }
+    const arr = Array.from(files).slice(0, remaining);
+    setUploadingCount(arr.length);
+    const uploaded: string[] = [];
+    let firstErr: string | null = null;
+    for (const f of arr) {
+      try {
+        const url = await uploadListingImage(f);
+        uploaded.push(url);
+      } catch (e: unknown) {
+        if (!firstErr) firstErr = e instanceof Error ? e.message : '업로드 중 오류가 발생했습니다.';
+      }
+    }
+    if (uploaded.length > 0) setImages((cur) => [...cur, ...uploaded]);
+    if (firstErr) setUploadError(firstErr);
+    setUploadingCount(0);
   };
+
+  const openFilePicker = () => fileInputRef.current?.click();
+  const onFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleFiles(e.target.files);
+    e.target.value = ''; // 같은 파일을 다시 선택할 수 있게 비움
+  };
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    handleFiles(e.dataTransfer.files);
+  };
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
+
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
   const scrollToStep = (id: string) => {
@@ -738,19 +770,45 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </button>
             </div>
 
+            {/* 실제 파일 선택용 input (숨김). 박스나 버튼을 클릭하면 이걸 트리거 */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              onChange={onFileInputChange}
+              className="hidden"
+            />
             <div
-              onClick={addImage}
+              onClick={openFilePicker}
+              onDrop={onDrop}
+              onDragOver={onDragOver}
               className="border-2 border-dashed border-[#e0e0e0] hover:border-gray-700 hover:bg-[#f7f7f7] rounded-lg py-12 flex flex-col items-center justify-center text-center cursor-pointer transition"
             >
-              <button className="px-4 py-2 border border-gray-400 rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm flex items-center gap-1.5 mb-3">
+              <button
+                type="button"
+                className="px-4 py-2 border border-gray-400 rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm flex items-center gap-1.5 mb-3"
+              >
                 <Plus className="w-4 h-4" />
                 사진 업로드
               </button>
               <Upload className="w-5 h-5 text-gray-400 mb-1" />
               <p className="text-sm text-gray-600">
-                또는 대표 이미지 포함 최대 <span className="font-semibold">10장</span>까지 드래그 앤 드롭하세요.
+                또는 대표 이미지 포함 최대 <span className="font-semibold">{MAX_IMAGES}장</span>까지 드래그 앤 드롭하세요.
               </p>
             </div>
+            {/* 업로드 중 / 에러 표시 */}
+            {uploadingCount > 0 && (
+              <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+                <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-[#000000] rounded-full animate-spin" />
+                업로드 중… ({uploadingCount}장 처리 중)
+              </div>
+            )}
+            {uploadError && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+                {uploadError}
+              </div>
+            )}
 
             {images.length > 0 && (
               <div className="mt-6">
