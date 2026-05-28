@@ -37,6 +37,7 @@
     "@radix-ui/react-toggle-group": "1.1.2",
     "@radix-ui/react-tooltip": "1.1.8",
     "@supabase/supabase-js": "^2.106.1",
+    "@types/string-similarity": "^4.0.2",
     "canvas-confetti": "1.9.4",
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
@@ -62,6 +63,7 @@
     "recharts": "2.15.2",
     "slick-carousel": "^1.8.1",
     "sonner": "2.0.3",
+    "string-similarity": "^4.0.4",
     "tailwind-merge": "3.2.0",
     "tw-animate-css": "1.3.8",
     "vaul": "1.1.2"

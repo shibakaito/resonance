@@ -3,6 +3,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
+import { suggest } from '@/lib/did-you-mean';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -212,6 +213,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     }
     return merged;
   }, [allListings, searchQuery]);
+
+  // "Did you mean?" 추천 — 검색 결과 0건일 때만 계산 (한영 매칭 후에도 0건이면)
+  const suggestion = useMemo(() => {
+    const q = (searchQuery ?? '').trim();
+    if (!q) return null;
+    if (searchedListings.length > 0) return null;
+    return suggest(q);
+  }, [searchQuery, searchedListings.length]);
 
   // 대분류만 적용된 풀 (카테고리 칩의 개수 집계 기준 — subCategories 미적용)
   const baseCategoryListings = useMemo(() => {
@@ -558,6 +567,20 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               ‘{searchQuery}’ 검색 결과{' '}
               <span className="text-2xl font-semibold text-gray-500">{filtered.length.toLocaleString('ko-KR')}건</span>
             </h1>
+            {/* "Did you mean?" — 결과 0건 + 비슷한 후보가 있을 때만 표시 */}
+            {suggestion && (
+              <p className="text-base text-gray-700 mb-3">
+                혹시{' '}
+                <button
+                  type="button"
+                  onClick={() => onSearch?.(suggestion.label)}
+                  className="text-blue-600 hover:text-blue-800 hover:underline font-semibold"
+                >
+                  ‘{suggestion.label}’
+                </button>
+                를 찾으세요?
+              </p>
+            )}
             {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
             <form
               onSubmit={(e) => { e.preventDefault(); if (searchInput.trim()) onSearch?.(searchInput.trim()); }}
