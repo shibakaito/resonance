@@ -672,6 +672,16 @@ export const CATEGORY_TREE: { top: string; subs: string[] }[] = [
   { top: '케이블', subs: ['RCA 케이블', 'XLR 케이블', '스피커 케이블', '파워 케이블', '디지털 동축 케이블', '광 케이블', 'USB 케이블', 'AES/EBU 케이블', 'BNC 케이블', 'HDMI 케이블', '포노 케이블', '점퍼 케이블', '헤드폰 케이블', '이어폰 케이블'] },
 ];
 
+// 대분류 영어 별칭 — 영어로 검색해도 카테고리가 잡히도록.
+//   예: 'amp' → '앰프' 매물 전체, 'speaker' → '스피커' 매물 전체
+//   (하위 카테고리 영어 별칭은 추후 필요해지면 추가)
+export const CATEGORY_ALIASES: Record<string, string[]> = {
+  '앰프':     ['amp', 'amps', 'amplifier', 'amplifiers'],
+  '스피커':   ['speaker', 'speakers'],
+  '소스기기': ['source', 'sources'],
+  '케이블':   ['cable', 'cables'],
+};
+
 // 대분류 이름만 모은 목록: ['앰프', '스피커', '소스기기', '케이블']
 export const TOP_CATEGORIES = CATEGORY_TREE.map((c) => c.top);
 // 모든 하위 카테고리를 하나의 평평한 배열로 합친 목록.

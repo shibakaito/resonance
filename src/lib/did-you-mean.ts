@@ -13,6 +13,7 @@ import {
   BRAND_DIRECTORY,
   TOP_CATEGORIES,
   ALL_SUBCATEGORIES,
+  CATEGORY_ALIASES,
 } from '@/app/data/catalog';
 
 /** 비교용 텍스트(match)와 사용자에게 보여줄 텍스트(label) 쌍 */
@@ -36,6 +37,11 @@ const CANDIDATES: Candidate[] = [
   // 카테고리 (대분류 + 서브) — 카테고리는 짧아도 의도 있는 매칭이 많아 포함
   ...TOP_CATEGORIES.map((c) => ({ match: c, label: c })),
   ...ALL_SUBCATEGORIES.map((c) => ({ match: c, label: c })),
+  // 카테고리 영어 별칭 — 매칭은 별칭으로, 추천 표시는 정식 한글명
+  // 예: 'ampliifer' 오타 → label '앰프'
+  ...Object.entries(CATEGORY_ALIASES).flatMap(([top, aliases]) =>
+    aliases.map((alias) => ({ match: alias, label: top }))
+  ),
 ];
 
 // findBestMatch에 넘길 비교 문자열 (소문자 정규화)

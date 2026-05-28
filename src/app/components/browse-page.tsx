@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
-import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES } from '../data/catalog';
+import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
 import { terminalsPrioritized } from '../data/cable-terminals';
@@ -167,12 +167,27 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     const matchByQuery = (query: string) => {
       const nq = norm(query);
       if (!nq) return [];
+      // 영문 부분일치 노이즈 가드: 한글 음절 없는 짧은 영문(<3자)은 카테고리 부분일치 X
+      // (예: 'ap' 같은 2자 영문이 'amp'에 우연 매칭되는 거 방지)
+      const hasHangul = /[가-힣]/.test(query);
+      const allowShortPartial = hasHangul || query.length >= 3;
+
       const brandHits = new Set(searchBrands(query).map((b) => b.name));
       const matchedSubs = new Set<string>();
-      for (const top of TOP_CATEGORIES)
-        if (norm(top) === nq) subcategoriesFor(top).forEach((s) => matchedSubs.add(s));
-      for (const sub of ALL_SUBCATEGORIES)
-        if (norm(sub).includes(nq)) matchedSubs.add(sub);
+      // 대분류 매칭: 한글은 부분일치(includes), 영어 별칭은 부분일치
+      // 짧은 영문(<3자)은 가드로 차단
+      for (const top of TOP_CATEGORIES) {
+        const aliases = CATEGORY_ALIASES[top] ?? [];
+        const topHit =
+          allowShortPartial &&
+          (norm(top).includes(nq) || aliases.some((a) => norm(a).includes(nq)));
+        if (topHit) subcategoriesFor(top).forEach((s) => matchedSubs.add(s));
+      }
+      // 하위 카테고리 매칭: 부분일치 (영문 가드 동일 적용)
+      if (allowShortPartial) {
+        for (const sub of ALL_SUBCATEGORIES)
+          if (norm(sub).includes(nq)) matchedSubs.add(sub);
+      }
       return allListings.filter((l) => {
         if (brandHits.has(l.brand)) return true;
         const hay = norm(`${l.brand} ${l.model} ${l.title} ${l.description}`);
