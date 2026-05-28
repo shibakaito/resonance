@@ -487,17 +487,29 @@ export function ListingDetail({ id }: { id?: string }) {
                     </a>
                   </div>
 
-                  <div className="font-bold">외관 상태</div>
-                  <div className="break-words">
-                    매우 좋음
-                    <p className="mt-1 text-sm text-gray-600">전면 패널은 훌륭한 상태이며, 섀시 측면 또는 상단에 작은 흠집이 하나 있습니다.</p>
-                  </div>
+                  {listing?.appearance && (
+                    <>
+                      <div className="font-bold">외관 상태</div>
+                      <div className="break-words">
+                        {listing.appearance}
+                        {listing.appearanceDetail && (
+                          <p className="mt-1 text-sm text-gray-600">{listing.appearanceDetail}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
 
-                  <div className="font-bold">작동 상태</div>
-                  <div className="break-words">
-                    정상 작동
-                    <p className="mt-1 text-sm text-gray-600">완벽하게 작동하며, 연구실과 청음실에서 테스트를 완료했습니다.</p>
-                  </div>
+                  {listing?.working && (
+                    <>
+                      <div className="font-bold">작동 상태</div>
+                      <div className="break-words">
+                        {listing.working}
+                        {listing.workingDetail && (
+                          <p className="mt-1 text-sm text-gray-600">{listing.workingDetail}</p>
+                        )}
+                      </div>
+                    </>
+                  )}
                 </div>
 
                 {!specsExpanded && (

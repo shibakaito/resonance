@@ -73,6 +73,10 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   shield: { shielded: { ko: '실드' }, unshielded: { ko: '무실드' }, double_shielded: { ko: '이중 실드' } },
   pair: { single: { ko: '단선' }, pair: { ko: '페어' }, set: { ko: '세트' } },
   speeds: { '33': { ko: '33⅓ RPM' }, '45': { ko: '45 RPM' }, '78': { ko: '78 RPM' } },
+  // 외관 상태 등급 (참고용, condition과 별개)
+  appearance: { mint: { ko: '민트급' }, excellent: { ko: '매우 좋음' }, good: { ko: '좋음' }, fair: { ko: '보통' } },
+  // 작동 상태 등급 (참고용, condition과 별개)
+  working: { working: { ko: '정상 작동' }, needs_inspection: { ko: '점검 필요' }, needs_repair: { ko: '수리 필요' } },
 };
 
 // 키 → 라벨 (기본 ko, 표에 없으면 키를 그대로 폴백). 빈 키는 빈 문자열.

@@ -50,6 +50,11 @@ function mapRow(row: ListingRow): Listing {
     images: row.images ?? [],
     price: row.price,
     condition: label('condition', row.condition),
+    // 외관/작동 상태 (참고용, specs에서)
+    appearance: label('appearance', typeof s.appearance === 'string' ? s.appearance : ''),
+    appearanceDetail: typeof s.appearanceDetail === 'string' ? s.appearanceDetail : '',
+    working: label('working', typeof s.working === 'string' ? s.working : ''),
+    workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
     location: label('location', row.location),
     ownership: label('ownership', row.ownership),
     country: label('country', row.country),
@@ -142,6 +147,7 @@ export type ListingInput = {
   shippingType: 'free' | 'flat' | 'calculated';
   shippingCost: string;
   localPickup: boolean;
+  specs?: Record<string, unknown>; // jsonb로 저장될 카테고리별 상세 스펙 (외관/작동 등)
 };
 
 // 문자열 → 양의 정수(원). 비었거나 0이면 null.
@@ -178,7 +184,7 @@ export async function insertListing(form: ListingInput): Promise<string> {
     shipping_type: form.shippingType,
     shipping_cost: toMoney(form.shippingCost),
     local_pickup: form.localPickup,
-    specs: {},                                             // 폼이 상세 스펙은 아직 안 받음
+    specs: form.specs ?? {},                                // 카테고리별 상세 스펙 (외관/작동 등)
   };
   const { data, error } = await supabase
     .from('listings')

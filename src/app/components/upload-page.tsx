@@ -420,10 +420,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     setSubmitting(true);
     try {
+      // specs(jsonb)에 저장할 외관/작동 상태 — 비어있는 키는 제외 (DB 깔끔하게)
+      const specsToSave: Record<string, string> = {};
+      if (conditionAppearance) specsToSave.appearance = conditionAppearance;
+      if (conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail;
+      if (conditionWorking) specsToSave.working = conditionWorking;
+      if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
+
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year, finish, country,
         handmade, condition, description, sku, youtubeLink, price, comparePrice,
         acceptOffers, shippingType, shippingCost, localPickup,
+        specs: specsToSave,
       });
       router.push(`/listing/${id}`); // 저장된 매물 상세로 이동
     } catch (e: any) {
@@ -688,7 +696,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </select>
               </div>
 
-              {/* 8. 외관 상태 — 등급(드롭다운) + 자유 입력칸 (참고용) */}
+              {/* 8. 외관 상태 — 등급(드롭다운) + 자유 입력칸 (참고용. specs에 저장 예정) */}
               <div>
                 <label className="block font-semibold mb-1">외관 상태</label>
                 <div className="flex gap-2">
@@ -714,7 +722,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
 
-              {/* 9. 작동 상태 — 등급(드롭다운) + 자유 입력칸 (참고용) */}
+              {/* 9. 작동 상태 — 등급(드롭다운) + 자유 입력칸 (참고용. specs에 저장 예정) */}
               <div>
                 <label className="block font-semibold mb-1">작동 상태</label>
                 <div className="flex gap-2">

@@ -135,6 +135,10 @@ export type Listing = {
   images: string[];           // Supabase Storage 공개 URL 목록 (대표=인덱스 0). 없으면 []
   price: number;
   condition: string;
+  appearance: string;        // 외관 등급 (한글 라벨, 없으면 '')
+  appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
+  working: string;           // 작동 등급 (한글 라벨, 없으면 '')
+  workingDetail: string;     // 작동 자유 입력 (없으면 '')
   location: string;
   ownership: string;
   country: string;
