@@ -43,15 +43,29 @@ export function ListingGrid({
           className="group text-left bg-white border border-[#e0e0e0] rounded-lg overflow-hidden hover:border-[#000000] hover:shadow-md transition"
         >
           <div className="relative aspect-square bg-[#f7f7f7] flex items-center justify-center">
-            <img
-              src="/images/no-image.png"
-              alt={`${l.brand} ${l.model}`}
-              className="w-full h-full object-contain opacity-70"
-              onError={(e) => {
-                (e.currentTarget as HTMLImageElement).style.display = 'none';
-              }}
-            />
-            <span className="absolute text-xs text-gray-400">이미지 없음</span>
+            {l.images?.[0] ? (
+              <img
+                src={l.images[0]}
+                alt={`${l.brand} ${l.model}`}
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  // 깨진 URL이면 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
+                  const img = e.currentTarget as HTMLImageElement;
+                  img.onerror = null;
+                  img.src = '/images/no-image.png';
+                  img.classList.add('opacity-70');
+                }}
+              />
+            ) : (
+              <>
+                <img
+                  src="/images/no-image.png"
+                  alt={`${l.brand} ${l.model}`}
+                  className="w-full h-full object-contain opacity-70"
+                />
+                <span className="absolute text-xs text-gray-400">이미지 없음</span>
+              </>
+            )}
             <button
               onClick={(e) => onToggleLike(l.id, e)}
               className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm"

@@ -132,6 +132,7 @@ export type Listing = {
   category: string;          // 표시용 메인 카테고리 (브래드크럼, 카드 라벨 등)
   categories: string[];       // 필터링용 — 다중 카테고리 등록 시 두 곳 모두에 노출
   description: string;
+  images: string[];           // Supabase Storage 공개 URL 목록 (대표=인덱스 0). 없으면 []
   price: number;
   condition: string;
   location: string;

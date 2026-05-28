@@ -138,16 +138,17 @@ export function ListingDetail({ id }: { id?: string }) {
     return () => observer.disconnect();
   }, []);
 
-  const images = [
-    '/images/W8DNioOHTlZPyOR5Psp3u91wnETrB0lGMmWcB345Zyc.webp',
-    '/images/L2GaN7JtEwGJJMDjMbVbY8W_mgW_07tpAaCsJVqtECw.webp',
-    '/images/QeFrSn6TLNpreBs1OEI878geRwvhIgKTuPzZgXQZwo8.webp',
-    '/images/OZCT7NCWvb7WhYYiYL72mrF3nLoe-E5pDmMg1LPA3-Q.webp',
-    '/images/YydU-ggEdviNYlDbBOoJkkoeNzgL6-njfcnhlLRdHJQ.webp',
-    '/images/FnRLHKpqlkyyp0HXNkY9Tz_2VhBHpV9apaqGUilI0fc.webp',
-    '/images/Kbdf7NzJTFWIMj0Y90o9dwXjweZ_wzflnZLB0B6JmR8.webp',
-    '/images/ELxkL-3wNlVzD4mMuwsld7Whbr0GKQO-2RT8C6ymLhs.webp'
-  ];
+  // 매물 사진 — listing.images에서 가져옴. 비어있거나 listing 로딩 전이면 NO_IMAGE 1장.
+  const NO_IMAGE = '/images/no-image.png';
+  const images =
+    listing?.images && listing.images.length > 0 ? listing.images : [NO_IMAGE];
+
+  // 깨진 URL이면 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
+  const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+    const img = e.currentTarget;
+    img.onerror = null;
+    img.src = NO_IMAGE;
+  };
 
   const PrevArrow = ({ onClick }: { onClick?: () => void }) => (
     <button
@@ -217,7 +218,12 @@ export function ListingDetail({ id }: { id?: string }) {
                         mainImage === idx ? 'border-[#000000]' : 'border-[#e0e0e0]'
                       }`}
                     >
-                      <img src={img} alt={`썸네일 ${idx + 1}`} className="w-full h-full object-contain" />
+                      <img
+                        src={img}
+                        alt={`썸네일 ${idx + 1}`}
+                        className="w-full h-full object-contain"
+                        onError={onImgError}
+                      />
                     </button>
                   ))}
                 </div>
@@ -244,6 +250,7 @@ export function ListingDetail({ id }: { id?: string }) {
                         src={img}
                         alt={`제품 사진 ${idx + 1}`}
                         className="w-full h-full object-contain block"
+                        onError={onImgError}
                         style={
                           isZooming && idx === mainImage
                             ? {

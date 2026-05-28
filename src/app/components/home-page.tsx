@@ -299,6 +299,13 @@ const NO_IMAGE = '/images/no-image.png';
 // Catalog items don't yet carry their own images, so we fall back to the placeholder.
 const sellImgFor = (_model: string) => NO_IMAGE;
 
+// 매물 이미지 로딩 실패 시 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
+const onListingImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
+  const img = e.currentTarget;
+  img.onerror = null;
+  img.src = NO_IMAGE;
+};
+
 const CATEGORY_TABS = ['앰프', '스피커', '소스기기', '케이블'];
 
 const TRENDING = [
@@ -898,7 +905,12 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
                   >
                     <div className="aspect-square bg-[#f7f7f7] relative">
-                      <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-contain" />
+                      <img
+                        src={l.images?.[0] ?? NO_IMAGE}
+                        alt={`${l.brand} ${l.model}`}
+                        className="w-full h-full object-contain"
+                        onError={onListingImgError}
+                      />
                       <span className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
                         <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                       </span>
@@ -970,7 +982,12 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
               >
                 <div className="aspect-square bg-[#f7f7f7]">
-                  <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-contain" />
+                  <img
+                    src={l.images?.[0] ?? NO_IMAGE}
+                    alt={`${l.brand} ${l.model}`}
+                    className="w-full h-full object-contain"
+                    onError={onListingImgError}
+                  />
                 </div>
                 <div className="p-3">
                   <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">

@@ -27,6 +27,7 @@ type ListingRow = {
   location: string | null;
   ownership: string | null;
   country: string | null;
+  images: string[] | null;
   specs: Record<string, any> | null;
 };
 
@@ -46,6 +47,7 @@ function mapRow(row: ListingRow): Listing {
     category: cat(row.category),
     categories: (row.categories && row.categories.length > 0 ? row.categories : [row.category]).map(cat),
     description: row.description ?? '',
+    images: row.images ?? [],
     price: row.price,
     condition: label('condition', row.condition),
     location: label('location', row.location),
