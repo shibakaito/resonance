@@ -381,7 +381,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [finish, setFinish] = useState('');
   const [country, setCountry] = useState('');
   const [handmade, setHandmade] = useState(false);
-  const [condition, setCondition] = useState('used_excellent');
+  const [condition, setCondition] = useState('');
   const [description, setDescription] = useState('');
   const [asDescribed, setAsDescribed] = useState(false);
   const [skuOpen, setSkuOpen] = useState(false);
@@ -399,7 +399,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 제품 정보 추가 필드
   const [ownership, setOwnership] = useState('');
   const [components, setComponents] = useState('');
-  const [conditionGeneral, setConditionGeneral] = useState('');
   const [conditionAppearance, setConditionAppearance] = useState('');
   const [conditionWorking, setConditionWorking] = useState('');
   // 기술 사양 (16개 필드를 객체 하나로 관리)
@@ -415,6 +414,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     setSubmitError(null);
     if (!brand || !model) { setSubmitError('브랜드와 모델명을 입력해주세요.'); return; }
     if (!category) { setSubmitError('카테고리를 선택해주세요.'); return; }
+    if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     setSubmitting(true);
     try {
@@ -550,21 +550,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             className="bg-white border border-[#e0e0e0] rounded-xl p-6"
           >
             <h2 className="text-2xl font-bold mb-2">제품 정보</h2>
-            <div className="bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg p-3 mb-6 flex items-start gap-2">
-              <Info className="w-4 h-4 text-[#000000] mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-700">
-                판매 속도를 높이기 위해 상품의 브랜드/카테고리를 자동으로 매칭해 드립니다.{' '}
-                <button className="text-[#000000] hover:text-[#000000] font-semibold underline">
-                  수정 요청
-                </button>
-              </p>
-            </div>
-
             <div className="space-y-4">
               {/* 카테고리 — 풀패스("앰프 > 프리앰프")로 검색·표시. 선택 시 상위/하위 분리 저장 */}
               <div>
                 <label className="block font-semibold mb-1">
-                  카테고리 <span className="text-[#000000]">*</span>
+                  카테고리 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
                   value={
@@ -593,7 +583,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 1. 브랜드 — 한글 별칭(예: '맥킨토시' → McIntosh) 매칭 지원 */}
               <div>
                 <label className="block font-semibold mb-1">
-                  브랜드 <span className="text-[#000000]">*</span>
+                  브랜드 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
                   value={brand}
@@ -618,7 +608,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   - 카테고리 선택됨 → 해당 브랜드 + 그 카테고리(예: '프리앰프')만 */}
               <div>
                 <label className="block font-semibold mb-1">
-                  모델 <span className="text-[#000000]">*</span>
+                  모델 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
                   value={model}
@@ -685,10 +675,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <select
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white"
+                  className={`w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white ${
+                    condition ? '' : 'text-gray-400'
+                  }`}
                 >
+                  <option value="" disabled>선택하세요</option>
                   {CONDITIONS.map((c) => (
-                    <option key={c.value} value={c.value}>{c.label}</option>
+                    <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
                   ))}
                 </select>
               </div>
@@ -743,7 +736,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           >
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-xl font-bold">
-                장비 사진을 업로드하세요 <span className="text-[#000000]">*</span>
+                장비 사진을 업로드하세요 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
               </h3>
             </div>
             <p className="text-sm text-gray-600 mb-5">
@@ -845,7 +838,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             <div>
               <label className="block font-semibold mb-1">
-                이 상품과 그 상태에 대해 설명해 주세요 <span className="text-[#000000]">*</span>
+                이 상품과 그 상태에 대해 설명해 주세요 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
               </label>
               <div className="border border-[#e0e0e0] rounded-lg overflow-hidden focus-within:border-[#000000]">
                 <div className="flex gap-1 px-2 py-1.5 border-b border-[#e0e0e0] bg-[#f7f7f7]">
@@ -943,7 +936,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold mb-1">
-                    판매 가격 <span className="text-[#000000]">*</span>
+                    판매 가격 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                   </label>
                   <div className="relative">
                     <input
