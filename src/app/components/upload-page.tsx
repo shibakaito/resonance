@@ -818,9 +818,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   {images.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-[#e0e0e0] group"
+                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-[#e0e0e0] bg-[#f7f7f7] group"
                     >
-                      <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
                       {idx === 0 && (
                         <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[#000000] text-white text-[10px] rounded">
                           대표

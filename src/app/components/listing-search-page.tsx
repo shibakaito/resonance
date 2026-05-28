@@ -89,7 +89,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                   className="w-full flex items-center gap-3 p-3 rounded-lg border border-[#e0e0e0] hover:border-gray-500 hover:shadow-md transition text-left group"
                 >
                   <div className="w-14 h-14 rounded-md bg-[#f7f7f7] overflow-hidden flex-shrink-0">
-                    <img src={imgFor(r.model)} alt={r.model} className="w-full h-full object-cover" />
+                    <img src={imgFor(r.model)} alt={r.model} className="w-full h-full object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold">

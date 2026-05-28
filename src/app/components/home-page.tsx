@@ -807,7 +807,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                             className="w-full flex items-center gap-3 p-3 border-b border-[#f7f7f7] last:border-b-0 hover:bg-[#f7f7f7] transition text-left group"
                           >
                             <div className="w-12 h-12 rounded-md bg-[#f7f7f7] overflow-hidden flex-shrink-0">
-                              <img src={sellImgFor(r.model)} alt={r.model} className="w-full h-full object-cover" />
+                              <img src={sellImgFor(r.model)} alt={r.model} className="w-full h-full object-contain" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="font-semibold text-sm">
@@ -898,7 +898,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
                   >
                     <div className="aspect-square bg-[#f7f7f7] relative">
-                      <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-cover" />
+                      <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-contain" />
                       <span className="absolute top-2 right-2 w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
                         <Heart className="w-4 h-4 fill-red-500 text-red-500" />
                       </span>
@@ -970,7 +970,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 className="text-left border border-[#e0e0e0] rounded-lg overflow-hidden hover:shadow-lg transition group"
               >
                 <div className="aspect-square bg-[#f7f7f7]">
-                  <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-cover" />
+                  <img src={NO_IMAGE} alt={`${l.brand} ${l.model}`} className="w-full h-full object-contain" />
                 </div>
                 <div className="p-3">
                   <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">

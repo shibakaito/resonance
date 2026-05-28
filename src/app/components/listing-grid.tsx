@@ -46,7 +46,7 @@ export function ListingGrid({
             <img
               src="/images/no-image.png"
               alt={`${l.brand} ${l.model}`}
-              className="w-full h-full object-cover opacity-70"
+              className="w-full h-full object-contain opacity-70"
               onError={(e) => {
                 (e.currentTarget as HTMLImageElement).style.display = 'none';
               }}

@@ -213,11 +213,11 @@ export function ListingDetail({ id }: { id?: string }) {
                         setIsZooming(false);
                         sliderRef.current?.slickGoTo(idx, true);
                       }}
-                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 flex-shrink-0 ${
+                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 bg-[#f7f7f7] flex-shrink-0 ${
                         mainImage === idx ? 'border-[#000000]' : 'border-[#e0e0e0]'
                       }`}
                     >
-                      <img src={img} alt={`썸네일 ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={img} alt={`썸네일 ${idx + 1}`} className="w-full h-full object-contain" />
                     </button>
                   ))}
                 </div>
@@ -243,7 +243,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       <img
                         src={img}
                         alt={`제품 사진 ${idx + 1}`}
-                        className="w-full h-full object-cover block"
+                        className="w-full h-full object-contain block"
                         style={
                           isZooming && idx === mainImage
                             ? {
@@ -321,7 +321,7 @@ export function ListingDetail({ id }: { id?: string }) {
                         />
                       </button>
                       <div className="aspect-square bg-[#f7f7f7]">
-                        <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                        <img src={item.img} alt={item.title} className="w-full h-full object-contain" />
                       </div>
                       <div className="p-3">
                         <h4 className="text-sm font-semibold truncate">{item.title}</h4>
@@ -1063,7 +1063,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       />
                     </button>
                     <div className="aspect-square bg-[#f7f7f7]">
-                      <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                      <img src={item.img} alt={item.title} className="w-full h-full object-contain" />
                     </div>
                     <div className="p-3">
                       <h4 className="text-sm font-semibold truncate">{item.title}</h4>
