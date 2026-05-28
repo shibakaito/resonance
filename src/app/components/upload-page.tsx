@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
+import { en2ko, ko2en } from '@/lib/keyboard-layout';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -152,6 +153,7 @@ function Typeahead({
   options,
   filter,
   freeText = false,
+  enableKeyboardLayout = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -159,6 +161,8 @@ function Typeahead({
   filter?: (q: string, opts: string[]) => string[];
   /** true면 매칭 없는 사용자 입력도 그대로 저장 가능 (드롭다운에 "직접 입력: …" 옵션 표시) */
   freeText?: boolean;
+  /** true면 한영 자판 오타 매칭(lazy fallback): 1차 0개 → en2ko/ko2en 변환 후 재매칭 */
+  enableKeyboardLayout?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -168,11 +172,33 @@ function Typeahead({
   // 공백·하이픈·&·/ 제거 + 소문자 (예: 'C 22'·'C-22'·'C22' 모두 같은 키로 비교)
   const normalize = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
   const qNorm = normalize(query);
-  const matched = !qNorm
-    ? options
-    : filter
-    ? filter(query.trim().toLowerCase(), options)
-    : options.filter((o) => normalize(o).includes(qNorm));
+
+  // 단일 쿼리 → 후보 배열로 매칭 (1차 + 한영 변환 시도 모두 같은 로직 재사용)
+  const compute = (q: string): string[] => {
+    const nq = normalize(q);
+    if (!nq) return options;
+    return filter
+      ? filter(q.trim().toLowerCase(), options)
+      : options.filter((o) => normalize(o).includes(nq));
+  };
+
+  // 1차: 원본 query 그대로 매칭
+  let matched = !qNorm ? options : compute(query);
+
+  // 2차 lazy fallback: 1차가 0건이고 enableKeyboardLayout 켜져 있을 때만
+  // browse 검색의 한영 매칭과 동일한 패턴 (노이즈 가드: 한글 음절 ≥2 또는 영문 ≥2)
+  if (enableKeyboardLayout && qNorm && matched.length === 0) {
+    const ko = en2ko(query);
+    if (ko !== query && (ko.match(/[가-힣]/g)?.length ?? 0) >= 2) {
+      matched = compute(ko);
+    }
+    if (matched.length === 0) {
+      const en = ko2en(query);
+      if (en !== query && (en.match(/[a-zA-Z]/g)?.length ?? 0) >= 2) {
+        matched = compute(en);
+      }
+    }
+  }
 
   // ↑/↓ 로 activeIdx 바뀔 때마다 그 항목이 보이도록 스크롤
   useEffect(() => {
@@ -528,6 +554,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     }
                   }}
                   options={CATEGORY_PATH_STRINGS}
+                  enableKeyboardLayout
                 />
               </div>
 
@@ -544,6 +571,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }}
                   options={ALL_BRAND_NAMES}
                   freeText
+                  enableKeyboardLayout
                   filter={(q, opts) => {
                     const ranked = searchBrands(q, 50).map((b) => b.name);
                     const set = new Set(opts);
