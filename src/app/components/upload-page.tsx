@@ -399,8 +399,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 제품 정보 추가 필드
   const [ownership, setOwnership] = useState('');
   const [components, setComponents] = useState('');
-  const [conditionAppearance, setConditionAppearance] = useState('');
-  const [conditionWorking, setConditionWorking] = useState('');
+  const [conditionAppearance, setConditionAppearance] = useState('');         // 드롭다운(등급)
+  const [conditionAppearanceDetail, setConditionAppearanceDetail] = useState(''); // 자유 입력칸
+  const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
+  const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
     type: '', channel: '', device: '', powerRated: '',
@@ -654,7 +656,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={ownership}
                   onChange={(e) => setOwnership(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 
@@ -665,7 +667,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={components}
                   onChange={(e) => setComponents(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 
@@ -675,7 +677,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <select
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
-                  className={`w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] bg-white ${
+                  className={`w-full border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
                     condition ? '' : 'text-gray-400'
                   }`}
                 >
@@ -686,26 +688,55 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </select>
               </div>
 
-              {/* 8. 외관 상태 */}
+              {/* 8. 외관 상태 — 등급(드롭다운) + 자유 입력칸 (참고용) */}
               <div>
                 <label className="block font-semibold mb-1">외관 상태</label>
-                <input
-                  value={conditionAppearance}
-                  onChange={(e) => setConditionAppearance(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={conditionAppearance}
+                    onChange={(e) => setConditionAppearance(e.target.value)}
+                    className={`w-36 border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                      conditionAppearance ? '' : 'text-gray-400'
+                    }`}
+                  >
+                    <option value="" disabled>선택</option>
+                    <option value="mint" className="text-[#000000]">민트급</option>
+                    <option value="excellent" className="text-[#000000]">매우 좋음</option>
+                    <option value="good" className="text-[#000000]">좋음</option>
+                    <option value="fair" className="text-[#000000]">보통</option>
+                  </select>
+                  <input
+                    value={conditionAppearanceDetail}
+                    onChange={(e) => setConditionAppearanceDetail(e.target.value)}
+                    placeholder=""
+                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  />
+                </div>
               </div>
 
-              {/* 9. 작동 상태 */}
+              {/* 9. 작동 상태 — 등급(드롭다운) + 자유 입력칸 (참고용) */}
               <div>
                 <label className="block font-semibold mb-1">작동 상태</label>
-                <input
-                  value={conditionWorking}
-                  onChange={(e) => setConditionWorking(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
+                <div className="flex gap-2">
+                  <select
+                    value={conditionWorking}
+                    onChange={(e) => setConditionWorking(e.target.value)}
+                    className={`w-36 border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                      conditionWorking ? '' : 'text-gray-400'
+                    }`}
+                  >
+                    <option value="" disabled>선택</option>
+                    <option value="working" className="text-[#000000]">정상 작동</option>
+                    <option value="needs_inspection" className="text-[#000000]">점검 필요</option>
+                    <option value="needs_repair" className="text-[#000000]">수리 필요</option>
+                  </select>
+                  <input
+                    value={conditionWorkingDetail}
+                    onChange={(e) => setConditionWorkingDetail(e.target.value)}
+                    placeholder=""
+                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  />
+                </div>
               </div>
             </div>
           </section>
