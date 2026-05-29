@@ -9,6 +9,7 @@ import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { label, keyFor } from './labels';
+import { SPEC_FIELDS } from '@/app/data/spec-fields';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -57,6 +58,17 @@ function mapRow(row: ListingRow): Listing {
     workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
     location: label('location', row.location),
     ownership: label('ownership', row.ownership),
+    // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스, SPEC_FIELDS 키 중 값 있는 것만)
+    // tech 중첩에 둔 이유: 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지
+    components: typeof s.components === 'string' ? s.components : '',
+    techSpecs: (() => {
+      const tech = (s.tech && typeof s.tech === 'object') ? s.tech as Record<string, unknown> : {};
+      return Object.fromEntries(
+        SPEC_FIELDS
+          .map((f) => [f.key, typeof tech[f.key] === 'string' ? (tech[f.key] as string).trim() : ''])
+          .filter(([, v]) => v)
+      );
+    })(),
     country: label('country', row.country),
     daysAgo: row.created_at
       ? Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86400000))

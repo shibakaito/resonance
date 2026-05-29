@@ -9,13 +9,14 @@
 //   Slider는 이 파일 내부 정적 import라 sliderRef(썸네일 클릭 이동)도 정상 작동.
 // ============================================================================
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Fragment } from 'react';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
 import type { Listing } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
+import { SPEC_FIELDS } from '@/app/data/spec-fields';
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
@@ -476,8 +477,12 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="font-bold">소유권</div>
                   <div className="break-words">{listing?.ownership ?? ''}</div>
 
-                  <div className="font-bold">구성품</div>
-                  <div className="break-words">본체, 정품 박스, 설명서, 전원 코드</div>
+                  {listing?.components && (
+                    <>
+                      <div className="font-bold">구성품</div>
+                      <div className="break-words">{listing.components}</div>
+                    </>
+                  )}
 
                   <div className="font-bold">상태</div>
                   <div className="break-words">
@@ -529,73 +534,46 @@ export function ListingDetail({ id }: { id?: string }) {
               </div>
             </div>
 
-            <div>
-              <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
-              <div className="relative">
-                <div
-                  className={`grid grid-cols-[140px_1fr] gap-x-6 gap-y-3 ${
-                    !techSpecsExpanded ? 'max-h-[120px] overflow-hidden' : ''
-                  }`}
-                >
-                  <div className="font-bold">타입</div>
-                  <div className="break-words">스테레오 파워 앰프</div>
-
-                  <div className="font-bold">정격 출력</div>
-                  <div className="break-words">150W + 150W / 2Ω, 4Ω, 8Ω</div>
-
-                  <div className="font-bold">주파수 응답</div>
-                  <div className="break-words">10Hz–100kHz</div>
-
-                  <div className="font-bold">지원 임피던스</div>
-                  <div className="break-words">2Ω / 4Ω / 8Ω</div>
-
-                  <div className="font-bold">THD</div>
-                  <div className="break-words">0.005% 이하</div>
-
-                  <div className="font-bold">S/N</div>
-                  <div className="break-words">122dB</div>
-
-                  <div className="font-bold">댐핑 팩터</div>
-                  <div className="break-words">40 이상</div>
-
-                  <div className="font-bold">입력 단자</div>
-                  <div className="break-words">밸런스 XLR (1), 언밸런스 RCA (1)</div>
-
-                  <div className="font-bold">출력 단자</div>
-                  <div className="break-words">스피커 출력 터미널</div>
-
-                  <div className="font-bold">포노 입력</div>
-                  <div className="break-words">없음</div>
-
-                  <div className="font-bold">톤 컨트롤</div>
-                  <div className="break-words">없음</div>
-
-                  <div className="font-bold">전원</div>
-                  <div className="break-words">AC 120V / 50·60Hz</div>
-
-                  <div className="font-bold">크기</div>
-                  <div className="break-words">445 × 152 × 483mm</div>
-
-                  <div className="font-bold">무게</div>
-                  <div className="break-words">34.1kg</div>
-                </div>
-
-                {!techSpecsExpanded && (
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
-                )}
-
-                {!techSpecsExpanded && (
-                  <div className="absolute bottom-0 left-0 right-0 flex justify-center">
-                    <button
-                      onClick={() => setTechSpecsExpanded(true)}
-                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+            {(() => {
+              // 기술 사양 — SPEC_FIELDS 순서대로, listing.techSpecs에 값 있는 항목만.
+              // 아예 없으면 섹션 전체 숨김 (옛 매물·더미 호환)
+              const specs = listing?.techSpecs ?? {};
+              const rows = SPEC_FIELDS.filter((f) => specs[f.key]);
+              if (rows.length === 0) return null;
+              return (
+                <div>
+                  <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
+                  <div className="relative">
+                    <div
+                      className={`grid grid-cols-[140px_1fr] gap-x-6 gap-y-3 ${
+                        !techSpecsExpanded ? 'max-h-[120px] overflow-hidden' : ''
+                      }`}
                     >
-                      더 보기
-                    </button>
+                      {rows.map((f) => (
+                        <Fragment key={f.key}>
+                          <div className="font-bold">{f.label}</div>
+                          <div className="break-words">{specs[f.key]}</div>
+                        </Fragment>
+                      ))}
+                    </div>
+
+                    {!techSpecsExpanded && rows.length > 4 && (
+                      <>
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 right-0 flex justify-center">
+                          <button
+                            onClick={() => setTechSpecsExpanded(true)}
+                            className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                          >
+                            더 보기
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              );
+            })()}
 
             <div>
               <h2 className="text-2xl font-bold mb-4">제품 설명</h2>

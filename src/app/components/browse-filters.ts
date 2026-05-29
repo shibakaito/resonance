@@ -142,6 +142,8 @@ export type Listing = {
   location: string;
   ownership: string;
   country: string;
+  components: string;                  // 구성품 (자유 텍스트, 없으면 '')
+  techSpecs: Record<string, string>;   // 기술 사양 (SPEC_FIELDS key→값, 값 있는 것만)
   daysAgo: number;
   // 앰프 전용 속성 (앰프 카테고리에서만 사용)
   ampType: string;

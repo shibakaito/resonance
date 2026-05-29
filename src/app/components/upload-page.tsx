@@ -21,6 +21,7 @@ import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, ALL_BRAND_NAMES, searc
 import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
+import { SPEC_FIELDS } from '../data/spec-fields';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -75,25 +76,6 @@ const STEPS = [
   { id: 'shipping', label: '배송' }
 ];
 
-// 기술 사양 입력 필드 — specs 객체의 key/label 매핑
-const SPEC_FIELDS = [
-  { key: 'type', label: '타입' },
-  { key: 'channel', label: '채널' },
-  { key: 'device', label: '소자' },
-  { key: 'powerRated', label: '정격 출력' },
-  { key: 'freqResponse', label: '주파수 응답' },
-  { key: 'impedance', label: '지원 임피던스' },
-  { key: 'thd', label: 'THD' },
-  { key: 'snr', label: 'S/N' },
-  { key: 'damping', label: '댐핑 팩터' },
-  { key: 'inputs', label: '입력 단자' },
-  { key: 'outputs', label: '출력 단자' },
-  { key: 'phono', label: '포노 입력' },
-  { key: 'toneControl', label: '톤 컨트롤' },
-  { key: 'power', label: '전원' },
-  { key: 'dimensions', label: '크기' },
-  { key: 'weight', label: '무게' },
-];
 
 /**
  * 매칭된 부분을 노란 배경으로 강조.
@@ -436,11 +418,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
       // 구성품
       if (components) specsToSave.components = components;
-      // 기술 사양 16개 (SPEC_FIELDS의 key 그대로, 값 있는 것만)
+      // 기술 사양 16개 → specs.tech 중첩 객체에 저장 (값 있는 것만).
+      // ⚠️ 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지 위해 tech 네임스페이스 분리.
+      const tech: Record<string, string> = {};
       for (const f of SPEC_FIELDS) {
         const v = specs[f.key]?.trim();
-        if (v) specsToSave[f.key] = v;
+        if (v) tech[f.key] = v;
       }
+      if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year, finish, country,
