@@ -40,6 +40,13 @@ const CATEGORY_PATH_STRINGS = CATEGORY_PATHS.map((p) => p.path);
 
 const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '대만', '이탈리아', '프랑스', '캐나다'];
 
+// 소유권 — 버튼 토글 (영문 키로 저장, labels.ts의 ownership과 동일)
+const OWNERSHIP_OPTIONS = [
+  { value: 'single_owner', label: '1인 소유' },
+  { value: 'multiple_owners', label: '다중 소유' },
+  { value: 'unknown', label: '알 수 없음' },
+];
+
 // 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
 const CONDITIONS = [
   { value: 'new', label: '새상품', desc: '미개봉 또는 사용하지 않은 새 제품' },
@@ -657,17 +664,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <Typeahead value={country} onChange={setCountry} options={COUNTRIES} />
               </div>
 
-              {/* 5. 소유권 */}
-              <div>
-                <label className="block font-semibold mb-1">소유권</label>
-                <input
-                  value={ownership}
-                  onChange={(e) => setOwnership(e.target.value)}
-                  placeholder=""
-                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
-              </div>
-
               {/* 6. 구성품 */}
               <div>
                 <label className="block font-semibold mb-1">구성품</label>
@@ -679,7 +675,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 7. 상태 — 중고 등급(used_*)일 때만 아래 외관·작동 활성화 */}
+              {/* 7. 상태 — 아래에 있던 CONDITIONS 드롭다운을 여기로 가져옴.
+                  중고 등급(used_*) 일 때만 아래의 외관·작동 상태 활성화 */}
               <div>
                 <label className="block font-semibold mb-1">상태</label>
                 <div className="relative">
@@ -688,8 +685,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => {
                       const v = e.target.value;
                       setCondition(v);
-                      // 새상품/NOS 등 비-중고로 바뀌면 외관·작동 값 자동 초기화
+                      // 새상품/NOS 등 비-중고로 바뀌면 소유권·외관·작동 값 자동 초기화
                       if (!v.startsWith('used_')) {
+                        setOwnership('');
                         setConditionAppearance('');
                         setConditionAppearanceDetail('');
                         setConditionWorking('');
@@ -706,6 +704,34 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
+              </div>
+
+              {/* 소유권 — 버튼 토글. 중고 등급(used_*)일 때만 활성화 */}
+              <div>
+                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>소유권</label>
+                <div className="flex gap-2">
+                  {OWNERSHIP_OPTIONS.map((opt) => {
+                    const active = ownership === opt.value;
+                    const enabled = condition.startsWith('used_');
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        disabled={!enabled}
+                        onClick={() => setOwnership(active ? '' : opt.value)}
+                        className={`flex-1 h-[42px] border rounded-lg px-3 text-sm font-medium transition disabled:cursor-not-allowed ${
+                          !enabled
+                            ? 'border-[#e0e0e0] bg-[#f7f7f7] text-gray-400'
+                            : active
+                            ? 'border-[#000000] bg-[#000000] text-white'
+                            : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

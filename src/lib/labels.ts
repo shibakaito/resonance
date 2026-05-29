@@ -40,6 +40,7 @@ export const LABELS: Record<string, LabelMap> = {
   ownership: {
     single_owner: { ko: '1인 소유' },
     multiple_owners: { ko: '다중 소유' },
+    unknown: { ko: '알 수 없음' },
   },
   shipping_type: {
     free: { ko: '무료배송' },
