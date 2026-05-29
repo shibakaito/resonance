@@ -22,6 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
+import { SPEC_FIELDS_BY_CATEGORY } from '../data/category-specs';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -791,22 +792,94 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
           </section>
 
-          {/* 기술 사양 (16개 필드를 SPEC_FIELDS 배열로 자동 렌더) */}
+          {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
           <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
             <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
-            <div className="space-y-4">
-              {SPEC_FIELDS.map((f) => (
-                <div key={f.key}>
-                  <label className="block font-semibold mb-1">{f.label}</label>
-                  <input
-                    value={specs[f.key] || ''}
-                    onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
-                    placeholder=""
-                    className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
-                  />
-                </div>
-              ))}
-            </div>
+            {SPEC_FIELDS_BY_CATEGORY[category] ? (
+              <div className="space-y-4">
+                {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
+                  const setSpec = (v: string) => setSpecs({ ...specs, [f.key]: v });
+                  // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
+                  if (f.input.kind === 'auto') {
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <input
+                          value={subcategory || category}
+                          readOnly
+                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 bg-[#f7f7f7] text-gray-500 cursor-default"
+                        />
+                      </div>
+                    );
+                  }
+                  // ── 드롭다운 ──
+                  if (f.input.kind === 'select') {
+                    const v = specs[f.key] || '';
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="relative">
+                          <select
+                            value={v}
+                            onChange={(e) => setSpec(e.target.value)}
+                            className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                              v ? '' : 'text-gray-400'
+                            }`}
+                          >
+                            <option value="" disabled>선택하세요</option>
+                            {f.input.options.map((o) => (
+                              <option key={o} value={o} className="text-[#000000]">{o}</option>
+                            ))}
+                          </select>
+                          <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 자유 입력 (+ 단위) ──
+                  if (f.input.kind === 'text') {
+                    const unit = f.input.unit;
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="relative">
+                          <input
+                            value={specs[f.key] || ''}
+                            onChange={(e) => setSpec(e.target.value)}
+                            placeholder=""
+                            className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 py-2 focus:outline-none focus:border-[#000000] ${
+                              unit ? 'pr-10' : 'pr-3'
+                            }`}
+                          />
+                          {unit && (
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">
+                              {unit}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 복합 입력(정격출력/주파수/크기/임피던스/단자)은 3·4단계에서 구현 ──
+                  return null;
+                })}
+              </div>
+            ) : (
+              // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
+              <div className="space-y-4">
+                {SPEC_FIELDS.map((f) => (
+                  <div key={f.key}>
+                    <label className="block font-semibold mb-1">{f.label}</label>
+                    <input
+                      value={specs[f.key] || ''}
+                      onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
+                      placeholder=""
+                      className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
 
           <h2 className="text-2xl font-bold pl-2 pt-2">사진 및 설명</h2>
