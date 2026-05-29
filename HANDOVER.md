@@ -1,55 +1,117 @@
 # Grace Project — Resonance 마켓플레이스 인수인계
 
-> **최종 업데이트: 2026-05-22**
+> **최종 업데이트: 2026-05-28**
 > 새 세션에서 `cat "/Users/igeon-yeong/Downloads/Grace Project/HANDOVER.md"` 로 컨텍스트 복원.
 
 ---
 
-## ⚠️ 0. 먼저 읽을 것 — 현재 상태 (2026-05-22)
+## ⚠️ 0. 먼저 읽을 것 — 현재 상태 (2026-05-28)
 
 ### git
-- **`main`이 정식 브랜치** (Next.js + Supabase + Paperlogy 폰트 전부 포함). Vercel 자동 배포 연결.
-- 작업 트리 깨끗, `origin/main` 동기화 완료. 최신 커밋: `c07649c feat(font): Paperlogy 폰트 적용`
-- (옛 "main=Vite 보존" 논의는 **폐기**. Vite 백업은 `~/Downloads/Grace Project-backup-20260521` + 커밋 `37d157a`에 남음)
-- **GitHub 인증**: `gh` CLI 설치·로그인 완료 (`gh auth login` → keyring 저장). 이후 `git push` 자동 인증.
+- **`main`이 정식 브랜치**. Vercel 자동 배포 연결. 작업 트리 깨끗, `origin/main` 동기화.
+- 최신 커밋: `a969148 feat(listings): 외관/작동 상태를 specs(jsonb)에 저장 + 상세에 표시`
+- **GitHub 인증**: `gh` CLI 로그인 완료 (keyring 저장). `git push` 자동 인증.
 
 ### ⚠️ 배포 사이트가 깨지면 1순위: Vercel 환경변수
 - 코드가 Supabase 키를 **필수**로 읽음. `.env.local`은 git 제외 → Vercel에 별도 등록 필요.
 - 변수: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Vercel → Settings → Environment Variables → 등록 후 재배포. (로컬 dev는 `.env.local` 있어 정상)
+- Vercel → Settings → Environment Variables → 등록 후 재배포.
 
 ### Supabase (백엔드)
 - **URL**: `https://yooozcdvwvyzxzlhpnfs.supabase.co` (anon 키는 `.env.local`)
-- **테이블**: `listings` (설계 SQL: `supabase/listings.sql`), 현재 약 52건 (더미 50 + MC2105/MC275)
-- **RLS**: select 전체 허용 / 등록은 임시 `listings_insert_temp`(누구나 INSERT) — 로그인 생기면 본인만으로 조일 것
-- **저장 규칙**: 선택지는 **영문 키/슬러그**로 저장 (condition=`used_excellent`, country=`us`, category=`power-amp`). 화면엔 한글 변환(다국어 대비).
+- **테이블 `listings`** (설계 SQL: `supabase/listings.sql`), 현재 ~53건 (옛 더미 50 + MC2105 + MC275 + 테스트 매물 `03366023...`)
+  - **RLS**: select 전체 허용 / 등록은 임시 `listings_insert_temp`(누구나 INSERT) — 로그인 생기면 본인만으로 조일 것
+  - **저장 규칙**: 선택지는 **영문 키/슬러그**로 저장. 화면엔 한글 변환(다국어 대비).
+- **Storage 버킷 `listings`** (2026-05-28 추가): Public, 5MB, `image/jpeg·png·webp`
+  - RLS: 누구나 SELECT/INSERT (DELETE는 정책 없음 — 정리는 대시보드 수동)
+  - 검증용 더미 PNG 2~3장 남아있음. 정리할 거면 Supabase 대시보드에서 수동 삭제.
 
-### 새 핵심 파일 `src/lib/`
-- `supabase.ts` — 클라이언트
-- `listings.ts` — `fetchListings()` / `fetchListingById(id)` / `insertListing(form)` + `mapRow(DB행→Listing, 영문키→한글)`
-- `labels.ts` — 영문키↔한글 변환표 `label()`/`keyFor()` (condition·country·location·ownership·shipping_type + specs)
+### 핵심 파일 `src/lib/`
+| 파일 | 역할 |
+|---|---|
+| `supabase.ts` | 클라이언트 |
+| `listings.ts` | `fetchListings()` / `fetchListingById(id)` / `insertListing(form)` + `mapRow` (DB행→Listing, 영문키→한글) |
+| `labels.ts` | 영문키↔한글 변환표 `label()`/`keyFor()` (condition·country·location·ownership·shipping_type + SPEC_LABELS의 각 spec) |
+| **`keyboard-layout.ts`** (2026-05-22 추가) | `en2ko('doavm')→'앰프'`, `ko2en('앰프')→'doavm'` 양방향. 두벌식 매핑 + `es-hangul`의 `assemble`/`disassemble` |
+| **`did-you-mean.ts`** (2026-05-22 추가) | `suggest(q)` — Sørensen-Dice(영문) + Levenshtein(한글) 보조. 브랜드+한글별칭+카테고리(영어 별칭 포함) 풀에서 매칭. ≤2자 한글 별칭은 노이즈 차단으로 풀에서 제외 |
+| **`upload-image.ts`** (2026-05-28 추가) | `uploadListingImage(file)` — Supabase Storage `listings` 버킷 업로드, public URL 반환. 5MB·MIME 가드, `crypto.randomUUID()` 파일명, 한국어 에러 메시지 |
 
-### 폰트 — Paperlogy (2026-05-22 적용)
-- 9종(`Thin~Black`) → `public/fonts/Paperlogy-*.ttf`
-- `src/styles/fonts.css`에 `@font-face` 9개 등록 (`font-display: swap`, 지연 로딩 → **쓰는 굵기만 다운로드**)
-- `src/styles/theme.css`의 `body` 기본 글꼴 + `--font-sans`를 `'Paperlogy', ui-sans-serif, system-ui, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif` 로 지정
-- 실제 사용 굵기: **400(본문) · 500(제목/버튼/라벨) · 600(font-semibold) · 700(font-bold)** — 나머지 5종은 등록만 됨
+### 폰트 — Paperlogy
+- 9종 `public/fonts/Paperlogy-*.ttf` + `fonts.css`에 `@font-face` 9개 (지연 로딩 = 쓰는 굵기만 받음)
+- `theme.css`의 body 기본 글꼴 + `--font-sans`를 Paperlogy로
+- 실사용 굵기: 400(본문) · 500(제목·라벨·버튼) · 600(font-semibold) · 700(font-bold)
 
-### 이번 세션(2026-05-21 ~ 22) 완료
-- **Supabase 연동** — browse·홈·PDP가 DB에서 매물 읽음, 카드→실제 id PDP
-- **더미 완전 삭제** — `buildListings`·`dummy-catalog` 제거
-- **판매 폼→INSERT** — `/sell/upload` 등록 시 DB 저장→상세 이동
-- **상태 등급 통일** — '중고 -' 제거: 새상품/NOS/중고/민트급/매우 좋음/좋음/보통/점검 필요/작동 불가
-- **필터 개선** — 브랜드=DB 실제만, 브랜드 검색 한글별칭, "모두 보기"(전부 펼침·스크롤 맨위·접기 끝·행 정확 잘림). 0건 회색비활성은 도입 후 되돌림(항상 선택 가능)
-- **홈 메인 검색(C-2)** — 검색어→`/browse?q=`, brand/model/title/description + 한글 별칭 + 카테고리 한글 매칭, 상단 "'OO' 검색 결과 N건" + 편집 검색창
-- **Paperlogy 폰트 적용** (위 "폰트" 항목 참조)
+### 검색 기능 (browse 검색 = `browse-page.tsx`의 `searchedListings`)
+1차 매칭 (`matchByQuery`):
+- 브랜드: `searchBrands(q)` — 영문/한글 별칭
+- 카테고리: 대분류·서브 부분일치 + **영어 별칭** (`CATEGORY_ALIASES`: 앰프=amp/amps/amplifier(s) 등 4 대분류)
+- 본문(brand+model+title+description) 정규화 부분일치
+- ⚠️ 영문 ≤2자는 카테고리 부분일치 차단(`ap` → `amp` 우연 매칭 방지)
+
+Lazy fallback (1차 < 3건일 때):
+- 한영 자판 변환 (`en2ko`/`ko2en`) — `doavm`→`앰프` 18건
+- 노이즈 가드: 한글 음절 ≥2 또는 영문 ≥2일 때만 변환 채택
+
+Did you mean? (1차 결과 0건일 때만):
+- `suggest(q)` 결과 1개를 h1 아래에 "혹시 'OO'를 찾으세요?" 노출. 클릭 → `onSearch(label)`로 재검색
+- 영문: Dice ≥0.5, length≥3, 길이차≤5
+- 한글: Levenshtein 거리 ≤1 (길이≤4) or ≤2 (긴 경우)
+
+### Typeahead (판매 폼 카테고리/브랜드/모델/제조국)
+공통 컴포넌트(`upload-page.tsx` 안 정의)에 `enableKeyboardLayout` prop:
+- 카테고리·브랜드만 켜짐 (모델·제조국은 정확도 우선)
+- 동일 lazy fallback 패턴 (1차 0건 → en2ko/ko2en)
+- 카테고리는 "앰프 > 프리앰프" 풀패스 검색, 선택 시 top/sub 분리 저장
+- 브랜드는 한글 별칭(`searchBrands`)
+- 모델은 brand + subcategory가 둘 다 일치할 때만 후보 (없으면 자유 입력만)
+- `findBestMatch` 노란 매칭 하이라이트 (`highlightMatch` 정규화 기반)
+- 키보드 ↑↓ Enter Esc + IME 조합 중 Enter 무시(한글 IME 이슈 해결)
+- X 버튼(값 있을 때만, 우측 끝)
+
+### 카탈로그 (`src/app/data/catalog.ts`)
+- **McIntosh 모델 131개** (2026-05-22 추가, `Mcintosh.rtf` 파싱):
+  프리앰프 36 / 파워앰프 33 / 인티앰프 18 / 스피커 16 / 소스기기 17 / 리시버·튜너·AV 11
+- 다른 브랜드(Marantz/Luxman/Accuphase 등)는 BRAND_DIRECTORY에만 있고 모델 데이터 미입력
+- 추가 RTF 4개(`Marantz.rtf`, `used.rtf`, `category.rtf`, `Brand.rtf`)가 프로젝트 루트에 있어 같은 방식으로 추가 가능
+- `CATEGORY_ALIASES`: 영어 카테고리 별칭 4 대분류 (검색용)
+
+### 매물 이미지 (end-to-end 완성)
+- 폼: `/sell/upload`의 사진 박스 클릭/드래그앤드롭 → `uploadListingImage` 호출 → `images` state에 public URL 추가
+- 미리보기/카드/상세: 모두 `object-contain` + `bg-[#f7f7f7]` (잘림 없이 비율 보존, 회색 여백)
+- 카드/상세 표시: `l.images?.[0] ?? NO_IMAGE`, `onError`로 NO_IMAGE fallback (무한 루프 방지: `img.onerror = null`)
+- 상세 캐러셀: `listing.images`(빈 배열이면 NO_IMAGE 1장)
+- ⚠️ 카드의 추천 매물(`item.img`)은 별개 하드코딩 데이터
+
+### 판매 폼 (`/sell/upload`) — 외관/작동 상태
+- UI: 드롭다운(등급) + 옆 자유 입력칸. 5개 입력칸(소유권/구성품/상태/외관/작동) 정렬 통일 — 텍스트 시작점 588.5px
+  - select: `h-[42px] pl-2 pr-3` (UA 추가 4px 보정으로 input과 동일 위치)
+  - input: `h-[42px] px-3`
+- 저장: `handleSubmit`이 `specsToSave` 객체로 묶어 `insertListing`에 전달 (비어있는 키 제외)
+- DB: `specs` jsonb에 `appearance`/`appearanceDetail`/`working`/`workingDetail` 저장
+- 표시: `listing-detail.tsx`에서 한글 변환 + 값 없으면 박스 자체 안 보임 (옛 매물 호환)
+- `condition`(필터/검색/뱃지)은 그대로 — 외관/작동은 **참고용 별도 필드**
+
+### 이번 세션(2026-05-23 ~ 28) 완료
+- **검색 강화 시리즈**: 한영 자판 매칭(browse + Typeahead) / Did you mean? / 카테고리 영어 별칭 + 대분류 부분일치
+- **McIntosh 카탈로그 131개** 데이터 추가 (`Mcintosh.rtf` 파싱)
+- **이미지 업로드 end-to-end**: Storage 버킷 + 폼 파일 input + 카드·상세 표시 + 비율 contain + onError fallback
+- **판매 폼 정리**: 안내문 삭제 / 필수 표시 빨간 점(#ff555d) / condition 디폴트 "선택하세요"(회색) / 외관·작동 등급+자유입력 → specs jsonb → 상세 표시 / 5개 입력칸 정렬 통일
+- **npm 의존성 추가**:
+  - `es-hangul ^2.3.8` — 한글 자모 조합
+  - `string-similarity ^4.0.4` + `@types/string-similarity ^4.0.2` — Dice 계수
+- **테스트 매물**: `03366023-1966-4b5e-8553-4869e2c38d86` (McIntosh C 22, 외관/작동 specs 있음, 옛 더미 이미지 1장)
 
 ### 미해결 / 다음 할 일
-- PDP "비슷한 매물"·리뷰: 아직 하드코딩 더미 → 매물 쌓이면 DB 연결
-- 검색 다듬기: "스피커" 검색에 "스피커 케이블" 섞임(부분일치 부작용) — 보류
-- RLS insert 조이기 / 이미지(Storage 업로드 미구현, "이미지 없음" 표시) / 로그인·회원 미구현
-- (참고) Perfect Circuit 사이트 폰트 = 본문 Libre Franklin / 제목 Roboto(700) — 적용은 보류
-- (참고) 네트워크 보안 차단 점검: "새롭게 발견된 도메인" / "DGA 도메인"이 켜져 있으면 Vercel·Supabase 접속이 막힐 수 있음 (현재는 영향 없음 확인)
+- **기술 사양 16개 입력(SPEC_FIELDS) → DB 저장 미연결** (`specs` state는 있는데 `specsToSave`에 안 들어감. 외관/작동만 저장됨)
+- **사용 안 되는 state 정리**: `title` / `finish` / `handmade` (5단계 변경 때 UI는 제거됐는데 state는 남음, `ListingInput`에도 그대로)
+- **추가 RTF 파일 카탈로그화**: `Marantz.rtf` 등 4개 파일이 미사용 상태
+- **PDP "비슷한 매물"·리뷰**: 아직 하드코딩 더미 → 매물 쌓이면 DB 연결
+- **검색 다듬기**: "스피커" 검색에 "스피커 케이블" 섞임(부분일치 부작용)
+- **RLS**: insert 정책 임시 (`listings_insert_temp`, Storage `listings_insert_temp`) → 로그인 생기면 본인만으로 조일 것
+- **로그인·회원 미구현**
+- **Storage 정리**: 검증용 더미 PNG 몇 장이 `listings` 버킷에 남아있음 (대시보드에서 수동 삭제)
+- (참고) Perfect Circuit 폰트 = 본문 Libre Franklin / 제목 Roboto(700) — 적용은 보류
+- (참고) 네트워크 보안 차단: "새롭게 발견된 도메인" / "DGA 도메인" 카테고리가 켜져 있으면 Vercel·Supabase 접속이 막힐 수 있음
 
 > ⚠️ 아래 2장 이후(Next.js 이전 설명)는 대부분 유효하나, **"백엔드 없음 / buildListings" 부분은 폐기**(이제 Supabase 사용).
 
