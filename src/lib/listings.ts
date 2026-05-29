@@ -138,6 +138,7 @@ export type ListingInput = {
   country: string;        // 한글 (예: '미국')
   handmade: boolean;
   condition: string;      // 영문 키 (예: 'used_excellent')
+  ownership: string;      // 영문 키 (single_owner/multiple_owners/unknown), 빈 문자열 가능
   description: string;
   sku: string;
   youtubeLink: string;
@@ -175,6 +176,7 @@ export async function insertListing(form: ListingInput): Promise<string> {
     country: keyFor('country', form.country) ?? null,        // 한글 → 키 (예: '미국'→'us')
     handmade: form.handmade,
     condition: form.condition,                              // 폼이 이미 영문 키
+    ownership: form.ownership || null,                      // 폼이 이미 영문 키 (빈 값이면 null)
     price: toMoney(form.price) ?? 0,
     compare_price: toMoney(form.comparePrice),
     accept_offers: form.acceptOffers,

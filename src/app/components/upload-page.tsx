@@ -427,16 +427,24 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     setSubmitting(true);
     try {
-      // specs(jsonb)에 저장할 외관/작동 상태 — 비어있는 키는 제외 (DB 깔끔하게)
+      // specs(jsonb)에 저장할 값들 — 비어있는 키는 제외 (DB 깔끔하게)
       const specsToSave: Record<string, string> = {};
+      // 외관/작동 상태
       if (conditionAppearance) specsToSave.appearance = conditionAppearance;
       if (conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail;
       if (conditionWorking) specsToSave.working = conditionWorking;
       if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
+      // 구성품
+      if (components) specsToSave.components = components;
+      // 기술 사양 16개 (SPEC_FIELDS의 key 그대로, 값 있는 것만)
+      for (const f of SPEC_FIELDS) {
+        const v = specs[f.key]?.trim();
+        if (v) specsToSave[f.key] = v;
+      }
 
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year, finish, country,
-        handmade, condition, description, sku, youtubeLink, price, comparePrice,
+        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice,
         acceptOffers, shippingType, shippingCost, localPickup,
         specs: specsToSave,
       });
