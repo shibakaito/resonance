@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS } from '../data/category-specs';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -393,6 +393,44 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionAppearanceDetail, setConditionAppearanceDetail] = useState(''); // 자유 입력칸
   const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
   const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
+  // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
+  const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string }[]>([{ w: '', ohm: '' }]);
+  const [freqLow, setFreqLow] = useState('');
+  const [freqHigh, setFreqHigh] = useState('');
+  const [dimW, setDimW] = useState('');
+  const [dimD, setDimD] = useState('');
+  const [dimH, setDimH] = useState('');
+  // 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) — 저장 시 배열로 specs.tech에
+  const [impedances, setImpedances] = useState<string[]>([]);
+  const [inputTerminals, setInputTerminals] = useState<string[]>([]);
+  const [outputTerminals, setOutputTerminals] = useState<string[]>([]);
+  const toggleArr = (arr: string[], v: string) =>
+    arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
+  // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
+  const numOnly = (s: string) => {
+    const c = s.replace(/[^0-9.]/g, '');
+    const parts = c.split('.');
+    return parts.length <= 1 ? c : parts[0] + '.' + parts.slice(1).join('');
+  };
+  // 선택된 임피던스 → 범위 표기 (예: ['4Ω','8Ω'] → '4~8Ω', ['4Ω'] → '4Ω')
+  const impedanceRange = (arr: string[]) => {
+    if (arr.length === 0) return '';
+    const nums = arr.map((o) => parseInt(o, 10)).sort((a, b) => a - b);
+    return nums.length === 1 ? `${nums[0]}Ω` : `${nums[0]}~${nums[nums.length - 1]}Ω`;
+  };
+  // 조립 함수 (저장/표시용 문자열)
+  const buildPower = (pairs: { w: string; ohm: string }[]) =>
+    pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}`).join(', ');
+  const buildFreq = (lo: string, hi: string) => {
+    const l = lo.trim(), h = hi.trim();
+    if (!l && !h) return '';
+    return `${l ? l + 'Hz' : ''}~${h ? h + 'kHz' : ''}`;
+  };
+  const buildDim = (w: string, d: string, h: string) => {
+    if (!w.trim() && !d.trim() && !h.trim()) return '';
+    return `${w.trim()}×${d.trim()}×${h.trim()}`;
+  };
+  const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
     type: '', channel: '', device: '', powerRated: '',
@@ -794,7 +832,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
           {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
           <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
-            <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
+            <button
+              type="button"
+              onClick={() => setTechExpanded((v) => !v)}
+              className="w-full flex items-center justify-between text-left"
+            >
+              <h2 className="text-2xl font-bold">기술 사양</h2>
+              <ChevronDown className={`w-6 h-6 text-gray-500 transition-transform ${techExpanded ? 'rotate-180' : ''}`} />
+            </button>
+            {techExpanded && (
+            <div className="mt-4">
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
               <div className="space-y-4">
                 {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
@@ -822,7 +869,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <select
                             value={v}
                             onChange={(e) => setSpec(e.target.value)}
-                            className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                            className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${v ? 'pr-16' : 'pr-9'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
                               v ? '' : 'text-gray-400'
                             }`}
                           >
@@ -831,6 +878,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               <option key={o} value={o} className="text-[#000000]">{o}</option>
                             ))}
                           </select>
+                          {/* 선택값 있으면 화살표 왼쪽에 X (초기화) */}
+                          {v && (
+                            <button
+                              type="button"
+                              aria-label="초기화"
+                              onClick={() => setSpec('')}
+                              className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
                           <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                         </div>
                       </div>
@@ -845,7 +903,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <div className="relative">
                           <input
                             value={specs[f.key] || ''}
-                            onChange={(e) => setSpec(e.target.value)}
+                            onChange={(e) => setSpec(numOnly(e.target.value))}
+                            inputMode="decimal"
                             placeholder=""
                             className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 py-2 focus:outline-none focus:border-[#000000] ${
                               unit ? 'pr-10' : 'pr-3'
@@ -860,7 +919,204 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                   }
-                  // ── 복합 입력(정격출력/주파수/크기/임피던스/단자)은 3·4단계에서 구현 ──
+                  // ── 정격 출력: 출력값(W) + 기준 옴 쌍, +추가 가능 ──
+                  if (f.input.kind === 'power') {
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="space-y-2">
+                          {powerPairs.map((p, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  value={p.w}
+                                  onChange={(e) => {
+                                    const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, w: numOnly(e.target.value) } : x));
+                                    setPowerPairs(pairs);
+                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                  }}
+                                  inputMode="decimal"
+                                  placeholder="출력값"
+                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">W</span>
+                              </div>
+                              <span className="text-gray-400">@</span>
+                              <div className="relative w-28 flex-shrink-0">
+                                <select
+                                  value={p.ohm}
+                                  onChange={(e) => {
+                                    const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: e.target.value } : x));
+                                    setPowerPairs(pairs);
+                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                  }}
+                                  className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
+                                >
+                                  <option value="" disabled>기준</option>
+                                  {AMP_OHM_OPTS.map((o) => (
+                                    <option key={o} value={o} className="text-[#000000]">{o}</option>
+                                  ))}
+                                </select>
+                                {p.ohm && (
+                                  <button
+                                    type="button"
+                                    aria-label="초기화"
+                                    onClick={() => {
+                                      const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: '' } : x));
+                                      setPowerPairs(pairs);
+                                      setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                    }}
+                                    className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                  >
+                                    <X className="w-3.5 h-3.5" />
+                                  </button>
+                                )}
+                                <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                              </div>
+                              {powerPairs.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const pairs = powerPairs.filter((_, i) => i !== idx);
+                                    setPowerPairs(pairs);
+                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                  }}
+                                  aria-label="삭제"
+                                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '' }])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 임피던스별 출력 추가
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 주파수 응답: 하한~상한 2칸 ──
+                  if (f.input.kind === 'range') {
+                    const lowUnit = f.input.lowUnit, highUnit = f.input.highUnit;
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="flex gap-2 items-center">
+                          <div className="relative flex-1 min-w-0">
+                            <input
+                              value={freqLow}
+                              onChange={(e) => {
+                                const v = numOnly(e.target.value);
+                                setFreqLow(v);
+                                setSpecs({ ...specs, freqResponse: buildFreq(v, freqHigh) });
+                              }}
+                              inputMode="decimal"
+                              placeholder="하한"
+                              className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{lowUnit}</span>
+                          </div>
+                          <span className="text-gray-400">~</span>
+                          <div className="relative flex-1 min-w-0">
+                            <input
+                              value={freqHigh}
+                              onChange={(e) => {
+                                const v = numOnly(e.target.value);
+                                setFreqHigh(v);
+                                setSpecs({ ...specs, freqResponse: buildFreq(freqLow, v) });
+                              }}
+                              inputMode="decimal"
+                              placeholder="상한"
+                              className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                            />
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{highUnit}</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 크기: W × D × H 3칸, 각 칸 끝에 mm 단위 ──
+                  if (f.input.kind === 'dimensions') {
+                    const dimField = (val: string, set: (v: string) => void, ph: string, build: (v: string) => string) => (
+                      <div className="relative flex-1 min-w-0">
+                        <input
+                          value={val}
+                          onChange={(e) => { const nv = numOnly(e.target.value); set(nv); setSpecs({ ...specs, dimensions: build(nv) }); }}
+                          inputMode="decimal"
+                          placeholder={ph}
+                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">mm</span>
+                      </div>
+                    );
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="flex gap-2 items-center">
+                          {dimField(dimW, setDimW, 'W', (v) => buildDim(v, dimD, dimH))}
+                          <span className="text-gray-400">×</span>
+                          {dimField(dimD, setDimD, 'D', (v) => buildDim(dimW, v, dimH))}
+                          <span className="text-gray-400">×</span>
+                          {dimField(dimH, setDimH, 'H', (v) => buildDim(dimW, dimD, v))}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) ──
+                  // 임피던스: 한 줄 가로 나열 / 입력·출력 단자: 2열 그리드
+                  if (f.input.kind === 'multi') {
+                    const sel = f.key === 'impedance' ? impedances : f.key === 'inputs' ? inputTerminals : outputTerminals;
+                    const setSel = f.key === 'impedance' ? setImpedances : f.key === 'inputs' ? setInputTerminals : setOutputTerminals;
+                    const isImpedance = f.key === 'impedance';
+                    // 임피던스: 1행 균일(5칸) / 입력·출력 단자: 4칸 → 2행(7개=4+3)
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className={`grid gap-2 ${isImpedance ? 'grid-cols-5' : 'grid-cols-4'}`}>
+                          {f.input.options.map((o) => {
+                            const active = sel.includes(o);
+                            return (
+                              <button
+                                key={o}
+                                type="button"
+                                onClick={() => setSel((prev) => toggleArr(prev, o))}
+                                className={`w-full h-[42px] border rounded-lg text-sm font-medium transition ${
+                                  active
+                                    ? 'border-[#000000] bg-[#000000] text-white'
+                                    : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+                                }`}
+                              >
+                                {o}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {/* 선택 결과 표시 — 버튼으로만 조작, 직접 수정 불가. 단자는 선택한 순서대로 */}
+                        <div className="relative mt-2">
+                          <input
+                            readOnly
+                            value={isImpedance ? impedanceRange(sel) : sel.join(', ')}
+                            className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
+                          />
+                          {sel.length > 0 && (
+                            <button
+                              type="button"
+                              aria-label="초기화"
+                              onClick={() => setSel([])}
+                              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
                   return null;
                 })}
               </div>
@@ -879,6 +1135,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   </div>
                 ))}
               </div>
+            )}
+            </div>
             )}
           </section>
 
