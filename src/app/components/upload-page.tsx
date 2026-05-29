@@ -682,48 +682,54 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 7. 상태 — 중고 등급(used_*)일 때만 아래 외관·작동 활성화 */}
               <div>
                 <label className="block font-semibold mb-1">상태</label>
-                <select
-                  value={condition}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    setCondition(v);
-                    // 새상품/NOS 등 비-중고로 바뀌면 외관·작동 값 자동 초기화
-                    if (!v.startsWith('used_')) {
-                      setConditionAppearance('');
-                      setConditionAppearanceDetail('');
-                      setConditionWorking('');
-                      setConditionWorkingDetail('');
-                    }
-                  }}
-                  className={`w-full border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
-                    condition ? '' : 'text-gray-400'
-                  }`}
-                >
-                  <option value="" disabled>선택하세요</option>
-                  {CONDITIONS.map((c) => (
-                    <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    value={condition}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      setCondition(v);
+                      // 새상품/NOS 등 비-중고로 바뀌면 외관·작동 값 자동 초기화
+                      if (!v.startsWith('used_')) {
+                        setConditionAppearance('');
+                        setConditionAppearanceDetail('');
+                        setConditionWorking('');
+                        setConditionWorkingDetail('');
+                      }
+                    }}
+                    className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                      condition ? '' : 'text-gray-400'
+                    }`}
+                  >
+                    <option value="" disabled>선택하세요</option>
+                    {CONDITIONS.map((c) => (
+                      <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
               </div>
 
               {/* 8. 외관 상태 — 중고 등급(used_*)일 때만 활성화 */}
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>외관 상태</label>
                 <div className="flex gap-2">
-                  <select
-                    value={conditionAppearance}
-                    onChange={(e) => setConditionAppearance(e.target.value)}
-                    disabled={!condition.startsWith('used_')}
-                    className={`w-36 border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                      conditionAppearance ? '' : 'text-gray-400'
-                    }`}
-                  >
-                    <option value="" disabled>선택</option>
-                    <option value="mint" className="text-[#000000]">민트급</option>
-                    <option value="excellent" className="text-[#000000]">매우 좋음</option>
-                    <option value="good" className="text-[#000000]">좋음</option>
-                    <option value="fair" className="text-[#000000]">보통</option>
-                  </select>
+                  <div className="relative w-36 flex-shrink-0">
+                    <select
+                      value={conditionAppearance}
+                      onChange={(e) => setConditionAppearance(e.target.value)}
+                      disabled={!condition.startsWith('used_')}
+                      className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                        conditionAppearance ? '' : 'text-gray-400'
+                      }`}
+                    >
+                      <option value="" disabled>선택</option>
+                      <option value="mint" className="text-[#000000]">민트급</option>
+                      <option value="excellent" className="text-[#000000]">매우 좋음</option>
+                      <option value="good" className="text-[#000000]">좋음</option>
+                      <option value="fair" className="text-[#000000]">보통</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  </div>
                   <input
                     value={conditionAppearanceDetail}
                     onChange={(e) => setConditionAppearanceDetail(e.target.value)}
@@ -738,19 +744,22 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>작동 상태</label>
                 <div className="flex gap-2">
-                  <select
-                    value={conditionWorking}
-                    onChange={(e) => setConditionWorking(e.target.value)}
-                    disabled={!condition.startsWith('used_')}
-                    className={`w-36 border border-[#e0e0e0] rounded-lg pl-2 pr-3 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                      conditionWorking ? '' : 'text-gray-400'
-                    }`}
-                  >
-                    <option value="" disabled>선택</option>
-                    <option value="working" className="text-[#000000]">정상 작동</option>
-                    <option value="needs_inspection" className="text-[#000000]">점검 필요</option>
-                    <option value="needs_repair" className="text-[#000000]">수리 필요</option>
-                  </select>
+                  <div className="relative w-36 flex-shrink-0">
+                    <select
+                      value={conditionWorking}
+                      onChange={(e) => setConditionWorking(e.target.value)}
+                      disabled={!condition.startsWith('used_')}
+                      className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                        conditionWorking ? '' : 'text-gray-400'
+                      }`}
+                    >
+                      <option value="" disabled>선택</option>
+                      <option value="working" className="text-[#000000]">정상 작동</option>
+                      <option value="needs_inspection" className="text-[#000000]">점검 필요</option>
+                      <option value="needs_repair" className="text-[#000000]">수리 필요</option>
+                    </select>
+                    <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                  </div>
                   <input
                     value={conditionWorkingDetail}
                     onChange={(e) => setConditionWorkingDetail(e.target.value)}
