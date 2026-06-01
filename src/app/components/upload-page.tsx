@@ -712,12 +712,48 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
       // 구성품
       if (components) specsToSave.components = components;
-      // 기술 사양 16개 → specs.tech 중첩 객체에 저장 (값 있는 것만).
+      // 기술 사양 → specs.tech 중첩 객체에 저장 (값/배열 있는 것만, 빈 값·빈 배열 제외).
       // ⚠️ 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지 위해 tech 네임스페이스 분리.
-      const tech: Record<string, string> = {};
-      for (const f of SPEC_FIELDS) {
-        const v = specs[f.key]?.trim();
-        if (v) tech[f.key] = v;
+      // ⚠️ 카테고리별 스키마(앰프 등)가 있으면 그 필드를 kind별로 조립, 없으면 기존 SPEC_FIELDS 폴백(분기).
+      const tech: Record<string, string | string[]> = {};
+      const catFields = SPEC_FIELDS_BY_CATEGORY[category];
+      if (catFields) {
+        for (const f of catFields) {
+          if (f.input.kind === 'auto') {
+            // 타입: 카테고리에서 자동 입력된 값
+            const v = (subcategory || category).trim();
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'power') {
+            // 정격 출력: 출력값(W) + 기준 옴 쌍 조립 문자열
+            const v = buildPower(powerPairs);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'range') {
+            // 주파수 응답: 하한~상한 조립 문자열
+            const v = buildFreq(freqLow, freqHigh);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'dimensions') {
+            // 크기: W×D×H 조립 문자열
+            const v = buildDim(dimW, dimD, dimH);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'multi') {
+            // 다중 선택: 배열 그대로 (임피던스/입력·출력 단자/무선)
+            const arr = f.key === 'impedance' ? impedances
+              : f.key === 'inputs' ? inputTerminals
+              : f.key === 'outputs' ? outputTerminals
+              : wirelessTerminals;
+            if (arr.length > 0) tech[f.key] = arr;
+          } else {
+            // select / text: specs 레코드의 단순 문자열
+            const v = specs[f.key]?.trim();
+            if (v) tech[f.key] = v;
+          }
+        }
+      } else {
+        // 폴백: 카테고리별 스키마 없는 경우 기존 SPEC_FIELDS(단순 문자열)
+        for (const f of SPEC_FIELDS) {
+          const v = specs[f.key]?.trim();
+          if (v) tech[f.key] = v;
+        }
       }
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
