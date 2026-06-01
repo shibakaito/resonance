@@ -1223,14 +1223,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 자유 입력 (+ 단위) ──
                   if (f.input.kind === 'text') {
                     const unit = f.input.unit;
+                    const free = f.input.free; // 자유 텍스트면 숫자 필터 X
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
                         <div className="relative">
                           <input
                             value={specs[f.key] || ''}
-                            onChange={(e) => setSpec(numOnly(e.target.value))}
-                            inputMode="decimal"
+                            onChange={(e) => setSpec(free ? e.target.value : numOnly(e.target.value))}
+                            inputMode={free ? 'text' : 'decimal'}
                             placeholder=""
                             className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 py-2 focus:outline-none focus:border-[#000000] ${
                               unit ? 'pr-10' : 'pr-3'

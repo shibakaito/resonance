@@ -22,7 +22,7 @@ export type SelectOption = string | { value: string; label: string };
 export type SpecInput =
   | { kind: 'auto' }                                            // 타입 — 카테고리에서 자동 입력
   | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택
-  | { kind: 'text'; unit?: string }                             // 자유 입력 + (선택)단위
+  | { kind: 'text'; unit?: string; free?: boolean }             // 숫자 입력 + (선택)단위 / free=true면 자유 텍스트(숫자 필터 X)
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
@@ -139,9 +139,9 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' } },
   { key: 'crossover', label: '크로스오버', input: { kind: 'text', unit: 'Hz' } },
-  { key: 'driverDetail', label: '드라이버 상세', input: { kind: 'text' } },
-  { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text' } },
-  { key: 'finish', label: '마감', input: { kind: 'text' } },
+  { key: 'driverDetail', label: '드라이버 상세', input: { kind: 'text', free: true } },
+  { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text', free: true } },
+  { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } }, // 앰프 재사용(한글 저장)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
