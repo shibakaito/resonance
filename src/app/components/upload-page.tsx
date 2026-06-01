@@ -1198,9 +1198,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             }`}
                           >
                             <option value="" disabled>선택하세요</option>
-                            {f.input.options.map((o) => (
-                              <option key={o} value={o} className="text-[#000000]">{o}</option>
-                            ))}
+                            {f.input.options.map((o) => {
+                              // 문자열(앰프: 저장=표시) 또는 {value,label}(스피커: 저장=영문키, 표시=한글)
+                              const opt = typeof o === 'string' ? { value: o, label: o } : o;
+                              return <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>;
+                            })}
                           </select>
                           {/* 선택값 있으면 화살표 왼쪽에 X (초기화) */}
                           {v && (
