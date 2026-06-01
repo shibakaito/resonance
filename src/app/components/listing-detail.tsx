@@ -541,8 +541,22 @@ export function ListingDetail({ id }: { id?: string }) {
               // listing.techSpecs에 값 있는 항목만. 다중 선택(배열)은 "RCA, XLR"처럼 나열, 조립 문자열은 그대로.
               // 값 있는 항목이 하나도 없으면 섹션 전체 숨김 (옛 매물·더미 호환).
               const specs = listing?.techSpecs ?? {};
-              const schema = (SPEC_FIELDS_BY_CATEGORY[topCategoryOf(listing?.category ?? '')] ?? SPEC_FIELDS) as readonly { key: string; label: string }[];
-              const fmt = (v: string | string[]) => (Array.isArray(v) ? v.join(', ') : v);
+              const schema = (SPEC_FIELDS_BY_CATEGORY[topCategoryOf(listing?.category ?? '')] ?? SPEC_FIELDS) as readonly {
+                key: string; label: string;
+                input?: { kind: string; options?: (string | { value: string; label: string })[] };
+              }[];
+              // 표시값: 배열→"a, b" 나열 / select(영문키 저장, 예 스피커 passive)는 옵션 label로 한글 변환 / 그 외 문자열은 그대로
+              const fmt = (
+                f: { input?: { kind: string; options?: (string | { value: string; label: string })[] } },
+                v: string | string[],
+              ): string => {
+                if (Array.isArray(v)) return v.join(', ');
+                if (f.input?.kind === 'select' && f.input.options) {
+                  const opt = f.input.options.find((o) => (typeof o === 'string' ? o : o.value) === v);
+                  if (opt) return typeof opt === 'string' ? opt : opt.label;
+                }
+                return v;
+              };
               const rows = schema.filter((f) => {
                 const v = specs[f.key];
                 return Array.isArray(v) ? v.length > 0 : Boolean(v);
@@ -560,7 +574,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       {rows.map((f) => (
                         <Fragment key={f.key}>
                           <div className="font-bold">{f.label}</div>
-                          <div className="break-words">{fmt(specs[f.key])}</div>
+                          <div className="break-words">{fmt(f, specs[f.key])}</div>
                         </Fragment>
                       ))}
                     </div>
