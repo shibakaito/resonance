@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES } from '../data/category-specs';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -103,7 +103,13 @@ function highlightMatch(text: string, q: string) {
   const qNorm = trimmed.replace(/[\s&\-/]+/g, '').toLowerCase();
   if (!qNorm) return text;
   const startNorm = textNorm.indexOf(qNorm);
-  if (startNorm < 0) return text;
+  if (startNorm < 0) {
+    // 검색어가 옵션 전체를 포함하면(예: 'rca케이블' ⊇ 'rca') 옵션 전체 강조
+    if (textNorm.length >= 2 && qNorm.includes(textNorm)) {
+      return <span className="bg-yellow-200">{text}</span>;
+    }
+    return text;
+  }
   const endNorm = startNorm + qNorm.length;
 
   // 정규화 인덱스 → 원본 인덱스 역매핑 (양 끝)
@@ -128,6 +134,241 @@ function highlightMatch(text: string, q: string) {
       <span className="bg-yellow-200">{text.slice(startOrig, endOrig)}</span>
       {text.slice(endOrig)}
     </>
+  );
+}
+
+/**
+ * 임피던스 선택 — 포노 입력처럼 드롭다운에서 하나씩 선택(선택 시 닫힘).
+ * 아래 회색 읽기전용 칸에 범위(예: 2~4Ω) 표시 + X 초기화.
+ */
+function ImpedanceSelect({
+  options,
+  selected,
+  onChange,
+  displayText,
+}: {
+  options: string[];
+  selected: string[];
+  onChange: React.Dispatch<React.SetStateAction<string[]>>;
+  displayText: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+  // 하나 선택 → 토글 후 닫힘 (하나씩 선택하는 방식)
+  const toggle = (o: string) => {
+    onChange((prev) => (prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]));
+    setOpen(false);
+  };
+  return (
+    <div ref={ref}>
+      {/* 드롭다운 — 펼치면 select처럼 항목 목록, 선택 항목은 왼쪽에 체크 */}
+      <div className="relative">
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 flex items-center bg-white focus:outline-none focus:border-[#000000]"
+        >
+          <span className="text-gray-400">선택하세요</span>
+          <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
+        </button>
+        {open && (
+          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg py-1">
+            {options.map((o) => {
+              const active = selected.includes(o);
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  onClick={() => toggle(o)}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[#f7f7f7] ${active ? 'bg-[#f7f7f7] font-semibold text-[#000000]' : 'text-gray-800'}`}
+                >
+                  {o}
+                  {active && <Check className="w-4 h-4 text-[#000000]" />}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+      {/* 회색 읽기전용 범위칸 + X 초기화 */}
+      <div className="relative mt-2">
+        <input
+          readOnly
+          value={displayText}
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
+        />
+        {selected.length > 0 && (
+          <button
+            type="button"
+            aria-label="초기화"
+            onClick={() => onChange([])}
+            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * 다중 선택 드롭다운 (단자용) — 검색 + 선택 칩(개별 X).
+ */
+function MultiSelectDropdown({
+  options,
+  selected,
+  onChange,
+  aliases,
+}: {
+  options: string[];
+  selected: string[];
+  onChange: React.Dispatch<React.SetStateAction<string[]>>;
+  aliases?: Record<string, string[]>; // 단자명 → 검색 별칭 목록
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [activeIdx, setActiveIdx] = useState(-1);
+  const ref = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) { setOpen(false); setQuery(''); setActiveIdx(-1); }
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, []);
+  // ↑/↓ 로 활성 항목 바뀔 때 그 항목이 보이도록 스크롤
+  useEffect(() => {
+    if (activeIdx < 0 || !listRef.current) return;
+    (listRef.current.querySelector(`[data-idx="${activeIdx}"]`) as HTMLElement | null)?.scrollIntoView({ block: 'nearest' });
+  }, [activeIdx]);
+  // 함수형 업데이트 — 연속 클릭 시 stale 클로저 방지.
+  // 항목 하나 선택하면 드롭다운 닫고 검색어 비움 (하나씩 선택하는 방식)
+  const toggle = (o: string) => {
+    onChange((prev) => (prev.includes(o) ? prev.filter((x) => x !== o) : [...prev, o]));
+    setOpen(false);
+    setQuery('');
+    setActiveIdx(-1);
+  };
+  const remove = (o: string) => onChange((prev) => prev.filter((x) => x !== o));
+  // 공백·슬래시·하이픈·· 제거 + 소문자 (예: 'aesebu' → 'AES/EBU' 매칭)
+  const norm = (s: string) => s.replace(/[\s/·\-]+/g, '').toLowerCase();
+  const nq = norm(query);
+  // 옵션명 또는 별칭이 검색어를 포함하거나, 검색어가 옵션/별칭을 포함하면 매칭
+  // (예: 'RCA 젠더' 검색 → 'RCA'도 매칭 + 아래 직접 입력도 같이 노출)
+  const matched = !nq
+    ? options
+    : options.filter((o) =>
+        [o, ...(aliases?.[o] ?? [])].some((c) => {
+          const nc = norm(c);
+          return nc.includes(nq) || (nc.length >= 2 && nq.includes(nc));
+        })
+      );
+  // 직접 입력 항목을 함께 노출하는 조건 (검색어가 옵션명과 정확히 같으면 제외)
+  const showDirect = !!query.trim() && !options.some((o) => norm(o) === nq);
+  // 키보드 네비게이션 대상: 매칭 항목들 + (있으면) 직접 입력
+  const navList: { kind: 'opt' | 'direct'; value: string }[] = [
+    ...matched.map((o) => ({ kind: 'opt' as const, value: o })),
+    ...(showDirect ? [{ kind: 'direct' as const, value: query.trim() }] : []),
+  ];
+  const commitNav = (idx: number) => {
+    const item = navList[idx];
+    if (item) toggle(item.value);
+  };
+  return (
+    <div ref={ref}>
+      {/* 검색 + 드롭다운 (브랜드 입력 패턴) */}
+      <div className="relative">
+        <input
+          value={query}
+          onFocus={() => { setOpen(true); setActiveIdx(-1); }}
+          onChange={(e) => { setQuery(e.target.value); setOpen(true); setActiveIdx(-1); }}
+          onKeyDown={(e) => {
+            if ((e.nativeEvent as { isComposing?: boolean }).isComposing) return; // 한글 IME 조합 중 무시
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              if (!open) { setOpen(true); setActiveIdx(0); return; }
+              if (navList.length) setActiveIdx((i) => (i + 1) % navList.length);
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              if (!open) { setOpen(true); setActiveIdx(navList.length - 1); return; }
+              if (navList.length) setActiveIdx((i) => (i <= 0 ? navList.length - 1 : i - 1));
+            } else if (e.key === 'Enter') {
+              e.preventDefault();
+              if (activeIdx >= 0) commitNav(activeIdx);            // 방향키로 고른 항목
+              else if (navList.length) commitNav(0);               // 없으면 첫 항목(매칭/직접입력)
+            } else if (e.key === 'Escape') {
+              setOpen(false);
+            }
+          }}
+          placeholder="검색 또는 선택"
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000]"
+        />
+        <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform pointer-events-none ${open ? 'rotate-180' : ''}`} />
+        {open && (
+          <div ref={listRef} className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg">
+            {/* 매칭 추천 항목 */}
+            {matched.map((o, idx) => {
+              const active = selected.includes(o);
+              const nav = idx === activeIdx;
+              return (
+                <button
+                  key={o}
+                  type="button"
+                  data-idx={idx}
+                  onMouseEnter={() => setActiveIdx(idx)}
+                  onClick={() => toggle(o)}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${nav ? 'bg-[#f7f7f7]' : ''} ${active ? 'bg-[#f7f7f7] font-semibold text-[#000000]' : 'text-gray-800'}`}
+                >
+                  <span>{highlightMatch(o, query)}</span>
+                  {active && <Check className="w-4 h-4 text-[#000000] flex-shrink-0" />}
+                </button>
+              );
+            })}
+            {/* 검색어 있으면 직접 입력도 함께 (옵션명과 정확히 같으면 제외) */}
+            {showDirect && (
+              <button
+                type="button"
+                data-idx={matched.length}
+                onMouseEnter={() => setActiveIdx(matched.length)}
+                onClick={() => toggle(query.trim())}
+                className={`w-full text-left px-3 py-2 text-sm text-blue-700 ${activeIdx === matched.length ? 'bg-[#f7f7f7]' : ''} ${matched.length > 0 ? 'border-t border-[#e0e0e0]' : ''}`}
+              >
+                직접 입력: <span className="font-semibold">{query.trim()}</span>
+              </button>
+            )}
+            {/* 매칭도 없고 검색어도 없을 때만 안내 */}
+            {matched.length === 0 && !query.trim() && (
+              <div className="px-3 py-2 text-sm text-gray-500">검색 결과 없음</div>
+            )}
+          </div>
+        )}
+      </div>
+      {/* 선택된 항목 칩 — 흰색 영역, 각 칩 개별 X */}
+      <div className="min-h-[42px] mt-2 border border-[#e0e0e0] rounded-lg bg-white px-2 py-1.5 flex flex-wrap gap-2 items-center">
+        {selected.map((o) => (
+          <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] border border-[#e0e0e0] rounded-md text-sm text-gray-700">
+            {o}
+            <button
+              type="button"
+              aria-label={`${o} 삭제`}
+              onClick={() => remove(o)}
+              className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </span>
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -1067,53 +1308,33 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                   }
-                  // ── 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) ──
-                  // 임피던스: 한 줄 가로 나열 / 입력·출력 단자: 2열 그리드
+                  // ── 다중 선택 (지원 임피던스 / 입력·출력 단자) ──
                   if (f.input.kind === 'multi') {
                     const sel = f.key === 'impedance' ? impedances : f.key === 'inputs' ? inputTerminals : outputTerminals;
                     const setSel = f.key === 'impedance' ? setImpedances : f.key === 'inputs' ? setInputTerminals : setOutputTerminals;
-                    const isImpedance = f.key === 'impedance';
-                    // 임피던스: 1행 균일(5칸) / 입력·출력 단자: 4칸 → 2행(7개=4+3)
+                    // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
+                    if (f.key === 'impedance') {
+                      return (
+                        <div key={f.key}>
+                          <label className="block font-semibold mb-1">{f.label}</label>
+                          <ImpedanceSelect
+                            options={f.input.options}
+                            selected={sel}
+                            onChange={setSel}
+                            displayText={impedanceRange(sel)}
+                          />
+                        </div>
+                      );
+                    }
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
-                        <div className={`grid gap-2 ${isImpedance ? 'grid-cols-5' : 'grid-cols-4'}`}>
-                          {f.input.options.map((o) => {
-                            const active = sel.includes(o);
-                            return (
-                              <button
-                                key={o}
-                                type="button"
-                                onClick={() => setSel((prev) => toggleArr(prev, o))}
-                                className={`w-full h-[42px] border rounded-lg text-sm font-medium transition ${
-                                  active
-                                    ? 'border-[#000000] bg-[#000000] text-white'
-                                    : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
-                                }`}
-                              >
-                                {o}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {/* 선택 결과 표시 — 버튼으로만 조작, 직접 수정 불가. 단자는 선택한 순서대로 */}
-                        <div className="relative mt-2">
-                          <input
-                            readOnly
-                            value={isImpedance ? impedanceRange(sel) : sel.join(', ')}
-                            className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
-                          />
-                          {sel.length > 0 && (
-                            <button
-                              type="button"
-                              aria-label="초기화"
-                              onClick={() => setSel([])}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          )}
-                        </div>
+                        <MultiSelectDropdown
+                          options={f.input.options}
+                          selected={sel}
+                          onChange={setSel}
+                          aliases={TERMINAL_ALIASES}
+                        />
                       </div>
                     );
                   }
