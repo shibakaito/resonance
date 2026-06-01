@@ -658,6 +658,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [impedances, setImpedances] = useState<string[]>([]);
   const [inputTerminals, setInputTerminals] = useState<string[]>([]);
   const [outputTerminals, setOutputTerminals] = useState<string[]>([]);
+  const [wirelessTerminals, setWirelessTerminals] = useState<string[]>([]);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
@@ -1323,8 +1324,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }
                   // ── 다중 선택 (지원 임피던스 / 입력·출력 단자) ──
                   if (f.input.kind === 'multi') {
-                    const sel = f.key === 'impedance' ? impedances : f.key === 'inputs' ? inputTerminals : outputTerminals;
-                    const setSel = f.key === 'impedance' ? setImpedances : f.key === 'inputs' ? setInputTerminals : setOutputTerminals;
+                    const sel = f.key === 'impedance' ? impedances : f.key === 'inputs' ? inputTerminals : f.key === 'outputs' ? outputTerminals : wirelessTerminals;
+                    const setSel = f.key === 'impedance' ? setImpedances : f.key === 'inputs' ? setInputTerminals : f.key === 'outputs' ? setOutputTerminals : setWirelessTerminals;
                     // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
                     if (f.key === 'impedance') {
                       return (

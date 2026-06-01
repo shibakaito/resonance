@@ -67,7 +67,18 @@ export const TERMINAL_ALIASES: Record<string, string[]> = {
   'AES/EBU Out': ['에이에스이비유아웃', 'AES EBU 아웃', 'AES/EBU 출력', 'AES 출력', '디지털 XLR 출력'],
   'BNC Out': ['비엔씨아웃', 'BNC 아웃', 'BNC 출력', 'BNC Output'],
   '70V / 100V 라인 출력': ['70볼트 라인 출력', '100볼트 라인 출력', '하이임피던스 출력', 'PA 라인 출력', '정전압 출력'],
+  // 무선 / 네트워크
+  'Bluetooth': ['블루투스', 'BT', '블투'],
+  'Wi-Fi': ['와이파이', 'WiFi', 'Wifi', '무선', '무선랜'],
+  'AirPlay': ['에어플레이', '에어플레이2', 'AirPlay 2'],
+  'Spotify Connect': ['스포티파이', '스포티파이 커넥트', 'Spotify'],
+  'TIDAL Connect': ['타이달', '타이달 커넥트', 'Tidal'],
+  'Roon Ready': ['룬', '룬 레디', 'Roon'],
+  'DLNA / UPnP': ['디엘엔에이', 'DLNA', 'UPnP', '유피엔피', '디엘엔에이/유피엔피'],
 };
+
+// 무선 / 네트워크 옵션
+export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect', 'TIDAL Connect', 'Roon Ready', 'DLNA / UPnP'];
 
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
@@ -83,6 +94,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS } },
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS } },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS } },
+  { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS } },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS } },
   { key: 'remote', label: '리모컨', input: { kind: 'select', options: YES_NO_OPTS } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
