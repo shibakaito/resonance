@@ -136,12 +136,14 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'connection', label: '연결 방식', input: { kind: 'select', options: SPEAKER_CONNECTION_OPTS } },
   { key: 'wooferSize', label: '우퍼 크기', input: { kind: 'select', options: SPEAKER_WOOFER_OPTS } },
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' } },
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' } },
   { key: 'crossover', label: '크로스오버', input: { kind: 'text', unit: 'Hz' } },
   { key: 'driverDetail', label: '드라이버 상세', input: { kind: 'text' } },
   { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text' } },
   { key: 'finish', label: '마감', input: { kind: 'text' } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } }, // 앰프 재사용(한글 저장)
+  { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
 ];
 
