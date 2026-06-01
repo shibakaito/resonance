@@ -624,6 +624,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [subcategory, setSubcategory] = useState('');
   const [brand, setBrand] = useState(initialData?.brand ?? '');
   const [model, setModel] = useState(initialData?.model ?? '');
+  // 상품명 자동 반영 — 브랜드+모델+하위카테고리로 자동 채움. 사용자가 직접 수정하면(titleEdited) 중단.
+  const [titleEdited, setTitleEdited] = useState(Boolean(initialData?.title));
+  useEffect(() => {
+    if (titleEdited) return;
+    setTitle([brand, model, subcategory].filter(Boolean).join(' '));
+  }, [brand, model, subcategory, titleEdited]);
   const [year, setYear] = useState(initialData?.year ?? '');
   const [finish, setFinish] = useState('');
   const [country, setCountry] = useState('');
@@ -702,6 +708,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     setSubmitError(null);
     if (!brand || !model) { setSubmitError('브랜드와 모델명을 입력해주세요.'); return; }
     if (!category) { setSubmitError('카테고리를 선택해주세요.'); return; }
+    if (!title.trim()) { setSubmitError('상품명을 입력해주세요.'); return; }
     if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     setSubmitting(true);
@@ -1005,7 +1012,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 7. 상태 — 아래에 있던 CONDITIONS 드롭다운을 여기로 가져옴.
                   중고 등급(used_*) 일 때만 아래의 외관·작동 상태 활성화 */}
               <div>
-                <label className="block font-semibold mb-1">상태</label>
+                <label className="block font-semibold mb-1">
+                  상태 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
+                </label>
                 <div className="relative">
                   <select
                     value={condition}
@@ -1114,6 +1123,19 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
+              </div>
+
+              {/* 상품명 — 브랜드+모델+하위카테고리 자동 반영, 수정·자유입력 가능 (필수) */}
+              <div>
+                <label className="block font-semibold mb-1">
+                  상품명 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
+                </label>
+                <input
+                  value={title}
+                  onChange={(e) => { setTitle(e.target.value); setTitleEdited(true); }}
+                  placeholder=""
+                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
               </div>
             </div>
           </section>
