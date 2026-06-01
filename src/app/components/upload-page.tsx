@@ -46,7 +46,6 @@ const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '
 const OWNERSHIP_OPTIONS = [
   { value: 'single_owner', label: '1인 소유' },
   { value: 'multiple_owners', label: '다중 소유' },
-  { value: 'unknown', label: '알 수 없음' },
 ];
 
 // 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
@@ -1035,31 +1034,24 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
 
-              {/* 소유권 — 버튼 토글. 중고 등급(used_*)일 때만 활성화 */}
+              {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님 */}
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>소유권</label>
-                <div className="flex gap-2">
-                  {OWNERSHIP_OPTIONS.map((opt) => {
-                    const active = ownership === opt.value;
-                    const enabled = condition.startsWith('used_');
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        disabled={!enabled}
-                        onClick={() => setOwnership(active ? '' : opt.value)}
-                        className={`flex-1 h-[42px] border rounded-lg px-3 text-sm font-medium transition disabled:cursor-not-allowed ${
-                          !enabled
-                            ? 'border-[#e0e0e0] bg-[#f7f7f7] text-gray-400'
-                            : active
-                            ? 'border-[#000000] bg-[#000000] text-white'
-                            : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
-                        }`}
-                      >
-                        {opt.label}
-                      </button>
-                    );
-                  })}
+                <div className="relative">
+                  <select
+                    value={ownership}
+                    onChange={(e) => setOwnership(e.target.value)}
+                    disabled={!condition.startsWith('used_')}
+                    className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                      ownership ? '' : 'text-gray-400'
+                    }`}
+                  >
+                    <option value="" disabled>선택하세요</option>
+                    {OWNERSHIP_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
               </div>
 
