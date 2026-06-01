@@ -29,6 +29,7 @@ export type CategorySpecField = { key: string; label: string; input: SpecInput }
 // ── 앰프 옵션 상수 ──
 export const AMP_CHANNEL_OPTS = ['모노블럭', '스테레오', '멀티채널'];
 export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드'];
+export const AMP_CLASS_OPTS = ['Class A', 'Class AB', 'Class B', 'Class D', 'Class G', 'Class H']; // 동작 클래스
 export const AMP_OHM_OPTS = ['2Ω', '4Ω', '6Ω', '8Ω', '16Ω']; // 정격 출력 기준 옴 + 지원 임피던스 공용
 export const AMP_PHONO_OPTS = ['MM', 'MC', 'MM/MC', '없음'];
 export const YES_NO_OPTS = ['있음', '없음'];
@@ -85,6 +86,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS } },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
+  { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS } },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' } },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS } },
