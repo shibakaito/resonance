@@ -9,7 +9,6 @@ import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { label, keyFor } from './labels';
-import { SPEC_FIELDS } from '@/app/data/spec-fields';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -58,16 +57,24 @@ function mapRow(row: ListingRow): Listing {
     workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
     location: label('location', row.location),
     ownership: label('ownership', row.ownership),
-    // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스, SPEC_FIELDS 키 중 값 있는 것만)
+    // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스)
     // tech 중첩에 둔 이유: 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지
     components: typeof s.components === 'string' ? s.components : '',
+    // specs.tech 의 값을 그대로 보존 (문자열 + 문자열 배열). 빈 값/빈 배열 제외.
+    // 라벨·순서·표시는 상세 페이지가 카테고리별 스키마로 결정 (앰프는 배열도 포함).
     techSpecs: (() => {
       const tech = (s.tech && typeof s.tech === 'object') ? s.tech as Record<string, unknown> : {};
-      return Object.fromEntries(
-        SPEC_FIELDS
-          .map((f) => [f.key, typeof tech[f.key] === 'string' ? (tech[f.key] as string).trim() : ''])
-          .filter(([, v]) => v)
-      );
+      const out: Record<string, string | string[]> = {};
+      for (const [k, v] of Object.entries(tech)) {
+        if (typeof v === 'string') {
+          const t = v.trim();
+          if (t) out[k] = t;
+        } else if (Array.isArray(v)) {
+          const arr = v.filter((x): x is string => typeof x === 'string' && x.trim() !== '');
+          if (arr.length > 0) out[k] = arr;
+        }
+      }
+      return out;
     })(),
     country: label('country', row.country),
     daysAgo: row.created_at

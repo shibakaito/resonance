@@ -695,3 +695,11 @@ export const ALL_SUBCATEGORIES = CATEGORY_TREE.flatMap((c) => c.subs);
 export function subcategoriesFor(top: string): string[] {
   return CATEGORY_TREE.find((c) => c.top === top)?.subs ?? [];
 }
+
+// 하위 카테고리(또는 대분류) 한글명 → 대분류 한글명.
+//   '인티앰프' → '앰프', '앰프' → '앰프', 매칭 없으면 입력값 그대로.
+//   (상세 페이지가 매물 카테고리로 카테고리별 스펙 스키마를 찾을 때 사용)
+export function topCategoryOf(catKo: string): string {
+  if (CATEGORY_TREE.some((c) => c.top === catKo)) return catKo;
+  return CATEGORY_TREE.find((c) => c.subs.includes(catKo))?.top ?? catKo;
+}

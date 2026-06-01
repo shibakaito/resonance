@@ -17,6 +17,8 @@ import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, Che
 import type { Listing } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
+import { SPEC_FIELDS_BY_CATEGORY } from '@/app/data/category-specs';
+import { topCategoryOf } from '@/app/data/catalog';
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
@@ -535,10 +537,16 @@ export function ListingDetail({ id }: { id?: string }) {
             </div>
 
             {(() => {
-              // 기술 사양 — SPEC_FIELDS 순서대로, listing.techSpecs에 값 있는 항목만.
-              // 아예 없으면 섹션 전체 숨김 (옛 매물·더미 호환)
+              // 기술 사양 — 카테고리별 스키마(앰프 등)가 있으면 그 라벨·순서로, 없으면 기존 SPEC_FIELDS(분기).
+              // listing.techSpecs에 값 있는 항목만. 다중 선택(배열)은 "RCA, XLR"처럼 나열, 조립 문자열은 그대로.
+              // 값 있는 항목이 하나도 없으면 섹션 전체 숨김 (옛 매물·더미 호환).
               const specs = listing?.techSpecs ?? {};
-              const rows = SPEC_FIELDS.filter((f) => specs[f.key]);
+              const schema = (SPEC_FIELDS_BY_CATEGORY[topCategoryOf(listing?.category ?? '')] ?? SPEC_FIELDS) as readonly { key: string; label: string }[];
+              const fmt = (v: string | string[]) => (Array.isArray(v) ? v.join(', ') : v);
+              const rows = schema.filter((f) => {
+                const v = specs[f.key];
+                return Array.isArray(v) ? v.length > 0 : Boolean(v);
+              });
               if (rows.length === 0) return null;
               return (
                 <div>
@@ -552,7 +560,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       {rows.map((f) => (
                         <Fragment key={f.key}>
                           <div className="font-bold">{f.label}</div>
-                          <div className="break-words">{specs[f.key]}</div>
+                          <div className="break-words">{fmt(specs[f.key])}</div>
                         </Fragment>
                       ))}
                     </div>
