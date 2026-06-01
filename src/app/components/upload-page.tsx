@@ -51,7 +51,8 @@ const OWNERSHIP_OPTIONS = [
 
 // 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
 const CONDITIONS = [
-  { value: 'new', label: '새상품', desc: '미개봉 또는 사용하지 않은 새 제품' },
+  { value: 'new', label: '새상품', desc: '사용하지 않은 새 제품' },
+  { value: 'unopened', label: '미개봉', desc: '포장을 개봉하지 않은 새 제품' },
   { value: 'nos', label: 'NOS', desc: '신품이지만 오래 보관된 재고품 (New Old Stock)' },
   { value: 'used_mint', label: '민트급', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
   { value: 'used_excellent', label: '매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },

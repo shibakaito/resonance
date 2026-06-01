@@ -19,6 +19,7 @@ export const LABELS: Record<string, LabelMap> = {
   },
   condition: {
     new: { ko: '새상품' },
+    unopened: { ko: '미개봉' },
     nos: { ko: 'NOS' },
     used_mint: { ko: '민트급' },
     used_excellent: { ko: '매우 좋음' },

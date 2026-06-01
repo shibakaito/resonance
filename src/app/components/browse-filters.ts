@@ -11,11 +11,11 @@
 
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
 export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
-// NOS(New Old Stock) = 신품이지만 오래된 재고. 중고 등급이 아니라 별도 항목.
-export const CONDITIONS = ['새상품', 'NOS', ...USED_GRADES];
+// NOS(New Old Stock) = 신품이지만 오래된 재고. 미개봉/NOS 모두 중고 등급이 아니라 별도 항목.
+export const CONDITIONS = ['새상품', '미개봉', 'NOS', ...USED_GRADES];
 // 사이드바용 표시 옵션 — '중고'는 UI 단축키 (선택 시 모든 중고 등급 매물 매칭)
 export const USED_ALL = '중고';
-export const CONDITION_DISPLAY = ['새상품', 'NOS', USED_ALL, ...USED_GRADES];
+export const CONDITION_DISPLAY = ['새상품', '미개봉', 'NOS', USED_ALL, ...USED_GRADES];
 export const LOCATIONS = ['서울', '경기', '부산', '대구', '인천', '광주', '대전', '울산', '강원', '제주'];
 export const OWNERSHIP_OPTS = ['1인 소유', '다중 소유'];
 export const COUNTRY_OPTS = ['미국', '일본', '영국', '독일', '프랑스', '덴마크', '캐나다', '중국'];
