@@ -399,6 +399,7 @@ function Typeahead({
   filter,
   freeText = false,
   enableKeyboardLayout = false,
+  hideUntilTyping = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -408,6 +409,8 @@ function Typeahead({
   freeText?: boolean;
   /** true면 한영 자판 오타 매칭(lazy fallback): 1차 0개 → en2ko/ko2en 변환 후 재매칭 */
   enableKeyboardLayout?: boolean;
+  /** true면 검색어가 비었을 때 드롭다운을 숨김(타이핑해야 표시). 브랜드처럼 목록이 큰 칸용 */
+  hideUntilTyping?: boolean;
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -550,7 +553,7 @@ function Typeahead({
           <X className="w-4 h-4" />
         </button>
       )}
-      {open && (
+      {open && (!hideUntilTyping || qNorm) && (
         <div
           ref={listRef}
           className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg"
@@ -934,6 +937,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   options={ALL_BRAND_NAMES}
                   freeText
                   enableKeyboardLayout
+                  hideUntilTyping
                   filter={(q, opts) => {
                     const ranked = searchBrands(q, 50).map((b) => b.name);
                     const set = new Set(opts);
