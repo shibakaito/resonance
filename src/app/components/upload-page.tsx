@@ -262,16 +262,29 @@ function MultiSelectDropdown({
   // 공백·슬래시·하이픈·· 제거 + 소문자 (예: 'aesebu' → 'AES/EBU' 매칭)
   const norm = (s: string) => s.replace(/[\s/·\-]+/g, '').toLowerCase();
   const nq = norm(query);
-  // 옵션명 또는 별칭이 검색어를 포함하거나, 검색어가 옵션/별칭을 포함하면 매칭
-  // (예: 'RCA 젠더' 검색 → 'RCA'도 매칭 + 아래 직접 입력도 같이 노출)
-  const matched = !nq
-    ? options
-    : options.filter((o) =>
-        [o, ...(aliases?.[o] ?? [])].some((c) => {
-          const nc = norm(c);
-          return nc.includes(nq) || (nc.length >= 2 && nq.includes(nc));
-        })
-      );
+  // 단일 검색어 → 매칭 옵션 (옵션명/별칭 양방향 부분일치)
+  const compute = (qStr: string): string[] => {
+    const nqq = norm(qStr);
+    if (!nqq) return options;
+    return options.filter((o) =>
+      [o, ...(aliases?.[o] ?? [])].some((c) => {
+        const nc = norm(c);
+        return nc.includes(nqq) || (nc.length >= 2 && nqq.includes(nc));
+      })
+    );
+  };
+  // 1차: 원본 검색어. 0건이면 한영 자판 변환 fallback (browse 검색과 동일 패턴)
+  let matched = !nq ? options : compute(query);
+  if (nq && matched.length === 0) {
+    // 한글 자모로 영문 단자를 친 경우 (예: 'ㄱㅊㅁ' → 'rca')
+    const en = ko2en(query);
+    if (en !== query && (en.match(/[a-zA-Z]/g)?.length ?? 0) >= 2) matched = compute(en);
+    // 그래도 없으면 반대 방향 (영문으로 한글 별칭을 친 경우)
+    if (matched.length === 0) {
+      const ko = en2ko(query);
+      if (ko !== query && (ko.match(/[가-힣]/g)?.length ?? 0) >= 2) matched = compute(ko);
+    }
+  }
   // 직접 입력 항목을 함께 노출하는 조건 (검색어가 옵션명과 정확히 같으면 제외)
   const showDirect = !!query.trim() && !options.some((o) => norm(o) === nq);
   // 키보드 네비게이션 대상: 매칭 항목들 + (있으면) 직접 입력
