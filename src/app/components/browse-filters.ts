@@ -142,6 +142,7 @@ export type Listing = {
   location: string;
   ownership: string;
   country: string;
+  handmade: boolean;                   // 자작품(DIY) 태그
   components: string;                  // 구성품 (자유 텍스트, 없으면 '')
   techSpecs: Record<string, string | string[]>; // 기술 사양 (specs.tech key→값; 다중 선택은 배열)
   daysAgo: number;

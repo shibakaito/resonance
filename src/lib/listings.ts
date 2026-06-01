@@ -27,6 +27,7 @@ type ListingRow = {
   location: string | null;
   ownership: string | null;
   country: string | null;
+  handmade: boolean | null;
   images: string[] | null;
   specs: Record<string, any> | null;
 };
@@ -77,6 +78,7 @@ function mapRow(row: ListingRow): Listing {
       return out;
     })(),
     country: label('country', row.country),
+    handmade: row.handmade ?? false, // 자작품(DIY) 태그
     daysAgo: row.created_at
       ? Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86400000))
       : 0,

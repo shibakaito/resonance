@@ -888,6 +888,9 @@ export function ListingDetail({ id }: { id?: string }) {
                 <div>
                   <h1 className="text-3xl font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
+                    {listing?.handmade && (
+                      <span className="px-1.5 py-0.5 bg-[#000000] text-white rounded text-xs font-medium">수제품</span>
+                    )}
                     <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">{listing?.condition ?? ''}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-4">

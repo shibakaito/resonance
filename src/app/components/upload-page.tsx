@@ -1137,6 +1137,20 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
+
+              {/* 핸드메이드(자작품) 여부 — 브랜드와 별개 차원의 태그. 브랜드/모델은 직접 입력 활용 */}
+              <div>
+                <label className="block font-semibold mb-1">핸드메이드 제품인가요?</label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={handmade}
+                    onChange={(e) => setHandmade(e.target.checked)}
+                    className="accent-[#000000] w-4 h-4"
+                  />
+                  <span className="text-sm text-gray-500">직접 만든 수제품입니다.</span>
+                </label>
+              </div>
             </div>
           </section>
 
