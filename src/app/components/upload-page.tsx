@@ -731,6 +731,78 @@ function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: 
   );
 }
 
+// 앰프 출력 빌더(액티브 전용) — 행 1개 = 드라이버 종류(앞칸) + 그 드라이버를 구동하는 앰프 출력값(뒤칸, 자유 입력).
+// "앰프 구성" 바로 아래에 표시. 요약(보기) 박스는 두지 않음 — way/driver 요약은 드라이버 구성에만.
+type AmpPowerRow = { type: string; power: string };
+const BLANK_AMP_POWER_ROW: AmpPowerRow = { type: '', power: '' };
+// 앰프 출력 종류 목록 — 동축 제외(동축=우퍼+트위터 복합 유닛이라 단일 앰프 출력 매칭이 모호)
+const AMP_POWER_TYPES = DRIVER_TYPES.filter((t) => t !== '동축');
+
+function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
+  const update = (i: number, patch: Partial<AmpPowerRow>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  return (
+    <div className="space-y-2">
+      {rows.map((row, i) => (
+        <div key={i} className="flex items-center gap-1.5">
+          {/* 앞칸: 드라이버 종류 (항상 표시) */}
+          <div className="relative w-28 flex-shrink-0">
+            <select
+              value={row.type}
+              onChange={(e) => update(i, { type: e.target.value })}
+              className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+            >
+              <option value="" disabled>종류</option>
+              {AMP_POWER_TYPES.map((t) => (
+                <option key={t} value={t} className="text-[#000000]">{t}</option>
+              ))}
+            </select>
+            {row.type && (
+              <button
+                type="button"
+                aria-label="종류 초기화"
+                onClick={() => update(i, { type: '', power: '' })}
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+          </div>
+          {/* 뒤칸: 앰프 출력값 (자유 입력) — 항상 표시(2칸 상시 유지) */}
+          <input
+            value={row.power}
+            onChange={(e) => update(i, { power: e.target.value })}
+            placeholder="출력값 (예: 200W)"
+            className={`${inputCls} flex-1 min-w-0`}
+          />
+          {/* 삭제 (행 2개 이상일 때만) */}
+          {rows.length > 1 ? (
+            <button
+              type="button"
+              aria-label="행 삭제"
+              onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+              className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          ) : (
+            <div className="w-7 flex-shrink-0" />
+          )}
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => onChange([...rows, { ...BLANK_AMP_POWER_ROW }])}
+        className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+      >
+        <Plus className="w-3.5 h-3.5" /> 드라이버 추가
+      </button>
+    </div>
+  );
+}
+
 interface UploadPageProps {
   initialData?: {
     title?: string;
@@ -799,6 +871,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [wirelessTerminals, setWirelessTerminals] = useState<string[]>([]);
   // 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계.
   const [driverRows, setDriverRows] = useState<DriverRow[]>([{ ...BLANK_DRIVER_ROW }]);
+  const [ampPowerRows, setAmpPowerRows] = useState<AmpPowerRow[]>([{ ...BLANK_AMP_POWER_ROW }]);
   // 크로스오버 주파수(Hz) 여러 개 — 추가 버튼으로 행 늘림. 저장 시 'A / B / C'로 조립.
   const [crossoverValues, setCrossoverValues] = useState<string[]>(['']);
   const toggleArr = (arr: string[], v: string) =>
@@ -1571,6 +1644,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
                         <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} />
+                      </div>
+                    );
+                  }
+                  // ── 앰프 출력(액티브): 드라이버 종류 + 출력값(자유 입력) ──
+                  if (f.input.kind === 'ampPower') {
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <AmpPowerBuilder rows={ampPowerRows} onChange={setAmpPowerRows} />
                       </div>
                     );
                   }

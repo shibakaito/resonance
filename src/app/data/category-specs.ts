@@ -28,7 +28,8 @@ export type SpecInput =
   | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
   | { kind: 'multi'; options: string[] }                        // 다중 선택 버튼 (임피던스/입력·출력 단자)
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
-  | { kind: 'drivers' };                                        // 드라이버 구성 빌더 (종류별 행 추가, 스피커)
+  | { kind: 'drivers' }                                         // 드라이버 구성 빌더 (종류/구조/재질/크기/개수 — 패시브·액티브 공용)
+  | { kind: 'ampPower' };                                       // 앰프 출력 빌더 (액티브 — 드라이버 종류 + 출력값)
 
 // showWhen: 현재 입력값(specs)에서 이 필드를 보일지 판단. 없으면 항상 표시.
 //   스피커 형식(speakerDetail=passive/active)에 따라 필드를 갈라 보여줄 때 사용.
@@ -161,32 +162,37 @@ export const DRIVER_MATERIAL: Record<string, string[]> = {
 };
 
 // ── 스피커 스펙 필드 (형식=패시브/액티브에 따라 showWhen으로 분기) ──
-// 타입·형식만 먼저 보이고, 형식 선택 시 공통/패시브/액티브 필드가 노출됨.
-// ⚠️ 액티브 드라이버 구성 빌더(종류+출력)는 2단계에서 추가.
+// 타입·형식만 먼저 보이고, 형식 선택 시 패시브/액티브 블록이 갈려 노출됨.
+// ⚠️ 인클로저·주파수 응답은 패시브/액티브에서 위치가 달라(같은 key로) 블록마다 따로 배치.
+//    showWhen이 배타적(isPassive XOR isActive)이라 동시에 렌더되지 않아 key 충돌 없음.
 export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'speakerDetail', label: '형식', input: { kind: 'select', options: SPEAKER_DETAIL_OPTS } },
-  // ── 드라이버 구성 (패시브: 종류/구조/재질/크기/개수 빌더) ──
-  { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: isPassive },
-  // ── 액티브 전용: 앰프 구성 · 클래스 · 크로스오버 방식 ──
-  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: isActive },
-  { key: 'opClass', label: '앰프 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
-  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
-  // ── 공통: 인클로저 · 임피던스 ──
-  { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: detailSet },
-  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: detailSet },
-  // ── 연결 (패시브: 연결 방식 / 액티브: 입력 단자 + 무선) ──
+  // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
+  { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
+
+  // ── 패시브 블록 (기존 순서 유지) ──
+  { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isPassive },
+  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPassive },
   { key: 'connection', label: '연결 방식', input: { kind: 'select', options: SPEAKER_CONNECTION_OPTS }, showWhen: isPassive },
-  { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
-  { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
-  // ── 공통: 감도 · 주파수 응답 ──
-  { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: detailSet },
-  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: detailSet },
-  // ── 패시브 전용: 권장 앰프 출력 · 크로스오버 · 내장 앰프 ──
+  { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: isPassive },
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isPassive },
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' }, showWhen: isPassive },
   { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' }, showWhen: isPassive },
   { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text', free: true }, showWhen: isPassive },
-  // ── 공통: 마감 · 전원 · 크기 · 무게 ──
+
+  // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
+  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: isActive },
+  { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: isActive }, // 드라이버 종류 + 출력값 빌더
+  { key: 'opClass', label: '앰프 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
+  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isActive }, // 크로스오버 방식 아래
+  { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
+  { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
+  { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
+  { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isActive }, // 마감 바로 위
+
+  // ── 공통 꼬리: 마감 · 전원 · 크기 · 무게 ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: detailSet }, // 앰프 재사용(한글 저장)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
