@@ -911,6 +911,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     damping: '', inputs: '', outputs: '', phono: '',
     toneControl: '', power: '', dimensions: '', weight: '',
   });
+  // 사운드바는 액티브 고정 — 선택 시 형식(speakerDetail)을 자동 'active'로 (형식 칸은 렌더에서 숨김)
+  useEffect(() => {
+    if (subcategory === '사운드바') {
+      setSpecs((s) => (s.speakerDetail === 'active' ? s : { ...s, speakerDetail: 'active' }));
+    }
+  }, [subcategory]);
 
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
@@ -1397,6 +1403,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
                   // 형식(패시브/액티브)·서브우퍼 등 조건부 필드: 표시 조건 불충족 시 숨김
                   if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) return null;
+                  // 사운드바는 액티브 고정 — 형식 칸은 숨김(값은 'active'로 저장됨)
+                  if (f.key === 'speakerDetail' && subcategory === '사운드바') return null;
                   const setSpec = (v: string) => setSpecs({ ...specs, [f.key]: v });
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {

@@ -45,6 +45,9 @@ const passiveNoSub = (s: Record<string, string | string[]>) => isPassive(s) && !
 const activeNoSub = (s: Record<string, string | string[]>) => isActive(s) && !isSub(s);
 const activeSub = (s: Record<string, string | string[]>) => isActive(s) && isSub(s);
 const detailSub = (s: Record<string, string | string[]>) => detailSet(s) && isSub(s);
+// 사운드바 전용 게이팅 (액티브 고정 — 폼에서 speakerDetail='active' 자동 설정 + 형식 숨김)
+const isSoundbar = (s: Record<string, string | string[]>) => s.__sub === '사운드바';
+const activeNoBar = (s: Record<string, string | string[]>) => isActive(s) && !isSoundbar(s);
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -201,7 +204,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
-  { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isActive }, // 마감 바로 위
+  { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: activeNoBar }, // 마감 바로 위 (사운드바 제외)
 
   // ── 서브우퍼 전용: 주파수 응답(Hz~Hz) · 위상 조절 (패시브·액티브 공통) ──
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: detailSub },
