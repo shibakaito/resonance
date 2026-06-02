@@ -1446,6 +1446,32 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                   }
+                  // ── 검색 드롭다운(Typeahead) 단일 선택 — 옵션 많은 칸(인클로저) ──
+                  if (f.input.kind === 'searchSelect') {
+                    const aliases = f.input.aliases;
+                    // 영어 별칭으로도 매칭: 한글 옵션 또는 영어 검색어에 검색어 포함 (공백·하이픈 무시)
+                    const filterFn = aliases
+                      ? (q: string, opts: string[]) => {
+                          const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
+                          const nq = norm(q);
+                          return opts.filter((o) => norm(o).includes(nq) || norm(aliases[o] || '').includes(nq));
+                        }
+                      : undefined;
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <Typeahead
+                          value={specs[f.key] || ''}
+                          onChange={setSpec}
+                          options={f.input.options}
+                          filter={filterFn}
+                          enableKeyboardLayout={f.input.keyboardLayout}
+                          freeText
+                          placeholder="검색 또는 선택"
+                        />
+                      </div>
+                    );
+                  }
                   // ── 자유 입력 (+ 단위) ──
                   if (f.input.kind === 'text') {
                     const unit = f.input.unit;

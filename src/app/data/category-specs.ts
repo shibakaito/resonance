@@ -21,7 +21,8 @@ export type SelectOption = string | { value: string; label: string };
 // ── 입력 방식 ──
 export type SpecInput =
   | { kind: 'auto' }                                            // 타입 — 카테고리에서 자동 입력
-  | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택
+  | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택 (native select)
+  | { kind: 'searchSelect'; options: string[]; aliases?: Record<string, string>; keyboardLayout?: boolean } // 검색 드롭다운(Typeahead) — 한글 저장. aliases=한글→영어 검색어, keyboardLayout=한영 오타 매칭
   | { kind: 'text'; unit?: string; free?: boolean }             // 숫자 입력 + (선택)단위 / free=true면 자유 텍스트(숫자 필터 X)
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
@@ -129,7 +130,11 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
 // select 6종: labels.ts에서 파생(저장=영문키, 표시=한글). 필터 키(speakerDetail 등)와 이름 일치.
 export const SPEAKER_DETAIL_OPTS = labelOpts('speakerDetail');                                  // passive/active
 export const SPEAKER_DRIVER_OPTS = labelOpts('driverConfig');                                   // full_range/coaxial/2way/3way/4way_plus
-export const SPEAKER_ENCLOSURE_OPTS = labelOpts('enclosure');                                   // sealed/bass_reflex/horn_loaded/passive_radiator
+export const SPEAKER_ENCLOSURE_OPTS = labelOpts('enclosure').map((o) => o.label);                // 검색 드롭다운용 한글 문자열 목록 (labels.ts에서 추출)
+// 인클로저 한글 라벨 → 영어 검색어 (labels.ts 영문키 기반: _ → 공백). 영어로도 검색되게.
+export const SPEAKER_ENCLOSURE_ALIASES: Record<string, string> = Object.fromEntries(
+  labelOpts('enclosure').map((o) => [o.label, o.value.replace(/_/g, ' ')]),
+);
 export const SPEAKER_CONNECTION_OPTS = labelOpts('connection');                                 // wired/bluetooth/network
 export const SPEAKER_WOOFER_OPTS = labelOpts('wooferSize');                                      // under_4in/5in/6_5in/7_8in/10in/12in/15in_plus
 export const SPEAKER_IMPEDANCE_OPTS = labelOpts('impedance', ['4ohm', '6ohm', '8ohm', '16ohm']); // 2Ω 제외, 단일 문자열
@@ -172,7 +177,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
 
   // ── 패시브 블록 (기존 순서 유지) ──
-  { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isPassive },
+  { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isPassive },
   { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPassive },
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: isPassive },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isPassive },
@@ -188,7 +193,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
-  { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isActive }, // 마감 바로 위
+  { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isActive }, // 마감 바로 위
 
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
