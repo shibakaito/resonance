@@ -174,12 +174,10 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   // ── 패시브 블록 (기존 순서 유지) ──
   { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isPassive },
   { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPassive },
-  { key: 'connection', label: '연결 방식', input: { kind: 'select', options: SPEAKER_CONNECTION_OPTS }, showWhen: isPassive },
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: isPassive },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isPassive },
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' }, showWhen: isPassive },
   { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' }, showWhen: isPassive },
-  { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text', free: true }, showWhen: isPassive },
 
   // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
   { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: isActive },
@@ -192,9 +190,9 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
   { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS }, showWhen: isActive }, // 마감 바로 위
 
-  // ── 공통 꼬리: 마감 · 전원 · 크기 · 무게 ──
+  // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
-  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: detailSet }, // 앰프 재사용(한글 저장)
+  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
   { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' }, showWhen: detailSet },
 ];
