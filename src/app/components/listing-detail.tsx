@@ -544,6 +544,7 @@ export function ListingDetail({ id }: { id?: string }) {
               const schema = (SPEC_FIELDS_BY_CATEGORY[topCategoryOf(listing?.category ?? '')] ?? SPEC_FIELDS) as readonly {
                 key: string; label: string;
                 input?: { kind: string; options?: (string | { value: string; label: string })[] };
+                showWhen?: (s: Record<string, string | string[]>) => boolean;
               }[];
               // 표시값: 배열→"a, b" 나열 / select(영문키 저장, 예 스피커 passive)는 옵션 label로 한글 변환 / 그 외 문자열은 그대로
               const fmt = (
@@ -558,6 +559,8 @@ export function ListingDetail({ id }: { id?: string }) {
                 return v;
               };
               const rows = schema.filter((f) => {
+                // 형식(패시브/액티브)에 안 맞는 중복 항목(인클로저·주파수 응답)은 제외 — 폼과 동일 게이팅
+                if (f.showWhen && !f.showWhen(specs)) return false;
                 const v = specs[f.key];
                 return Array.isArray(v) ? v.length > 0 : Boolean(v);
               });

@@ -964,6 +964,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               : f.key === 'outputs' ? outputTerminals
               : wirelessTerminals;
             if (arr.length > 0) tech[f.key] = arr;
+          } else if (f.input.kind === 'drivers') {
+            // 드라이버 구성(빌더): 행들 → 요약 문자열 (UI 요약과 동일)
+            const v = driverSummary(driverRows);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'ampPower') {
+            // 앰프 출력(빌더): 종류별 출력값 → "우퍼 200W / 트위터 100W" (종류 있는 행만)
+            const v = ampPowerRows
+              .filter((r) => r.type)
+              .map((r) => (r.power.trim() ? `${r.type} ${r.power.trim()}` : r.type))
+              .join(' / ');
+            if (v) tech[f.key] = v;
           } else {
             // select / text: specs 레코드의 단순 문자열
             const v = specs[f.key]?.trim();
