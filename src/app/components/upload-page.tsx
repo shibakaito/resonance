@@ -610,66 +610,95 @@ function Typeahead({
 type DriverRow = { type: string; structure: string; material: string; band: string; size: string; count: string };
 const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', count: '' };
 
+// 종류 → 담당 영역(대역). way 계산용. 동축은 담당대역 문자열을 '+'/'/'로 쪼개 각 역할명을 대역으로.
+const ROLE_BAND: Record<string, string> = { '우퍼': '저역', '미드우퍼': '중저역', '미드레인지': '중역', '트위터': '고역', '슈퍼 트위터': '초고역', '풀레인지': '전대역' };
+// 드라이버 행들 → 요약 문자열. way=서로 다른 담당 영역 수, driver=개수 합.
+//   일반/풀레인지: "{크기} {재질(끝 '콘' 제거)} {구조} {종류} ({개수})" / 동축: "{크기} {구조} 타입({담당대역}) ({개수})"
+function driverSummary(rows: DriverRow[]): string {
+  const active = rows.filter((r) => r.type);
+  if (active.length === 0) return '';
+  const bands = new Set<string>();
+  let drivers = 0;
+  const parts: string[] = [];
+  for (const r of active) {
+    const n = parseInt(r.count, 10);
+    if (Number.isFinite(n)) drivers += n;
+    if (r.type === '동축') {
+      (r.band || '').split(/[+/]/).map((s) => s.trim()).filter(Boolean).forEach((seg) => bands.add(ROLE_BAND[seg] ?? seg));
+      parts.push(`${r.size} ${r.structure} 타입(${r.band})${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+    } else {
+      bands.add(ROLE_BAND[r.type] ?? r.type);
+      const mat = (r.material || '').replace(/\s*콘$/, ''); // 페이퍼 콘 → 페이퍼
+      parts.push(`${r.size} ${mat} ${r.structure} ${r.type}${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+    }
+  }
+  return `${bands.size}-way, ${drivers} driver, ${parts.join(' / ')}`;
+}
+
 function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  const summary = driverSummary(rows);
   return (
     <div className="space-y-2">
-      {/* 헤더 (칼럼 라벨) */}
-      <div className="flex items-center gap-1.5 text-xs text-gray-500">
-        <div className="w-24 flex-shrink-0">종류</div>
-        <div className="flex-1 min-w-0">구조</div>
-        <div className="flex-1 min-w-0">재질 / 담당대역</div>
-        <div className="w-28 flex-shrink-0">크기</div>
-        <div className="w-12 flex-shrink-0 text-center">개수</div>
-        <div className="w-7 flex-shrink-0" />
-      </div>
       {rows.map((row, i) => {
         const isCoax = row.type === '동축';
         return (
           <div key={i} className="flex items-center gap-1.5">
-            {/* 종류 */}
-            <div className="relative w-24 flex-shrink-0">
+            {/* 종류 (항상 표시) */}
+            <div className="relative w-28 flex-shrink-0">
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '' })}
-                className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 pr-6 h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+                className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
                 {DRIVER_TYPES.map((t) => (
                   <option key={t} value={t} className="text-[#000000]">{t}</option>
                 ))}
               </select>
+              {row.type && (
+                <button
+                  type="button"
+                  aria-label="종류 초기화"
+                  onClick={() => update(i, { type: '', structure: '', material: '', band: '' })}
+                  className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
               <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             </div>
-            {/* 구조 */}
-            <div className="flex-1 min-w-0">
-              <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
+            {/* 종류 선택 시에만 구조·재질(또는 담당대역)·크기·개수 표시 (progressive disclosure) */}
+            {row.type && (
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              <div className="flex-1 min-w-0">
+                <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
+              </div>
+              <div className="flex-1 min-w-0">
+                {isCoax ? (
+                  <Typeahead value={row.band} onChange={(v) => update(i, { band: v })} options={COAXIAL_BANDS} freeText placeholder="담당 대역" />
+                ) : (
+                  <Typeahead value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} freeText placeholder="재질" />
+                )}
+              </div>
+              <input
+                value={row.size}
+                onChange={(e) => update(i, { size: e.target.value })}
+                placeholder="크기"
+                className={`${inputCls} w-28 flex-shrink-0`}
+              />
+              <input
+                value={row.count}
+                onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
+                inputMode="numeric"
+                placeholder="개수"
+                className={`${inputCls} w-14 flex-shrink-0 text-center px-1`}
+              />
             </div>
-            {/* 재질 또는 담당대역 (동축) */}
-            <div className="flex-1 min-w-0">
-              {isCoax ? (
-                <Typeahead value={row.band} onChange={(v) => update(i, { band: v })} options={COAXIAL_BANDS} freeText placeholder="담당 대역" />
-              ) : (
-                <Typeahead value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} freeText placeholder="재질" />
-              )}
-            </div>
-            {/* 크기 */}
-            <input
-              value={row.size}
-              onChange={(e) => update(i, { size: e.target.value })}
-              placeholder="300mm/12인치"
-              className={`${inputCls} w-28 flex-shrink-0`}
-            />
-            {/* 개수 */}
-            <input
-              value={row.count}
-              onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
-              inputMode="numeric"
-              className={`${inputCls} w-12 flex-shrink-0 text-center px-1`}
-            />
-            {/* 삭제 */}
+            )}
+            {/* 삭제 (항상 표시) */}
             {rows.length > 1 ? (
               <button
                 type="button"
@@ -692,6 +721,12 @@ function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: 
       >
         <Plus className="w-3.5 h-3.5" /> 드라이버 추가
       </button>
+      {/* 자동 요약 (읽기 전용) — 임피던스 회색칸처럼 선택 내역을 문자열로 */}
+      {summary && (
+        <div className="px-3 py-2 bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg text-sm text-gray-700 break-words">
+          {summary}
+        </div>
+      )}
     </div>
   );
 }
