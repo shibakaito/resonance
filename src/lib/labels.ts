@@ -62,7 +62,7 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   yes_no: { yes: { ko: '있음' }, no: { ko: '없음' } },
   speakerDetail: { passive: { ko: '패시브' }, active: { ko: '액티브' } },
   driverConfig: { full_range: { ko: '풀레인지' }, coaxial: { ko: '동축' }, '2way': { ko: '2-way' }, '3way': { ko: '3-way' }, '4way_plus': { ko: '4-way 이상' } },
-  enclosure: { sealed: { ko: '밀폐형' }, bass_reflex: { ko: '베이스 리플렉스' }, horn_loaded: { ko: '혼 로딩' }, passive_radiator: { ko: '패시브 라디에이터' } },
+  enclosure: { sealed: { ko: '밀폐형' }, bass_reflex: { ko: '베이스 리플렉스' }, horn_loaded: { ko: '혼 로딩' }, passive_radiator: { ko: '패시브 라디에이터' }, open_baffle: { ko: '오픈 배플' }, transmission_line: { ko: '트랜스미션 라인' }, acoustic_labyrinth: { ko: '어쿠스틱 래버린스' }, tqwt: { ko: 'TQWT/쿼터웨이브' }, back_loaded_horn: { ko: '백로드 혼' }, bandpass: { ko: '밴드패스' }, aperiodic: { ko: '어페리오딕' }, isobaric: { ko: '아이소배릭' } },
   connection: { wired: { ko: '유선' }, bluetooth: { ko: '블루투스' }, network: { ko: '네트워크' } },
   wooferSize: { under_4in: { ko: '4인치 이하' }, '5in': { ko: '5인치' }, '6_5in': { ko: '6.5인치' }, '7_8in': { ko: '7~8인치' }, '10in': { ko: '10인치' }, '12in': { ko: '12인치' }, '15in_plus': { ko: '15인치 이상' } },
   driveType: { belt_drive: { ko: '벨트 드라이브' }, direct_drive: { ko: '다이렉트 드라이브' }, idler_drive: { ko: '아이들러 드라이브' } },
