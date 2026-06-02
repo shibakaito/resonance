@@ -39,6 +39,12 @@ export type CategorySpecField = { key: string; label: string; input: SpecInput; 
 const detailSet = (s: Record<string, string | string[]>) => Boolean(s.speakerDetail);
 const isPassive = (s: Record<string, string | string[]>) => s.speakerDetail === 'passive';
 const isActive = (s: Record<string, string | string[]>) => s.speakerDetail === 'active';
+// 서브우퍼 전용 게이팅 (specs.__sub = 하위 카테고리; 폼에서 주입). 서브우퍼는 폼 구성이 다름.
+const isSub = (s: Record<string, string | string[]>) => s.__sub === '서브우퍼';
+const passiveNoSub = (s: Record<string, string | string[]>) => isPassive(s) && !isSub(s);
+const activeNoSub = (s: Record<string, string | string[]>) => isActive(s) && !isSub(s);
+const activeSub = (s: Record<string, string | string[]>) => isActive(s) && isSub(s);
+const detailSub = (s: Record<string, string | string[]>) => detailSet(s) && isSub(s);
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -141,6 +147,7 @@ export const SPEAKER_IMPEDANCE_OPTS = labelOpts('impedance', ['4ohm', '6ohm', '8
 // 액티브 스피커 전용 select 옵션 (labels.ts에 없어 한글 그대로 저장)
 export const SPK_AMP_CONFIG_OPTS = ['싱글앰프', '바이앰프', '트라이앰프', '멀티앰프'];
 export const SPK_CROSSOVER_TYPE_OPTS = ['패시브 크로스오버', '액티브 크로스오버', 'DSP 크로스오버'];
+export const SPK_PHASE_OPTS = ['0° / 180° 전환', '0°~180° 연속 조절', '0°~360° 연속 조절']; // 서브우퍼 위상 조절
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -180,21 +187,25 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isPassive },
   { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPassive },
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: isPassive },
-  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isPassive },
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: passiveNoSub }, // 서브우퍼는 Hz 한 칸(꼬리)으로 대체
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' }, showWhen: isPassive },
-  { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' }, showWhen: isPassive },
+  { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' }, showWhen: passiveNoSub }, // 서브우퍼 제외
 
   // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
-  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: isActive },
-  { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: isActive }, // 드라이버 종류 + 출력값 빌더
+  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: activeNoSub }, // 서브우퍼 제외
+  { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: activeNoSub }, // 드라이버 종류 + 출력값 빌더 (서브우퍼 제외)
+  { key: 'ampPower', label: '앰프 출력', input: { kind: 'text', free: true }, showWhen: activeSub }, // 서브우퍼: 출력값만 자유 입력
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
   { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
-  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isActive }, // 크로스오버 방식 아래
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isActive }, // 마감 바로 위
 
+  // ── 서브우퍼 전용: 주파수 응답(Hz~Hz) · 위상 조절 (패시브·액티브 공통) ──
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: detailSub },
+  { key: 'phaseControl', label: '위상 조절', input: { kind: 'select', options: SPK_PHASE_OPTS }, showWhen: detailSub },
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)

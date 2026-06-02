@@ -635,11 +635,13 @@ function driverSummary(rows: DriverRow[]): string {
   return `${bands.size}-way, ${drivers} driver, ${parts.join(' / ')}`;
 }
 
-function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void }) {
+function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
   const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
   const summary = driverSummary(rows);
+  // 서브우퍼: 종류는 우퍼·패시브 라디에이터만, 셀(구조/재질/크기/개수)은 처음부터 펼침
+  const typeOpts = subwoofer ? ['우퍼', '패시브 라디에이터'] : DRIVER_TYPES;
   return (
     <div className="space-y-2">
       {rows.map((row, i) => {
@@ -654,7 +656,7 @@ function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: 
                 className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
-                {DRIVER_TYPES.map((t) => (
+                {typeOpts.map((t) => (
                   <option key={t} value={t} className="text-[#000000]">{t}</option>
                 ))}
               </select>
@@ -670,8 +672,8 @@ function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: 
               )}
               <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             </div>
-            {/* 종류 선택 시에만 구조·재질(또는 담당대역)·크기·개수 표시 (progressive disclosure) */}
-            {row.type && (
+            {/* 구조·재질(또는 담당대역)·크기·개수 — 종류 선택 시 표시(서브우퍼는 처음부터 항상 표시) */}
+            {(subwoofer || row.type) && (
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
               <div className="flex-1 min-w-0">
                 <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
@@ -892,10 +894,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 조립 함수 (저장/표시용 문자열)
   const buildPower = (pairs: { w: string; ohm: string }[]) =>
     pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}`).join(', ');
-  const buildFreq = (lo: string, hi: string) => {
+  const buildFreq = (lo: string, hi: string, loUnit = 'Hz', hiUnit = 'kHz') => {
     const l = lo.trim(), h = hi.trim();
     if (!l && !h) return '';
-    return `${l ? l + 'Hz' : ''}~${h ? h + 'kHz' : ''}`;
+    return `${l ? l + loUnit : ''}~${h ? h + hiUnit : ''}`;
   };
   const buildDim = (w: string, d: string, h: string) => {
     if (!w.trim() && !d.trim() && !h.trim()) return '';
@@ -936,8 +938,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       const catFields = SPEC_FIELDS_BY_CATEGORY[category];
       if (catFields) {
         for (const f of catFields) {
-          // 조건부 필드(형식별): 화면에 안 보이는 필드는 저장하지 않음(형식 전환 시 잔여값 방지)
-          if (f.showWhen && !f.showWhen(specs)) continue;
+          // 조건부 필드(형식·서브우퍼별): 화면에 안 보이는 필드는 저장하지 않음(전환 시 잔여값 방지)
+          if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) continue;
           if (f.input.kind === 'auto') {
             // 타입: 카테고리에서 자동 입력된 값
             const v = (subcategory || category).trim();
@@ -947,8 +949,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const v = buildPower(powerPairs);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'range') {
-            // 주파수 응답: 하한~상한 조립 문자열
-            const v = buildFreq(freqLow, freqHigh);
+            // 주파수 응답: 하한~상한 조립 문자열 (필드 단위 사용 — 서브우퍼는 Hz~Hz)
+            const v = buildFreq(freqLow, freqHigh, f.input.lowUnit, f.input.highUnit);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'dimensions') {
             // 크기: W×D×H 조립 문자열
@@ -1393,8 +1395,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
               <div className="space-y-4">
                 {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
-                  // 형식(패시브/액티브) 등 조건부 필드: 표시 조건 불충족 시 숨김
-                  if (f.showWhen && !f.showWhen(specs)) return null;
+                  // 형식(패시브/액티브)·서브우퍼 등 조건부 필드: 표시 조건 불충족 시 숨김
+                  if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) return null;
                   const setSpec = (v: string) => setSpecs({ ...specs, [f.key]: v });
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {
@@ -1592,7 +1594,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => {
                                 const v = numOnly(e.target.value);
                                 setFreqLow(v);
-                                setSpecs({ ...specs, freqResponse: buildFreq(v, freqHigh) });
+                                setSpecs({ ...specs, freqResponse: buildFreq(v, freqHigh, lowUnit, highUnit) });
                               }}
                               inputMode="decimal"
                               placeholder="하한"
@@ -1607,7 +1609,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => {
                                 const v = numOnly(e.target.value);
                                 setFreqHigh(v);
-                                setSpecs({ ...specs, freqResponse: buildFreq(freqLow, v) });
+                                setSpecs({ ...specs, freqResponse: buildFreq(freqLow, v, lowUnit, highUnit) });
                               }}
                               inputMode="decimal"
                               placeholder="상한"
@@ -1681,7 +1683,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
-                        <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} />
+                        <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} subwoofer={subcategory === '서브우퍼'} />
                       </div>
                     );
                   }
