@@ -735,8 +735,9 @@ function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: 
 // "앰프 구성" 바로 아래에 표시. 요약(보기) 박스는 두지 않음 — way/driver 요약은 드라이버 구성에만.
 type AmpPowerRow = { type: string; power: string };
 const BLANK_AMP_POWER_ROW: AmpPowerRow = { type: '', power: '' };
-// 앰프 출력 종류 목록 — 동축 제외(동축=우퍼+트위터 복합 유닛이라 단일 앰프 출력 매칭이 모호)
-const AMP_POWER_TYPES = DRIVER_TYPES.filter((t) => t !== '동축');
+// 앰프 출력 종류 목록 — '전체'(단일 앰프가 전 대역 구동, 예: 싱글앰프) 맨 앞 + 동축·패시브 라디에이터 제외
+// (동축=복합 유닛이라 매칭 모호 / 패시브 라디에이터=앰프 없는 수동 유닛)
+const AMP_POWER_TYPES = ['전체', ...DRIVER_TYPES.filter((t) => t !== '동축' && t !== '패시브 라디에이터')];
 
 function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
   const update = (i: number, patch: Partial<AmpPowerRow>) =>
