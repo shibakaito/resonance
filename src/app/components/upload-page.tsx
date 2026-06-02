@@ -862,6 +862,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       const catFields = SPEC_FIELDS_BY_CATEGORY[category];
       if (catFields) {
         for (const f of catFields) {
+          // 조건부 필드(형식별): 화면에 안 보이는 필드는 저장하지 않음(형식 전환 시 잔여값 방지)
+          if (f.showWhen && !f.showWhen(specs)) continue;
           if (f.input.kind === 'auto') {
             // 타입: 카테고리에서 자동 입력된 값
             const v = (subcategory || category).trim();
@@ -1306,6 +1308,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
               <div className="space-y-4">
                 {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
+                  // 형식(패시브/액티브) 등 조건부 필드: 표시 조건 불충족 시 숨김
+                  if (f.showWhen && !f.showWhen(specs)) return null;
                   const setSpec = (v: string) => setSpecs({ ...specs, [f.key]: v });
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {
