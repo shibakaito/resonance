@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS } from '../data/category-specs';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -400,6 +400,7 @@ function Typeahead({
   freeText = false,
   enableKeyboardLayout = false,
   hideUntilTyping = false,
+  placeholder = '',
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -411,6 +412,8 @@ function Typeahead({
   enableKeyboardLayout?: boolean;
   /** true면 검색어가 비었을 때 드롭다운을 숨김(타이핑해야 표시). 브랜드처럼 목록이 큰 칸용 */
   hideUntilTyping?: boolean;
+  /** 빈 칸 안내 문구 (드라이버 빌더의 재질/담당대역처럼 칸별 라벨용) */
+  placeholder?: string;
 }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -532,7 +535,7 @@ function Typeahead({
             setActiveIdx(-1);
           }
         }}
-        placeholder=""
+        placeholder={placeholder}
         className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
       />
       {/* 값이 있으면 오른쪽 끝에 X 버튼 — 클릭 시 선택값/검색어 초기화 */}
@@ -598,6 +601,97 @@ function Typeahead({
             })}
         </div>
       )}
+    </div>
+  );
+}
+
+// 드라이버 구성 빌더 — 행 1개 = 드라이버 1개. 종류에 따라 구조/재질(또는 담당대역) 옵션·칼럼이 바뀜(cascading).
+// 검색+드롭다운(단일)은 Typeahead 재사용(단자 위젯은 다중이라, 단일판 Typeahead 사용). A단계: 렌더만(요약·저장 없음).
+type DriverRow = { type: string; structure: string; material: string; band: string; size: string; count: string };
+const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', count: '' };
+
+function DriverConfigBuilder({ rows, onChange }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void }) {
+  const update = (i: number, patch: Partial<DriverRow>) =>
+    onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  return (
+    <div className="space-y-2">
+      {/* 헤더 (칼럼 라벨) */}
+      <div className="flex items-center gap-1.5 text-xs text-gray-500">
+        <div className="w-24 flex-shrink-0">종류</div>
+        <div className="flex-1 min-w-0">구조</div>
+        <div className="flex-1 min-w-0">재질 / 담당대역</div>
+        <div className="w-28 flex-shrink-0">크기</div>
+        <div className="w-12 flex-shrink-0 text-center">개수</div>
+        <div className="w-7 flex-shrink-0" />
+      </div>
+      {rows.map((row, i) => {
+        const isCoax = row.type === '동축';
+        return (
+          <div key={i} className="flex items-center gap-1.5">
+            {/* 종류 */}
+            <div className="relative w-24 flex-shrink-0">
+              <select
+                value={row.type}
+                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '' })}
+                className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 pr-6 h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+              >
+                <option value="" disabled>종류</option>
+                {DRIVER_TYPES.map((t) => (
+                  <option key={t} value={t} className="text-[#000000]">{t}</option>
+                ))}
+              </select>
+              <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+            </div>
+            {/* 구조 */}
+            <div className="flex-1 min-w-0">
+              <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
+            </div>
+            {/* 재질 또는 담당대역 (동축) */}
+            <div className="flex-1 min-w-0">
+              {isCoax ? (
+                <Typeahead value={row.band} onChange={(v) => update(i, { band: v })} options={COAXIAL_BANDS} freeText placeholder="담당 대역" />
+              ) : (
+                <Typeahead value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} freeText placeholder="재질" />
+              )}
+            </div>
+            {/* 크기 */}
+            <input
+              value={row.size}
+              onChange={(e) => update(i, { size: e.target.value })}
+              placeholder="300mm/12인치"
+              className={`${inputCls} w-28 flex-shrink-0`}
+            />
+            {/* 개수 */}
+            <input
+              value={row.count}
+              onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
+              inputMode="numeric"
+              className={`${inputCls} w-12 flex-shrink-0 text-center px-1`}
+            />
+            {/* 삭제 */}
+            {rows.length > 1 ? (
+              <button
+                type="button"
+                aria-label="행 삭제"
+                onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
+                className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            ) : (
+              <div className="w-7 flex-shrink-0" />
+            )}
+          </div>
+        );
+      })}
+      <button
+        type="button"
+        onClick={() => onChange([...rows, { ...BLANK_DRIVER_ROW }])}
+        className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+      >
+        <Plus className="w-3.5 h-3.5" /> 드라이버 추가
+      </button>
     </div>
   );
 }
@@ -668,6 +762,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [inputTerminals, setInputTerminals] = useState<string[]>([]);
   const [outputTerminals, setOutputTerminals] = useState<string[]>([]);
   const [wirelessTerminals, setWirelessTerminals] = useState<string[]>([]);
+  // 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계.
+  const [driverRows, setDriverRows] = useState<DriverRow[]>([{ ...BLANK_DRIVER_ROW }]);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
@@ -1421,6 +1517,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           onChange={setSel}
                           aliases={TERMINAL_ALIASES}
                         />
+                      </div>
+                    );
+                  }
+                  // ── 드라이버 구성 빌더 (스피커) ──
+                  if (f.input.kind === 'drivers') {
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} />
                       </div>
                     );
                   }

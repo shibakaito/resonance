@@ -26,7 +26,8 @@ export type SpecInput =
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
-  | { kind: 'multi'; options: string[] };                       // 다중 선택 버튼 (임피던스/입력·출력 단자)
+  | { kind: 'multi'; options: string[] }                        // 다중 선택 버튼 (임피던스/입력·출력 단자)
+  | { kind: 'drivers' };                                        // 드라이버 구성 빌더 (종류별 행 추가, 스피커)
 
 export type CategorySpecField = { key: string; label: string; input: SpecInput };
 
@@ -125,12 +126,36 @@ export const SPEAKER_CONNECTION_OPTS = labelOpts('connection');                 
 export const SPEAKER_WOOFER_OPTS = labelOpts('wooferSize');                                      // under_4in/5in/6_5in/7_8in/10in/12in/15in_plus
 export const SPEAKER_IMPEDANCE_OPTS = labelOpts('impedance', ['4ohm', '6ohm', '8ohm', '16ohm']); // 2Ω 제외, 단일 문자열
 
+// ── 드라이버 구성 빌더 데이터 (스피커) ──
+// 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
+export const DRIVER_TYPES = ['우퍼', '미드우퍼', '미드레인지', '트위터', '슈퍼 트위터', '동축', '풀레인지'];
+export const COAXIAL_BANDS = ['우퍼 + 트위터', '미드레인지 + 트위터', '우퍼 + 미드레인지 + 트위터'];
+// 콘 계열 재질 (우퍼·미드우퍼 공용)
+const SPK_CONE_MATS = ['페이퍼 콘', '코팅 페이퍼 콘', '폴리프로필렌', '케블라', '알루미늄', '마그네슘', '카본 파이버', '글래스 파이버', '세라믹', '복합 소재'];
+export const DRIVER_STRUCT: Record<string, string[]> = {
+  '우퍼': ['콘 타입', '패시브 라디에이터'],
+  '미드우퍼': ['콘 타입'],
+  '미드레인지': ['콘 타입', '돔 타입', '혼 타입', '플래너 타입', '정전형'],
+  '트위터': ['돔 타입', '콘 타입', '혼 타입', '리본 타입', 'AMT 타입', '플래너 타입', '정전형', '링 라디에이터'],
+  '슈퍼 트위터': ['혼 타입', '돔 타입', '리본 타입', 'AMT 타입', '플래너 타입'],
+  '동축': ['일반 동축', 'Dual Concentric', 'Uni-Q'],
+  '풀레인지': ['콘 타입', '플래너 타입', '정전형'],
+};
+export const DRIVER_MATERIAL: Record<string, string[]> = {
+  '우퍼': SPK_CONE_MATS,
+  '미드우퍼': SPK_CONE_MATS,
+  '미드레인지': ['페이퍼 콘', '코팅 페이퍼 콘', '폴리프로필렌', '케블라', '알루미늄', '마그네슘', '카본 파이버', '글래스 파이버', '세라믹', '소프트 돔', '복합 소재'],
+  '트위터': ['소프트 돔', '알루미늄', '티타늄', '베릴륨', '다이아몬드', '세라믹', '실크', 'AMT 필름', '복합소재'],
+  '슈퍼 트위터': ['소프트 돔', '실크', '알루미늄', '티타늄', '베릴륨', '다이아몬드', '세라믹', '마그네슘', '복합 소재'],
+  '풀레인지': ['페이퍼 콘', '코팅 페이퍼 콘', '폴리프로필렌', '알루미늄', '마그네슘', '카본 파이버', '글래스 파이버', '복합 소재'],
+};
+
 // ── 스피커 스펙 필드 (1단계: 단순 필드 — auto/select/text) ──
 // ⚠️ 복합(주파수응답 range·크기 dimensions)은 2단계, 저장은 3단계, 표시는 4단계에서.
 export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'speakerDetail', label: '형식', input: { kind: 'select', options: SPEAKER_DETAIL_OPTS } },
-  { key: 'driverConfig', label: '드라이버 구성', input: { kind: 'select', options: SPEAKER_DRIVER_OPTS } },
+  { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' } }, // 빌더(종류별 행). 기존 driverConfig 단일 select 대체
   { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS } },
   { key: 'speakerImpedance', label: '임피던스', input: { kind: 'select', options: SPEAKER_IMPEDANCE_OPTS } },
   { key: 'connection', label: '연결 방식', input: { kind: 'select', options: SPEAKER_CONNECTION_OPTS } },
