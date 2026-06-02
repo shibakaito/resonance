@@ -799,6 +799,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [wirelessTerminals, setWirelessTerminals] = useState<string[]>([]);
   // 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계.
   const [driverRows, setDriverRows] = useState<DriverRow[]>([{ ...BLANK_DRIVER_ROW }]);
+  // 크로스오버 주파수(Hz) 여러 개 — 추가 버튼으로 행 늘림. 저장 시 'A / B / C'로 조립.
+  const [crossoverValues, setCrossoverValues] = useState<string[]>(['']);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
@@ -875,6 +877,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           } else if (f.input.kind === 'dimensions') {
             // 크기: W×D×H 조립 문자열
             const v = buildDim(dimW, dimD, dimH);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'crossover') {
+            // 크로스오버: 주파수(Hz) 여러 개 → "250Hz / 2500Hz"
+            const v = crossoverValues.map((x) => x.trim()).filter(Boolean).map((x) => `${x}Hz`).join(' / ');
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'multi') {
             // 다중 선택: 배열 그대로 (임피던스/입력·출력 단자/무선)
@@ -1561,6 +1567,46 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
                         <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} />
+                      </div>
+                    );
+                  }
+                  // ── 크로스오버: 주파수(Hz) 여러 개 + "크로스오버 추가" ──
+                  if (f.input.kind === 'crossover') {
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="space-y-2">
+                          {crossoverValues.map((v, idx) => (
+                            <div key={idx} className="flex gap-2 items-center">
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  value={v}
+                                  onChange={(e) => { const nv = numOnly(e.target.value); setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? nv : x))); }}
+                                  inputMode="decimal"
+                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                                />
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">Hz</span>
+                              </div>
+                              {crossoverValues.length > 1 && (
+                                <button
+                                  type="button"
+                                  aria-label="삭제"
+                                  onClick={() => setCrossoverValues((prev) => prev.filter((_, i) => i !== idx))}
+                                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setCrossoverValues((prev) => [...prev, ''])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 크로스오버 추가
+                          </button>
+                        </div>
                       </div>
                     );
                   }

@@ -27,6 +27,7 @@ export type SpecInput =
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
   | { kind: 'multi'; options: string[] }                        // 다중 선택 버튼 (임피던스/입력·출력 단자)
+  | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
   | { kind: 'drivers' };                                        // 드라이버 구성 빌더 (종류별 행 추가, 스피커)
 
 export type CategorySpecField = { key: string; label: string; input: SpecInput };
@@ -157,14 +158,12 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'speakerDetail', label: '형식', input: { kind: 'select', options: SPEAKER_DETAIL_OPTS } },
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' } }, // 빌더(종류별 행). 기존 driverConfig 단일 select 대체
   { key: 'enclosure', label: '인클로저', input: { kind: 'select', options: SPEAKER_ENCLOSURE_OPTS } },
-  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'select', options: SPEAKER_IMPEDANCE_OPTS } },
+  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' } },
   { key: 'connection', label: '연결 방식', input: { kind: 'select', options: SPEAKER_CONNECTION_OPTS } },
-  { key: 'wooferSize', label: '우퍼 크기', input: { kind: 'select', options: SPEAKER_WOOFER_OPTS } },
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' } },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' } },
-  { key: 'crossover', label: '크로스오버', input: { kind: 'text', unit: 'Hz' } },
-  { key: 'driverDetail', label: '드라이버 상세', input: { kind: 'text', free: true } },
+  { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' } },
   { key: 'builtInAmp', label: '내장 앰프', input: { kind: 'text', free: true } },
   { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } }, // 앰프 재사용(한글 저장)
