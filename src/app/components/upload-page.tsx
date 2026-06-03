@@ -984,6 +984,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               .map((r) => (r.power.trim() ? `${r.type} ${r.power.trim()}` : r.type))
               .join(' / ');
             if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'numSelect') {
+            // 숫자 + 타입(RMS/Peak) → "150W RMS" (숫자 있을 때만 저장)
+            const num = specs[f.key]?.trim();
+            const t = specs[`${f.key}Type`]?.trim();
+            if (num) tech[f.key] = `${num}${f.input.unit ?? ''}${t ? ` ${t}` : ''}`;
           } else {
             // select / text: specs 레코드의 단순 문자열
             const v = specs[f.key]?.trim();
@@ -1504,6 +1509,53 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               {unit}
                             </span>
                           )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 숫자 + 오른쪽 드롭다운 (예: 앰프 출력값 + RMS/Peak) ──
+                  if (f.input.kind === 'numSelect') {
+                    const unit = f.input.unit;
+                    const typeKey = `${f.key}Type`;
+                    const typeVal = specs[typeKey] || '';
+                    return (
+                      <div key={f.key}>
+                        <label className="block font-semibold mb-1">{f.label}</label>
+                        <div className="flex gap-2 items-center">
+                          <div className="relative flex-1 min-w-0">
+                            <input
+                              value={specs[f.key] || ''}
+                              onChange={(e) => setSpec(numOnly(e.target.value))}
+                              inputMode="decimal"
+                              className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
+                            />
+                            {unit && (
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{unit}</span>
+                            )}
+                          </div>
+                          <div className="relative w-32 flex-shrink-0">
+                            <select
+                              value={typeVal}
+                              onChange={(e) => setSpecs({ ...specs, [typeKey]: e.target.value })}
+                              className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${typeVal ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${typeVal ? '' : 'text-gray-400'}`}
+                            >
+                              <option value="" disabled>선택</option>
+                              {f.input.options.map((o) => (
+                                <option key={o} value={o} className="text-[#000000]">{o}</option>
+                              ))}
+                            </select>
+                            {typeVal && (
+                              <button
+                                type="button"
+                                aria-label="초기화"
+                                onClick={() => setSpecs({ ...specs, [typeKey]: '' })}
+                                className="absolute right-7 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            )}
+                            <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                          </div>
                         </div>
                       </div>
                     );

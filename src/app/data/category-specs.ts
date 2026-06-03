@@ -24,6 +24,7 @@ export type SpecInput =
   | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택 (native select)
   | { kind: 'searchSelect'; options: string[]; aliases?: Record<string, string>; keyboardLayout?: boolean } // 검색 드롭다운(Typeahead) — 한글 저장. aliases=한글→영어 검색어, keyboardLayout=한영 오타 매칭
   | { kind: 'text'; unit?: string; free?: boolean }             // 숫자 입력 + (선택)단위 / free=true면 자유 텍스트(숫자 필터 X)
+  | { kind: 'numSelect'; unit?: string; options: string[] }     // 숫자 입력 + 오른쪽 드롭다운 (예: 출력값 + RMS/Peak)
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
@@ -197,7 +198,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
   { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: activeNoSub }, // 서브우퍼 제외
   { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: activeNoSub }, // 드라이버 종류 + 출력값 빌더 (서브우퍼 제외)
-  { key: 'ampPower', label: '앰프 출력', input: { kind: 'text', free: true }, showWhen: activeSub }, // 서브우퍼: 출력값만 자유 입력
+  { key: 'ampPower', label: '앰프 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: activeSub }, // 서브우퍼: 출력값(W) + RMS/Peak
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
   { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
