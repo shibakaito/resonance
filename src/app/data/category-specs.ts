@@ -152,6 +152,7 @@ export const SPEAKER_IMPEDANCE_OPTS = labelOpts('impedance', ['4ohm', '6ohm', '8
 export const SPK_AMP_CONFIG_OPTS = ['싱글앰프', '바이앰프', '트라이앰프', '멀티앰프'];
 export const SPK_CROSSOVER_TYPE_OPTS = ['패시브 크로스오버', '액티브 크로스오버', 'DSP 크로스오버'];
 export const SPK_PHASE_OPTS = ['0° / 180° 전환', '0°~180° 연속 조절', '0°~360° 연속 조절']; // 서브우퍼 위상 조절
+export const SUB_FIRING_OPTS = ['전면 발사', '하향 발사', '측면 발사']; // 서브우퍼 드라이버 방사 방향
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -207,7 +208,8 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: activeNoBar }, // 마감 바로 위 (사운드바 제외)
 
-  // ── 서브우퍼 전용: 주파수 응답(Hz~Hz) · 위상 조절 (패시브·액티브 공통) ──
+  // ── 서브우퍼 전용: 방사 방향 · 주파수 응답(Hz~Hz) · 위상 조절 (패시브·액티브 공통) ──
+  { key: 'firingDirection', label: '방사 방향', input: { kind: 'select', options: SUB_FIRING_OPTS }, showWhen: detailSub },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: detailSub },
   { key: 'phaseControl', label: '위상 조절', input: { kind: 'select', options: SPK_PHASE_OPTS }, showWhen: detailSub },
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
