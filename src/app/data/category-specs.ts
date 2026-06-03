@@ -158,6 +158,9 @@ export const SUB_FIRING_OPTS = ['전면 발사', '하향 발사', '측면 발사
 export const SOUNDBAR_CHANNEL_OPTS = ['2.0', '2.1', '3.1', '2.1.2', '3.1.2', '5.1', '5.1.2', '5.1.4', '7.1.2', '7.1.4', '9.1.2', '9.1.4', '11.1.4'];
 // 사운드바 지원 오디오 포맷 (다중 선택)
 export const SOUNDBAR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby Digital', 'Dolby Digital Plus', 'Dolby TrueHD', 'DTS', 'DTS:X', 'DTS Virtual:X', 'DTS-HD MA', 'PCM'];
+// 사운드바 서라운드 구현 방식 / ARC·eARC 등급
+export const SOUNDBAR_SURROUND_OPTS = ['가상 서라운드', '실물 후방 스피커 포함', '후방 별매(확장형)'];
+export const SOUNDBAR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -193,6 +196,8 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   // ── 사운드바 전용: 채널 구성 (단일 드롭다운) ──
   { key: 'channelConfig', label: '채널 구성', input: { kind: 'select', options: SOUNDBAR_CHANNEL_OPTS }, showWhen: isSoundbar },
   { key: 'audioFormats', label: '지원 포맷', input: { kind: 'multi', options: SOUNDBAR_AUDIO_FORMATS }, showWhen: isSoundbar },
+  { key: 'surroundType', label: '서라운드 구현', input: { kind: 'select', options: SOUNDBAR_SURROUND_OPTS }, showWhen: isSoundbar },
+  { key: 'arcSupport', label: 'ARC/eARC', input: { kind: 'select', options: SOUNDBAR_ARC_OPTS }, showWhen: isSoundbar },
   // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
 
