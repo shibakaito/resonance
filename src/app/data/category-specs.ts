@@ -156,6 +156,8 @@ export const SPK_PHASE_OPTS = ['0° / 180° 전환', '0°~180° 연속 조절', 
 export const SUB_FIRING_OPTS = ['전면 발사', '하향 발사', '측면 발사']; // 서브우퍼 드라이버 방사 방향
 // 사운드바 채널 구성 (단일 드롭다운). X.Y.Z = 메인.우퍼.높이 채널
 export const SOUNDBAR_CHANNEL_OPTS = ['2.0', '2.1', '3.1', '2.1.2', '3.1.2', '5.1', '5.1.2', '5.1.4', '7.1.2', '7.1.4', '9.1.2', '9.1.4', '11.1.4'];
+// 사운드바 지원 오디오 포맷 (다중 선택)
+export const SOUNDBAR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby Digital', 'Dolby Digital Plus', 'Dolby TrueHD', 'DTS', 'DTS:X', 'DTS Virtual:X', 'DTS-HD MA', 'PCM'];
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -190,6 +192,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'speakerDetail', label: '형식', input: { kind: 'select', options: SPEAKER_DETAIL_OPTS } },
   // ── 사운드바 전용: 채널 구성 (단일 드롭다운) ──
   { key: 'channelConfig', label: '채널 구성', input: { kind: 'select', options: SOUNDBAR_CHANNEL_OPTS }, showWhen: isSoundbar },
+  { key: 'audioFormats', label: '지원 포맷', input: { kind: 'multi', options: SOUNDBAR_AUDIO_FORMATS }, showWhen: isSoundbar },
   // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
 
