@@ -559,8 +559,10 @@ export function ListingDetail({ id }: { id?: string }) {
                 return v;
               };
               const rows = schema.filter((f) => {
-                // 형식(패시브/액티브)에 안 맞는 중복 항목(인클로저·주파수 응답)은 제외 — 폼과 동일 게이팅
-                if (f.showWhen && !f.showWhen(specs)) return false;
+                // 폼과 동일 게이팅: 형식(패시브/액티브) + 하위 카테고리(__sub) 주입.
+                //   techSpecs.type = 폼 auto 필드가 저장한 하위 카테고리(예: '서브우퍼') → __sub로 사용해
+                //   서브우퍼 전용 필드(방사 방향·위상 조절 등)가 상세에서도 정상 표시됨.
+                if (f.showWhen && !f.showWhen({ ...specs, __sub: typeof specs.type === 'string' ? specs.type : '' })) return false;
                 const v = specs[f.key];
                 return Array.isArray(v) ? v.length > 0 : Boolean(v);
               });
