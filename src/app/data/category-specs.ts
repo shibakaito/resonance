@@ -202,12 +202,12 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'crossover', label: '크로스오버', input: { kind: 'crossover' }, showWhen: passiveNoSub }, // 서브우퍼 제외
 
   // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
-  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: activeNoSub }, // 서브우퍼 제외
+  { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: activeFull }, // 서브우퍼·사운드바 제외
   { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: activeFull }, // 드라이버 종류 + 출력값 빌더 (서브우퍼·사운드바 제외)
   { key: 'ampPower', label: '앰프 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: activeSub }, // 서브우퍼: 출력값(W) + RMS/Peak
   { key: 'totalPower', label: '총 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: isSoundbar }, // 사운드바: 총 출력(W) + RMS/Peak
-  { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
-  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
+  { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: activeNoBar }, // 앰프 재사용 (사운드바 제외)
+  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: activeNoBar }, // 사운드바 제외
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
