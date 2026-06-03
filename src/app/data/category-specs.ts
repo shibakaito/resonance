@@ -50,6 +50,8 @@ const detailSub = (s: Record<string, string | string[]>) => detailSet(s) && isSu
 const isSoundbar = (s: Record<string, string | string[]>) => s.__sub === '사운드바';
 const activeNoBar = (s: Record<string, string | string[]>) => isActive(s) && !isSoundbar(s);
 const activeFull = (s: Record<string, string | string[]>) => isActive(s) && !isSub(s) && !isSoundbar(s); // 일반 액티브 스피커 (서브우퍼·사운드바 제외)
+// 사운드바 서브우퍼 포함 게이팅 — '미포함'이 아니면(무선/유선) 우퍼 크기·출력 노출
+const subIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.subIncluded === 'string' && s.subIncluded !== '' && s.subIncluded !== '미포함';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -161,6 +163,8 @@ export const SOUNDBAR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby Digital', 'Dolby Di
 // 사운드바 서라운드 구현 방식 / ARC·eARC 등급
 export const SOUNDBAR_SURROUND_OPTS = ['가상 서라운드', '실물 후방 스피커 포함', '후방 별매(확장형)'];
 export const SOUNDBAR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
+// 사운드바 서브우퍼 포함 여부
+export const SOUNDBAR_SUB_OPTS = ['미포함', '무선 서브우퍼', '유선 서브우퍼'];
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -198,6 +202,9 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'audioFormats', label: '지원 포맷', input: { kind: 'multi', options: SOUNDBAR_AUDIO_FORMATS }, showWhen: isSoundbar },
   { key: 'surroundType', label: '서라운드 구현', input: { kind: 'select', options: SOUNDBAR_SURROUND_OPTS }, showWhen: isSoundbar },
   { key: 'arcSupport', label: 'ARC/eARC', input: { kind: 'select', options: SOUNDBAR_ARC_OPTS }, showWhen: isSoundbar },
+  { key: 'subIncluded', label: '서브우퍼 포함', input: { kind: 'select', options: SOUNDBAR_SUB_OPTS }, showWhen: isSoundbar },
+  { key: 'subSize', label: '우퍼 크기', input: { kind: 'text', unit: 'inch' }, showWhen: subIncl },
+  { key: 'subPower', label: '우퍼 출력', input: { kind: 'text', unit: 'W' }, showWhen: subIncl },
   // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
 
