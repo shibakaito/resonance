@@ -869,9 +869,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [dimH, setDimH] = useState('');
   // 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) — 저장 시 배열로 specs.tech에
   const [impedances, setImpedances] = useState<string[]>([]);
-  const [inputTerminals, setInputTerminals] = useState<string[]>([]);
-  const [outputTerminals, setOutputTerminals] = useState<string[]>([]);
-  const [wirelessTerminals, setWirelessTerminals] = useState<string[]>([]);
+  // 다중 선택(단자·무선·포맷 등) 공통 상태 — key별 배열로 보관. (impedance는 전용 위젯이라 별도)
+  const [multiSel, setMultiSel] = useState<Record<string, string[]>>({});
   // 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계.
   const [driverRows, setDriverRows] = useState<DriverRow[]>([{ ...BLANK_DRIVER_ROW }]);
   const [ampPowerRows, setAmpPowerRows] = useState<AmpPowerRow[]>([{ ...BLANK_AMP_POWER_ROW }]);
@@ -968,10 +967,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'multi') {
             // 다중 선택: 배열 그대로 (임피던스/입력·출력 단자/무선)
-            const arr = f.key === 'impedance' ? impedances
-              : f.key === 'inputs' ? inputTerminals
-              : f.key === 'outputs' ? outputTerminals
-              : wirelessTerminals;
+            const arr = f.key === 'impedance' ? impedances : (multiSel[f.key] ?? []);
             if (arr.length > 0) tech[f.key] = arr;
           } else if (f.input.kind === 'drivers') {
             // 드라이버 구성(빌더): 행들 → 요약 문자열 (UI 요약과 동일)
@@ -1710,8 +1706,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }
                   // ── 다중 선택 (지원 임피던스 / 입력·출력 단자) ──
                   if (f.input.kind === 'multi') {
-                    const sel = f.key === 'impedance' ? impedances : f.key === 'inputs' ? inputTerminals : f.key === 'outputs' ? outputTerminals : wirelessTerminals;
-                    const setSel = f.key === 'impedance' ? setImpedances : f.key === 'inputs' ? setInputTerminals : f.key === 'outputs' ? setOutputTerminals : setWirelessTerminals;
+                    const sel = f.key === 'impedance' ? impedances : (multiSel[f.key] ?? []);
+                    const setSel = f.key === 'impedance' ? setImpedances : (next: string[] | ((p: string[]) => string[])) => setMultiSel((m) => ({ ...m, [f.key]: typeof next === 'function' ? next(m[f.key] ?? []) : next }));
                     // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
                     if (f.key === 'impedance') {
                       return (
