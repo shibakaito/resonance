@@ -49,6 +49,7 @@ const detailSub = (s: Record<string, string | string[]>) => detailSet(s) && isSu
 // 사운드바 전용 게이팅 (액티브 고정 — 폼에서 speakerDetail='active' 자동 설정 + 형식 숨김)
 const isSoundbar = (s: Record<string, string | string[]>) => s.__sub === '사운드바';
 const activeNoBar = (s: Record<string, string | string[]>) => isActive(s) && !isSoundbar(s);
+const activeFull = (s: Record<string, string | string[]>) => isActive(s) && !isSub(s) && !isSoundbar(s); // 일반 액티브 스피커 (서브우퍼·사운드바 제외)
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -202,8 +203,9 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
 
   // ── 액티브 블록 (앰프구성→앰프출력→앰프클래스→크로스오버방식→주파수응답→입력단자→출력단자→무선→인클로저) ──
   { key: 'ampConfig', label: '앰프 구성', input: { kind: 'select', options: SPK_AMP_CONFIG_OPTS }, showWhen: activeNoSub }, // 서브우퍼 제외
-  { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: activeNoSub }, // 드라이버 종류 + 출력값 빌더 (서브우퍼 제외)
+  { key: 'ampPower', label: '앰프 출력', input: { kind: 'ampPower' }, showWhen: activeFull }, // 드라이버 종류 + 출력값 빌더 (서브우퍼·사운드바 제외)
   { key: 'ampPower', label: '앰프 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: activeSub }, // 서브우퍼: 출력값(W) + RMS/Peak
+  { key: 'totalPower', label: '총 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: isSoundbar }, // 사운드바: 총 출력(W) + RMS/Peak
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: isActive }, // 앰프 재사용
   { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: isActive },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
