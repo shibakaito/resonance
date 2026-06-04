@@ -69,6 +69,10 @@ const labelOpts = (ns: string, only?: string[]): { value: string; label: string 
 export const AMP_CHANNEL_OPTS = ['모노블럭', '스테레오', '멀티채널'];
 // AV 리시버 채널 수 (X.Y = 메인.서브우퍼 출력)
 export const AVR_CHANNEL_OPTS = ['5.1', '5.2', '7.1', '7.2', '9.2', '11.2', '13.2'];
+// AV 리시버 영상 패스스루 (다중 선택)
+export const AVR_VIDEO_OPTS = ['8K', '4K/120Hz', 'HDR10', 'HDR10+', 'Dolby Vision', 'HLG'];
+// AV 리시버 ARC/eARC 등급 (값은 사운드바와 같지만, 정의 순서상 여기 따로 둠)
+export const AVR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드'];
 export const AMP_CLASS_OPTS = ['Class A', 'Class AB', 'Class B', 'Class D', 'Class G', 'Class H']; // 동작 클래스
 export const AMP_OHM_OPTS = ['2Ω', '4Ω', '6Ω', '8Ω', '16Ω']; // 정격 출력 기준 옴 + 지원 임피던스 공용
@@ -137,6 +141,11 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'damping', label: '댐핑 팩터', input: { kind: 'text' } },
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS } },
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS } },
+  // ── AV 리시버 전용: HDMI 개수 · 영상 패스스루 · ARC/eARC ──
+  { key: 'hdmiIn', label: 'HDMI 입력 개수', input: { kind: 'text', unit: '개' }, showWhen: isAvr },
+  { key: 'hdmiOut', label: 'HDMI 출력 개수', input: { kind: 'text', unit: '개' }, showWhen: isAvr },
+  { key: 'videoPassthrough', label: '영상 패스스루', input: { kind: 'multi', options: AVR_VIDEO_OPTS }, showWhen: isAvr },
+  { key: 'arcSupport', label: 'ARC/eARC', input: { kind: 'select', options: AVR_ARC_OPTS }, showWhen: isAvr },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS } },
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS } },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS } },
