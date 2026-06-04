@@ -52,6 +52,8 @@ const activeNoBar = (s: Record<string, string | string[]>) => isActive(s) && !is
 const activeFull = (s: Record<string, string | string[]>) => isActive(s) && !isSub(s) && !isSoundbar(s); // 일반 액티브 스피커 (서브우퍼·사운드바 제외)
 // 사운드바 서브우퍼 포함 게이팅 — '미포함'이 아니면(무선/유선) 우퍼 크기·출력 노출
 const subIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.subIncluded === 'string' && s.subIncluded !== '' && s.subIncluded !== '미포함';
+// 사운드바 서라운드 스피커 포함 게이팅 — 선택(유선/무선) 시 출력·크기·무게·개수 노출
+const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.surroundType === 'string' && s.surroundType !== '' && s.surroundType !== '가상 서라운드';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -161,10 +163,10 @@ export const SOUNDBAR_CHANNEL_OPTS = ['2.0', '2.1', '3.1', '2.1.2', '3.1.2', '5.
 // 사운드바 지원 오디오 포맷 (다중 선택)
 export const SOUNDBAR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby Digital', 'Dolby Digital Plus', 'Dolby TrueHD', 'DTS', 'DTS:X', 'DTS Virtual:X', 'DTS-HD MA', 'PCM'];
 // 사운드바 서라운드 구현 방식 / ARC·eARC 등급
-export const SOUNDBAR_SURROUND_OPTS = ['가상 서라운드', '실물 후방 스피커 포함', '후방 별매(확장형)'];
+export const SOUNDBAR_SURROUND_OPTS = ['가상 서라운드', '유선 서라운드 스피커', '무선 서라운드 스피커']; // 미선택=미포함, 가상은 추가 필드 없음
 export const SOUNDBAR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 // 사운드바 서브우퍼 포함 여부
-export const SOUNDBAR_SUB_OPTS = ['미포함', '무선 서브우퍼', '유선 서브우퍼'];
+export const SOUNDBAR_SUB_OPTS = ['무선 서브우퍼', '유선 서브우퍼']; // 미선택=미포함
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
 // 종류 선택에 따라 구조/재질 옵션이 바뀜(cascading). 동축은 재질 대신 담당대역 사용.
@@ -201,10 +203,16 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'channelConfig', label: '채널 구성', input: { kind: 'select', options: SOUNDBAR_CHANNEL_OPTS }, showWhen: isSoundbar },
   { key: 'audioFormats', label: '지원 포맷', input: { kind: 'multi', options: SOUNDBAR_AUDIO_FORMATS }, showWhen: isSoundbar },
   { key: 'surroundType', label: '서라운드 구현', input: { kind: 'select', options: SOUNDBAR_SURROUND_OPTS }, showWhen: isSoundbar },
+  { key: 'surroundPower', label: '서라운드 스피커 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: surrIncl },
+  { key: 'surroundDimensions', label: '서라운드 스피커 크기', input: { kind: 'dimensions' }, showWhen: surrIncl },
+  { key: 'surroundWeight', label: '서라운드 스피커 무게', input: { kind: 'text', unit: 'kg' }, showWhen: surrIncl },
+  { key: 'surroundCount', label: '서라운드 스피커 개수', input: { kind: 'text', unit: '개' }, showWhen: surrIncl },
   { key: 'arcSupport', label: 'ARC/eARC', input: { kind: 'select', options: SOUNDBAR_ARC_OPTS }, showWhen: isSoundbar },
   { key: 'subIncluded', label: '서브우퍼 포함', input: { kind: 'select', options: SOUNDBAR_SUB_OPTS }, showWhen: isSoundbar },
-  { key: 'subSize', label: '우퍼 크기', input: { kind: 'text', unit: 'inch' }, showWhen: subIncl },
-  { key: 'subPower', label: '우퍼 출력', input: { kind: 'text', unit: 'W' }, showWhen: subIncl },
+  { key: 'subSize', label: '유닛 크기', input: { kind: 'text', unit: 'inch' }, showWhen: subIncl },
+  { key: 'subPower', label: '우퍼 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: subIncl },
+  { key: 'subDimensions', label: '서브우퍼 크기', input: { kind: 'dimensions' }, showWhen: subIncl },
+  { key: 'subWeight', label: '서브우퍼 무게', input: { kind: 'text', unit: 'kg' }, showWhen: subIncl },
   // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
   { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
 
