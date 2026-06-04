@@ -54,6 +54,8 @@ const activeFull = (s: Record<string, string | string[]>) => isActive(s) && !isS
 const subIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.subIncluded === 'string' && s.subIncluded !== '' && s.subIncluded !== '미포함';
 // 사운드바 서라운드 스피커 포함 게이팅 — 선택(유선/무선) 시 출력·크기·무게·개수 노출
 const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.surroundType === 'string' && s.surroundType !== '' && s.surroundType !== '가상 서라운드';
+// AV 리시버 전용 게이팅 (앰프 대분류의 하위 카테고리)
+const isAvr = (s: Record<string, string | string[]>) => s.__sub === 'AV 리시버';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -65,6 +67,8 @@ const labelOpts = (ns: string, only?: string[]): { value: string; label: string 
 
 // ── 앰프 옵션 상수 ──
 export const AMP_CHANNEL_OPTS = ['모노블럭', '스테레오', '멀티채널'];
+// AV 리시버 채널 수 (X.Y = 메인.서브우퍼 출력)
+export const AVR_CHANNEL_OPTS = ['5.1', '5.2', '7.1', '7.2', '9.2', '11.2', '13.2'];
 export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드'];
 export const AMP_CLASS_OPTS = ['Class A', 'Class AB', 'Class B', 'Class D', 'Class G', 'Class H']; // 동작 클래스
 export const AMP_OHM_OPTS = ['2Ω', '4Ω', '6Ω', '8Ω', '16Ω']; // 정격 출력 기준 옴 + 지원 임피던스 공용
@@ -121,7 +125,8 @@ export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect',
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
-  { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS } },
+  { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS }, showWhen: (s) => !isAvr(s) }, // AVR은 아래 '채널 수'로 대체
+  { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS } },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' } },
