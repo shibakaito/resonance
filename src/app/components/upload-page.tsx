@@ -864,9 +864,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string }[]>([{ w: '', ohm: '' }]);
   const [freqLow, setFreqLow] = useState('');
   const [freqHigh, setFreqHigh] = useState('');
-  const [dimW, setDimW] = useState('');
-  const [dimD, setDimD] = useState('');
-  const [dimH, setDimH] = useState('');
+  // 크기(W×D×H mm + 비고) — key별 '행 배열'로 보관 (크기 칸 여러 개·+버튼 추가 지원)
+  const [dims, setDims] = useState<Record<string, { w: string; d: string; h: string; note: string }[]>>({});
   // 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) — 저장 시 배열로 specs.tech에
   const [impedances, setImpedances] = useState<string[]>([]);
   // 다중 선택(단자·무선·포맷 등) 공통 상태 — key별 배열로 보관. (impedance는 전용 위젯이라 별도)
@@ -902,6 +901,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!w.trim() && !d.trim() && !h.trim()) return '';
     return `${w.trim()}×${d.trim()}×${h.trim()}`;
   };
+  // 크기 행 배열 → 문자열. 각 행 "W×D×H (비고)", 여러 행은 ' / '로. (W·D·H 모두 빈 행 제외)
+  const buildDims = (rows: { w: string; d: string; h: string; note: string }[]) =>
+    rows.map((r) => { const dim = buildDim(r.w, r.d, r.h); if (!dim) return ''; return r.note.trim() ? `${dim} (${r.note.trim()})` : dim; }).filter(Boolean).join(' / ');
   const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
@@ -958,8 +960,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const v = buildFreq(freqLow, freqHigh, f.input.lowUnit, f.input.highUnit);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'dimensions') {
-            // 크기: W×D×H 조립 문자열
-            const v = buildDim(dimW, dimD, dimH);
+            // 크기: key별 행 배열 → "W×D×H (비고) / ..." 조립
+            const v = buildDims(dims[f.key] ?? []);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'crossover') {
             // 크로스오버: 주파수(Hz) 여러 개 → "250Hz / 2500Hz"
@@ -1679,27 +1681,63 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }
                   // ── 크기: W × D × H 3칸, 각 칸 끝에 mm 단위 ──
                   if (f.input.kind === 'dimensions') {
-                    const dimField = (val: string, set: (v: string) => void, ph: string, build: (v: string) => string) => (
+                    const rows = dims[f.key] ?? [{ w: '', d: '', h: '', note: '' }];
+                    const commit = (next: { w: string; d: string; h: string; note: string }[]) => {
+                      setDims((m) => ({ ...m, [f.key]: next }));
+                      setSpecs((s) => ({ ...s, [f.key]: buildDims(next) }));
+                    };
+                    const update = (i: number, patch: Partial<{ w: string; d: string; h: string; note: string }>) =>
+                      commit(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+                    const dimInput = (val: string, axis: 'w' | 'd' | 'h', ph: string, i: number) => (
                       <div className="relative flex-1 min-w-0">
                         <input
                           value={val}
-                          onChange={(e) => { const nv = numOnly(e.target.value); set(nv); setSpecs({ ...specs, dimensions: build(nv) }); }}
+                          onChange={(e) => update(i, { [axis]: numOnly(e.target.value) })}
                           inputMode="decimal"
                           placeholder={ph}
-                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
                         />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">mm</span>
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">mm</span>
                       </div>
                     );
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
-                        <div className="flex gap-2 items-center">
-                          {dimField(dimW, setDimW, 'W', (v) => buildDim(v, dimD, dimH))}
-                          <span className="text-gray-400">×</span>
-                          {dimField(dimD, setDimD, 'D', (v) => buildDim(dimW, v, dimH))}
-                          <span className="text-gray-400">×</span>
-                          {dimField(dimH, setDimH, 'H', (v) => buildDim(dimW, dimD, v))}
+                        <div className="space-y-2">
+                          {rows.map((r, i) => (
+                            <div key={i} className="flex gap-1.5 items-center">
+                              {dimInput(r.w, 'w', 'W', i)}
+                              <span className="text-gray-400">×</span>
+                              {dimInput(r.d, 'd', 'D', i)}
+                              <span className="text-gray-400">×</span>
+                              {dimInput(r.h, 'h', 'H', i)}
+                              <input
+                                value={r.note}
+                                onChange={(e) => update(i, { note: e.target.value })}
+                                placeholder="비고"
+                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                              />
+                              {rows.length > 1 ? (
+                                <button
+                                  type="button"
+                                  aria-label="삭제"
+                                  onClick={() => commit(rows.filter((_, idx) => idx !== i))}
+                                  className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <div className="w-7 flex-shrink-0" />
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => commit([...rows, { w: '', d: '', h: '', note: '' }])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 크기 추가
+                          </button>
                         </div>
                       </div>
                     );
