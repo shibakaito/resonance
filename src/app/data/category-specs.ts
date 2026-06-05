@@ -27,7 +27,7 @@ export type SpecInput =
   | { kind: 'numSelect'; unit?: string; options: string[] }     // 숫자 입력 + 오른쪽 드롭다운 (예: 출력값 + RMS/Peak)
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
-  | { kind: 'power' }                                           // 출력값(W) + 기준 옴, 쌍 추가 가능
+  | { kind: 'power'; ohmOptions?: string[] }                    // 출력값(W) + 기준 옴, 쌍 추가 가능 / ohmOptions로 옴 목록 교체(헤드폰 등)
   | { kind: 'multi'; options: string[] }                        // 다중 선택 버튼 (임피던스/입력·출력 단자)
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
   | { kind: 'drivers' }                                         // 드라이버 구성 빌더 (종류/구조/재질/크기/개수 — 패시브·액티브 공용)
@@ -134,6 +134,8 @@ export const TERMINAL_ALIASES: Record<string, string[]> = {
 export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect', 'TIDAL Connect', 'Roon Ready', 'DLNA / UPnP'];
 // 헤드폰 앰프 헤드폰 출력 단자
 export const HP_OUTPUT_TERMINALS = ['6.35mm', '3.5mm', '4.4mm (Pentaconn)', '4-pin XLR', '듀얼 3-pin XLR'];
+// 헤드폰 앰프 부하 임피던스 (출력 매트릭스용)
+export const HP_OHM_OPTS = ['16Ω', '32Ω', '50Ω', '80Ω', '150Ω', '250Ω', '300Ω', '600Ω'];
 // 헤드폰 앰프 구성 형태
 export const HP_TYPE_OPTS = ['순수 헤드폰 앰프', '헤드폰 앰프 + 프리앰프', 'DAC 내장(올인원)'];
 
@@ -144,7 +146,8 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS } },
-  { key: 'powerRated', label: '정격 출력', input: { kind: 'power' } },
+  { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) },
+  { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS }, showWhen: (s) => !isHpAmp(s) }, // 헤드폰 앰프는 아래 '권장 헤드폰 임피던스'로 대체
   { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' } },
