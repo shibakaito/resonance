@@ -862,8 +862,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
   // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
   const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string }[]>([{ w: '', ohm: '' }]);
-  const [freqLow, setFreqLow] = useState('');
-  const [freqHigh, setFreqHigh] = useState('');
+  // range(하한~상한) — key별 보관 (주파수 응답·권장 임피던스 등 range 칸이 여러 개 동시에 떠도 독립)
+  const [ranges, setRanges] = useState<Record<string, { low: string; high: string }>>({});
   // 크기(W×D×H mm + 비고) — key별 '행 배열'로 보관 (크기 칸 여러 개·+버튼 추가 지원)
   const [dims, setDims] = useState<Record<string, { w: string; d: string; h: string; note: string }[]>>({});
   // 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) — 저장 시 배열로 specs.tech에
@@ -956,8 +956,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const v = buildPower(powerPairs);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'range') {
-            // 주파수 응답: 하한~상한 조립 문자열 (필드 단위 사용 — 서브우퍼는 Hz~Hz)
-            const v = buildFreq(freqLow, freqHigh, f.input.lowUnit, f.input.highUnit);
+            // range: key별 하한~상한 조립 문자열 (필드 단위 사용 — 서브우퍼는 Hz~Hz)
+            const r = ranges[f.key] ?? { low: '', high: '' };
+            const v = buildFreq(r.low, r.high, f.input.lowUnit, f.input.highUnit);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'dimensions') {
             // 크기: key별 행 배열 → "W×D×H (비고) / ..." 조립
@@ -1642,18 +1643,20 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 주파수 응답: 하한~상한 2칸 ──
                   if (f.input.kind === 'range') {
                     const lowUnit = f.input.lowUnit, highUnit = f.input.highUnit;
+                    const r = ranges[f.key] ?? { low: '', high: '' };
+                    const setRange = (patch: Partial<{ low: string; high: string }>) => {
+                      const nr = { ...r, ...patch };
+                      setRanges((m) => ({ ...m, [f.key]: nr }));
+                      setSpecs((s) => ({ ...s, [f.key]: buildFreq(nr.low, nr.high, lowUnit, highUnit) }));
+                    };
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
                             <input
-                              value={freqLow}
-                              onChange={(e) => {
-                                const v = numOnly(e.target.value);
-                                setFreqLow(v);
-                                setSpecs({ ...specs, freqResponse: buildFreq(v, freqHigh, lowUnit, highUnit) });
-                              }}
+                              value={r.low}
+                              onChange={(e) => setRange({ low: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="하한"
                               className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
@@ -1663,12 +1666,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <span className="text-gray-400">~</span>
                           <div className="relative flex-1 min-w-0">
                             <input
-                              value={freqHigh}
-                              onChange={(e) => {
-                                const v = numOnly(e.target.value);
-                                setFreqHigh(v);
-                                setSpecs({ ...specs, freqResponse: buildFreq(freqLow, v, lowUnit, highUnit) });
-                              }}
+                              value={r.high}
+                              onChange={(e) => setRange({ high: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="상한"
                               className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
