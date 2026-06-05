@@ -58,6 +58,8 @@ const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && type
 const isAvr = (s: Record<string, string | string[]>) => s.__sub === 'AV 리시버';
 // 헤드폰 앰프 전용 게이팅 (앰프 대분류의 하위 카테고리)
 const isHpAmp = (s: Record<string, string | string[]>) => s.__sub === '헤드폰 앰프';
+// 헤드폰 앰프 DAC 내장 게이팅 — 구성 형태가 'DAC 내장(올인원)'일 때 DAC 스펙 노출
+const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -132,6 +134,8 @@ export const TERMINAL_ALIASES: Record<string, string[]> = {
 export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect', 'TIDAL Connect', 'Roon Ready', 'DLNA / UPnP'];
 // 헤드폰 앰프 헤드폰 출력 단자
 export const HP_OUTPUT_TERMINALS = ['6.35mm', '3.5mm', '4.4mm (Pentaconn)', '4-pin XLR', '듀얼 3-pin XLR'];
+// 헤드폰 앰프 구성 형태
+export const HP_TYPE_OPTS = ['순수 헤드폰 앰프', '헤드폰 앰프 + 프리앰프', 'DAC 내장(올인원)'];
 
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
@@ -159,6 +163,9 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'hpOutputs', label: '헤드폰 출력 단자', input: { kind: 'multi', options: HP_OUTPUT_TERMINALS }, showWhen: isHpAmp },
   { key: 'hpGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isHpAmp },
   { key: 'hpOutputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isHpAmp },
+  { key: 'hpType', label: '구성 형태', input: { kind: 'select', options: HP_TYPE_OPTS }, showWhen: isHpAmp },
+  { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: hpHasDac },
+  { key: 'hpResolution', label: '지원 해상도', input: { kind: 'text', free: true }, showWhen: hpHasDac },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS }, showWhen: (s) => !isHpAmp(s) }, // 헤드폰 앰프엔 해당 없음
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS } },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS } },
