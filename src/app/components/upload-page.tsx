@@ -36,7 +36,11 @@ const CATEGORY_PATHS: { path: string; top: string; leaf: string }[] = CATEGORY_T
   ({ top, subs }) =>
     subs.length === 0
       ? [{ path: top, top, leaf: '' }]
-      : subs.map((s) => ({ path: `${top} > ${s}`, top, leaf: s }))
+      : subs.flatMap((s) =>
+          typeof s === 'string'
+            ? [{ path: `${top} > ${s}`, top, leaf: s }]
+            : s.items.map((it) => ({ path: `${top} > ${s.group} > ${it}`, top, leaf: it })) // 그룹: 3단계 경로
+        )
 );
 const CATEGORY_PATH_STRINGS = CATEGORY_PATHS.map((p) => p.path);
 

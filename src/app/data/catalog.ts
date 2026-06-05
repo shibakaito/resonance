@@ -665,8 +665,10 @@ export function searchBrands(query: string, limit = 10): Brand[] {
 //   top  = 대분류 (앰프, 스피커, 소스기기, 케이블)
 //   subs = 그 대분류에 속한 하위 카테고리 목록
 // ⚠️ 여기를 수정하면 메뉴·필터·URL이 함께 바뀌므로 신중하게! (HANDOVER §13 참고)
-export const CATEGORY_TREE: { top: string; subs: string[] }[] = [
-  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '헤드폰 앰프', '네트워크 앰프', '리시버', 'AV 리시버'] },
+// 하위 노드: 문자열(잎=실제 카테고리) 또는 그룹({group, items}) — 그룹은 3단계(대분류 > 그룹 > 잎) 표시용.
+export type CategorySubNode = string | { group: string; items: string[] };
+export const CATEGORY_TREE: { top: string; subs: CategorySubNode[] }[] = [
+  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', { group: '포노 스테이지', items: ['포노앰프', 'MC 스텝업 헤드앰프', 'MC 스텝업 트랜스'] }, '헤드폰 앰프', '네트워크 앰프', '리시버', 'AV 리시버'] },
   { top: '스피커', subs: ['북쉘프 스피커', '플로어 스탠딩 스피커', '톨보이 스피커', '센터 스피커', '사운드바', '서브우퍼'] },
   { top: '소스기기', subs: ['턴테이블', '카세트 데크', '오픈릴 데크', 'CD 플레이어', 'CD 트랜스포트', 'SACD 플레이어', 'DAC', '네트워크 플레이어', '블루투스 리시버', 'FM 튜너', 'AM/FM 튜너', 'LD 플레이어', 'DVD 플레이어', '블루레이 플레이어'] },
   { top: '케이블', subs: ['RCA 케이블', 'XLR 케이블', '스피커 케이블', '파워 케이블', '디지털 동축 케이블', '광 케이블', 'USB 케이블', 'AES/EBU 케이블', 'BNC 케이블', 'HDMI 케이블', '포노 케이블', '점퍼 케이블', '헤드폰 케이블', '이어폰 케이블'] },
@@ -686,14 +688,17 @@ export const CATEGORY_ALIASES: Record<string, string[]> = {
 export const TOP_CATEGORIES = CATEGORY_TREE.map((c) => c.top);
 // 모든 하위 카테고리를 하나의 평평한 배열로 합친 목록.
 //   flatMap = map(각 항목 변환) + flat(중첩 배열을 한 단계 펼치기)을 합친 것.
-export const ALL_SUBCATEGORIES = CATEGORY_TREE.flatMap((c) => c.subs);
+// 하위 노드 배열 → 잎(실제 카테고리) 문자열 배열. 그룹은 items로 펼침. (메뉴/필터/검색은 잎 기준)
+export const flattenSubs = (subs: CategorySubNode[]): string[] =>
+  subs.flatMap((s) => (typeof s === 'string' ? [s] : s.items));
+export const ALL_SUBCATEGORIES = CATEGORY_TREE.flatMap((c) => flattenSubs(c.subs));
 
 // 헬퍼 함수: 특정 대분류(top)에 속한 하위 카테고리 목록을 반환. 없으면 빈 배열.
 //   find(...) = 조건에 맞는 첫 항목을 찾음 (없으면 undefined)
 //   ?.subs    = 찾은 게 있으면 subs를 꺼냄 (없으면 undefined) — '옵셔널 체이닝'
 //   ?? []     = 앞이 undefined면 빈 배열로 대체 — '널 병합'
 export function subcategoriesFor(top: string): string[] {
-  return CATEGORY_TREE.find((c) => c.top === top)?.subs ?? [];
+  return flattenSubs(CATEGORY_TREE.find((c) => c.top === top)?.subs ?? []);
 }
 
 // 하위 카테고리(또는 대분류) 한글명 → 대분류 한글명.
@@ -701,5 +706,5 @@ export function subcategoriesFor(top: string): string[] {
 //   (상세 페이지가 매물 카테고리로 카테고리별 스펙 스키마를 찾을 때 사용)
 export function topCategoryOf(catKo: string): string {
   if (CATEGORY_TREE.some((c) => c.top === catKo)) return catKo;
-  return CATEGORY_TREE.find((c) => c.subs.includes(catKo))?.top ?? catKo;
+  return CATEGORY_TREE.find((c) => flattenSubs(c.subs).includes(catKo))?.top ?? catKo;
 }

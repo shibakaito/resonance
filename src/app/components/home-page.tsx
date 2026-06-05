@@ -11,6 +11,7 @@ import {
   CATALOG,
   TOP_CATEGORIES,
   CATEGORY_TREE,
+  flattenSubs,
   subcategoriesFor
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
@@ -45,7 +46,7 @@ function getCategoriesForBrand(brand: string): string[] {
       if (
         nCat.includes(nTop) ||
         nTop.includes(nCat) ||
-        entry.subs.some((s) => {
+        flattenSubs(entry.subs).some((s) => {
           const ns = norm(s);
           return ns === nCat || ns.includes(nCat) || nCat.includes(ns);
         })

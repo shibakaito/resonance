@@ -8,7 +8,7 @@
 // 핵심 흐름: (한글)categorySlug() → 영문 / (영문)categoryFromSlug() → 한글
 // ============================================================================
 
-import { CATEGORY_TREE } from './catalog';
+import { CATEGORY_TREE, flattenSubs } from './catalog';
 
 // 대분류(앰프/스피커/...)의 한글→영문 슬러그 표.
 // Record<string, string> = "문자열 키 → 문자열 값" 형태의 객체 타입.
@@ -29,6 +29,7 @@ export const SUB_SLUGS: Record<string, string> = {
   '인티앰프': 'integrated-amp',
   '포노 스테이지': 'phono-stage',
   'MM/MC 포노앰프': 'phono-amp',
+  '포노앰프': 'phono-amp', // 포노 스테이지 하위(3단계 그룹의 잎). MC 스텝업 헤드앰프/트랜스는 아래에 기존 슬러그 존재.
   '파워 서플라이': 'power-supply',
   '부품': 'parts',
   '소모품': 'consumables',
@@ -147,7 +148,7 @@ export function categoryFromSlug(slug: string | null | undefined): string | null
 // 개발용 자가진단: CATEGORY_TREE의 모든 하위 카테고리가 SUB_SLUGS에 등록됐는지 검사.
 //   슬러그를 빠뜨리면 그 카테고리 URL이 깨지므로, 누락 목록을 돌려줘 점검에 사용.
 export function validateSlugMapping(): { missing: string[] } {
-  const allSubs = CATEGORY_TREE.flatMap((c) => c.subs);   // 모든 하위 카테고리
+  const allSubs = CATEGORY_TREE.flatMap((c) => flattenSubs(c.subs));   // 모든 하위 카테고리(잎)
   const missing = allSubs.filter((s) => !(s in SUB_SLUGS)); // 슬러그가 없는 것만 추림
   return { missing };
 }
