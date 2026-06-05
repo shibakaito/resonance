@@ -1561,6 +1561,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }
                   // ── 정격 출력: 출력값(W) + 기준 옴 쌍, +추가 가능 ──
                   if (f.input.kind === 'power') {
+                    const ohmOpts = f.input.ohmOptions ?? AMP_OHM_OPTS;
                     return (
                       <div key={f.key}>
                         <label className="block font-semibold mb-1">{f.label}</label>
@@ -1593,7 +1594,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
                                 >
                                   <option value="" disabled>기준</option>
-                                  {AMP_OHM_OPTS.map((o) => (
+                                  {ohmOpts.map((o) => (
                                     <option key={o} value={o} className="text-[#000000]">{o}</option>
                                   ))}
                                 </select>
