@@ -58,6 +58,8 @@ const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && type
 const isAvr = (s: Record<string, string | string[]>) => s.__sub === 'AV 리시버';
 // 헤드폰 앰프 전용 게이팅 (앰프 대분류의 하위 카테고리)
 const isHpAmp = (s: Record<string, string | string[]>) => s.__sub === '헤드폰 앰프';
+// 진공관 게이팅 — 증폭 방식이 진공관/하이브리드인 모든 앰프에서 진공관 종류 노출
+const isTubeAmp = (s: Record<string, string | string[]>) => s.device === '진공관' || s.device === '하이브리드';
 // 헤드폰 앰프 DAC 내장 게이팅 — 구성 형태가 'DAC 내장(올인원)'일 때 DAC 스펙 노출
 const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
 // 헤드폰 앰프 포터블 게이팅 — 사용 형태가 포터블(배터리)일 때 배터리 스펙 노출
@@ -149,6 +151,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS }, showWhen: (s) => !isAvr(s) }, // AVR은 아래 '채널 수'로 대체
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
+  { key: 'tubes', label: '진공관 종류', input: { kind: 'text', free: true }, showWhen: isTubeAmp },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS } },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
