@@ -136,6 +136,8 @@ export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect',
 export const HP_OUTPUT_TERMINALS = ['6.35mm', '3.5mm', '4.4mm (Pentaconn)', '4-pin XLR', '듀얼 3-pin XLR'];
 // 헤드폰 앰프 부하 임피던스 (출력 매트릭스용)
 export const HP_OHM_OPTS = ['16Ω', '32Ω', '50Ω', '80Ω', '150Ω', '250Ω', '300Ω', '600Ω'];
+// 헤드폰 앰프 사용 형태
+export const HP_FORM_OPTS = ['데스크탑', '포터블(배터리)', 'USB 동글'];
 // 헤드폰 앰프 구성 형태
 export const HP_TYPE_OPTS = ['순수 헤드폰 앰프', '헤드폰 앰프 + 프리앰프', 'DAC 내장(올인원)'];
 
@@ -170,6 +172,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'hpType', label: '구성 형태', input: { kind: 'select', options: HP_TYPE_OPTS }, showWhen: isHpAmp },
   { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: hpHasDac },
   { key: 'hpResolution', label: '지원 해상도', input: { kind: 'text', free: true }, showWhen: hpHasDac },
+  { key: 'hpForm', label: '사용 형태', input: { kind: 'select', options: HP_FORM_OPTS }, showWhen: isHpAmp },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS }, showWhen: (s) => !isHpAmp(s) }, // 헤드폰 앰프엔 해당 없음
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS } },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS } },
