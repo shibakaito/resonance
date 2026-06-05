@@ -146,7 +146,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS } },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' } },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
-  { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS } },
+  { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS }, showWhen: (s) => !isHpAmp(s) }, // 헤드폰 앰프는 아래 '권장 헤드폰 임피던스'로 대체
   { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' } },
   { key: 'snr', label: 'S/N', input: { kind: 'text', unit: 'dB' } },
   { key: 'damping', label: '댐핑 팩터', input: { kind: 'text' } },
@@ -163,6 +163,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'hpOutputs', label: '헤드폰 출력 단자', input: { kind: 'multi', options: HP_OUTPUT_TERMINALS }, showWhen: isHpAmp },
   { key: 'hpGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isHpAmp },
   { key: 'hpOutputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isHpAmp },
+  { key: 'hpImpedanceRange', label: '권장 헤드폰 임피던스', input: { kind: 'range', lowUnit: 'Ω', highUnit: 'Ω' }, showWhen: isHpAmp },
   { key: 'hpType', label: '구성 형태', input: { kind: 'select', options: HP_TYPE_OPTS }, showWhen: isHpAmp },
   { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: hpHasDac },
   { key: 'hpResolution', label: '지원 해상도', input: { kind: 'text', free: true }, showWhen: hpHasDac },
