@@ -172,7 +172,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS }, showWhen: (s) => !isAvr(s) && !isHpAmp(s) && !isPhonoGroup(s) }, // AVR=채널 수 / 헤드폰·포노 그룹 숨김
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
-  { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
+  { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS }, showWhen: (s) => !isMcSut(s) }, // MC 스텝업 트랜스(패시브)는 증폭 방식 없음
   { key: 'tubes', label: '진공관 종류', input: { kind: 'text', free: true }, showWhen: isTubeAmp },
   // ── 포노앰프 전용: 지원 카트리지 + MM 블록 ──
   { key: 'cartridgeSupport', label: '지원 카트리지', input: { kind: 'select', options: PHONO_CARTRIDGE_OPTS }, showWhen: isPhonoAmp },
@@ -210,8 +210,8 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹 숨김
-  { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' } },
-  { key: 'snr', label: 'S/N', input: { kind: 'text', unit: 'dB' } },
+  { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 THD 무의미
+  { key: 'snr', label: 'S/N', input: { kind: 'text', unit: 'dB' }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 S/N 무의미
   { key: 'damping', label: '댐핑 팩터', input: { kind: 'text' }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS } },
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS } },
@@ -237,7 +237,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
   { key: 'remote', label: '리모컨', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
-  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
+  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 무전원
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
 ];
