@@ -180,6 +180,10 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'eqCurves', label: 'EQ 커브', input: { kind: 'multi', options: EQ_CURVE_OPTS }, showWhen: isPhonoAmp },
   { key: 'subsonic', label: '서브소닉 필터', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
   { key: 'monoSwitch', label: '모노 스위치', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
+  // ── 포노앰프 전용: 출력 / 포노 공통: 접지 ──
+  { key: 'outputLevel', label: '출력 레벨', input: { kind: 'text', free: true }, showWhen: isPhonoAmp },
+  { key: 'outputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPhonoAmp },
+  { key: 'groundTerminal', label: '접지 단자', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoGroup },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
