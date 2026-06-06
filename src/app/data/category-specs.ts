@@ -68,6 +68,8 @@ const isPhonoAmp = (s: Record<string, string | string[]>) => s.__sub === '포노
 const isPhonoMM = (s: Record<string, string | string[]>) => isPhonoAmp(s) && (s.cartridgeSupport === 'MM' || s.cartridgeSupport === 'MM/MC');
 // 포노앰프 MC 블록 게이팅 — 지원 카트리지에 MC 포함 시
 const isPhonoMC = (s: Record<string, string | string[]>) => isPhonoAmp(s) && (s.cartridgeSupport === 'MC' || s.cartridgeSupport === 'MM/MC');
+// MC 스텝업 헤드앰프 (능동) 전용
+const isMcHeadAmp = (s: Record<string, string | string[]>) => s.__sub === 'MC 스텝업 헤드앰프';
 // 헤드폰 앰프 DAC 내장 게이팅 — 구성 형태가 'DAC 내장(올인원)'일 때 DAC 스펙 노출
 const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
 // 헤드폰 앰프 포터블 게이팅 — 사용 형태가 포터블(배터리)일 때 배터리 스펙 노출
@@ -102,6 +104,8 @@ export const PHONO_CARTRIDGE_OPTS = ['MM', 'MC', 'MM/MC'];
 export const PHONO_MCBOOST_OPTS = ['능동 헤드앰프', '내장 SUT', '전류입력'];
 // 포노앰프 EQ 커브 (다중)
 export const EQ_CURVE_OPTS = ['RIAA', 'eRIAA', 'Decca', 'Columbia', 'NAB', 'Teldec'];
+// MC 스텝업 헤드앰프 사용 소자
+export const MC_DEVICE_OPTS = ['JFET', 'BJT', 'IC/Op-amp'];
 export const YES_NO_OPTS = ['있음', '없음'];
 export const AMP_VOLTAGE_OPTS = ['100V', '120V', '220V', '프리볼트'];
 
@@ -184,6 +188,12 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'outputLevel', label: '출력 레벨', input: { kind: 'text', free: true }, showWhen: isPhonoAmp },
   { key: 'outputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPhonoAmp },
   { key: 'groundTerminal', label: '접지 단자', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoGroup },
+  // ── MC 스텝업 헤드앰프(능동) 전용 ──
+  { key: 'mcHeadGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadLoad', label: '입력 임피던스', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadOutImp', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadDevice', label: '사용 소자', input: { kind: 'select', options: MC_DEVICE_OPTS }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadCartImp', label: '권장 카트리지 임피던스', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
