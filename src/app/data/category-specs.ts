@@ -64,6 +64,8 @@ const isTubeAmp = (s: Record<string, string | string[]>) => s.device === '진공
 const isPhonoGroup = (s: Record<string, string | string[]>) => s.__sub === '포노앰프' || s.__sub === 'MC 스텝업 헤드앰프' || s.__sub === 'MC 스텝업 트랜스';
 // 포노앰프(풀 포노 스테이지) 전용
 const isPhonoAmp = (s: Record<string, string | string[]>) => s.__sub === '포노앰프';
+// 포노앰프 MM 블록 게이팅 — 지원 카트리지에 MM 포함 시
+const isPhonoMM = (s: Record<string, string | string[]>) => isPhonoAmp(s) && (s.cartridgeSupport === 'MM' || s.cartridgeSupport === 'MM/MC');
 // 헤드폰 앰프 DAC 내장 게이팅 — 구성 형태가 'DAC 내장(올인원)'일 때 DAC 스펙 노출
 const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
 // 헤드폰 앰프 포터블 게이팅 — 사용 형태가 포터블(배터리)일 때 배터리 스펙 노출
@@ -92,6 +94,8 @@ export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드
 export const AMP_CLASS_OPTS = ['Class A', 'Class AB', 'Class B', 'Class D', 'Class G', 'Class H']; // 동작 클래스
 export const AMP_OHM_OPTS = ['2Ω', '4Ω', '6Ω', '8Ω', '16Ω']; // 정격 출력 기준 옴 + 지원 임피던스 공용
 export const AMP_PHONO_OPTS = ['MM', 'MC', 'MM/MC', '없음'];
+// 포노앰프 지원 카트리지
+export const PHONO_CARTRIDGE_OPTS = ['MM', 'MC', 'MM/MC'];
 export const YES_NO_OPTS = ['있음', '없음'];
 export const AMP_VOLTAGE_OPTS = ['100V', '120V', '220V', '프리볼트'];
 
@@ -156,6 +160,11 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS } },
   { key: 'tubes', label: '진공관 종류', input: { kind: 'text', free: true }, showWhen: isTubeAmp },
+  // ── 포노앰프 전용: 지원 카트리지 + MM 블록 ──
+  { key: 'cartridgeSupport', label: '지원 카트리지', input: { kind: 'select', options: PHONO_CARTRIDGE_OPTS }, showWhen: isPhonoAmp },
+  { key: 'mmGain', label: 'MM 게인', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
+  { key: 'mmLoad', label: 'MM 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
+  { key: 'mmCap', label: 'MM 입력 정전용량', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
