@@ -100,6 +100,8 @@ export const AMP_PHONO_OPTS = ['MM', 'MC', 'MM/MC', '없음'];
 export const PHONO_CARTRIDGE_OPTS = ['MM', 'MC', 'MM/MC'];
 // 포노앰프 MC 승압 방식
 export const PHONO_MCBOOST_OPTS = ['능동 헤드앰프', '내장 SUT', '전류입력'];
+// 포노앰프 EQ 커브 (다중)
+export const EQ_CURVE_OPTS = ['RIAA', 'eRIAA', 'Decca', 'Columbia', 'NAB', 'Teldec'];
 export const YES_NO_OPTS = ['있음', '없음'];
 export const AMP_VOLTAGE_OPTS = ['100V', '120V', '220V', '프리볼트'];
 
@@ -173,6 +175,11 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'mcBoostMode', label: 'MC 승압 방식', input: { kind: 'select', options: PHONO_MCBOOST_OPTS }, showWhen: isPhonoMC },
   { key: 'mcGain', label: 'MC 게인', input: { kind: 'text', free: true }, showWhen: isPhonoMC },
   { key: 'mcLoad', label: 'MC 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isPhonoMC },
+  // ── 포노앰프 전용: RIAA·EQ·필터 (포노앰프 공통) ──
+  { key: 'riaaAccuracy', label: 'RIAA 정확도', input: { kind: 'text', free: true }, showWhen: isPhonoAmp },
+  { key: 'eqCurves', label: 'EQ 커브', input: { kind: 'multi', options: EQ_CURVE_OPTS }, showWhen: isPhonoAmp },
+  { key: 'subsonic', label: '서브소닉 필터', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
+  { key: 'monoSwitch', label: '모노 스위치', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
