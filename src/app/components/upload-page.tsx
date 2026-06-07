@@ -1075,7 +1075,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   };
 
   return (
-    <main className="max-w-7xl mx-auto px-4 py-6 bg-[#f7f7f7] min-h-screen">
+    <main className="bg-[#f7f7f7] min-h-screen">
+      <div className="max-w-7xl mx-auto px-4 py-6">
       <nav className="flex items-center gap-1 text-sm text-gray-600 mb-4">
         <button className="hover:text-[#000000]">내 상품 목록</button>
         <ChevronRight className="w-3 h-3" />
@@ -2339,6 +2340,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </main>
   );
