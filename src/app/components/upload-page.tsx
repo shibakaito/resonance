@@ -177,13 +177,13 @@ function ImpedanceSelect({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 flex items-center bg-white focus:outline-none focus:border-[#000000]"
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 flex items-center bg-white focus:outline-none focus:border-[#000000]"
         >
           <span className="text-gray-400">선택하세요</span>
           <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
         {open && (
-          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg py-1">
+          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg py-1">
             {options.map((o) => {
               const active = selected.includes(o);
               return (
@@ -206,7 +206,7 @@ function ImpedanceSelect({
         <input
           readOnly
           value={displayText}
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
         />
         {selected.length > 0 && (
           <button
@@ -327,11 +327,11 @@ function MultiSelectDropdown({
             }
           }}
           placeholder="검색 또는 선택"
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000]"
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000]"
         />
         <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform pointer-events-none ${open ? 'rotate-180' : ''}`} />
         {open && (
-          <div ref={listRef} className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg">
+          <div ref={listRef} className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg">
             {/* 매칭 추천 항목 */}
             {matched.map((o, idx) => {
               const active = selected.includes(o);
@@ -370,9 +370,9 @@ function MultiSelectDropdown({
         )}
       </div>
       {/* 선택된 항목 칩 — 흰색 영역, 각 칩 개별 X */}
-      <div className="min-h-[42px] mt-2 border border-[#e0e0e0] rounded-lg bg-white px-2 py-1.5 flex flex-wrap gap-2 items-center">
+      <div className="min-h-[42px] mt-2 border border-[#e0e0e0] rounded-none bg-white px-2 py-1.5 flex flex-wrap gap-2 items-center">
         {selected.map((o) => (
-          <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] border border-[#e0e0e0] rounded-md text-sm text-gray-700">
+          <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] border border-[#e0e0e0] rounded-none text-sm text-gray-700">
             {o}
             <button
               type="button"
@@ -540,7 +540,7 @@ function Typeahead({
           }
         }}
         placeholder={placeholder}
-        className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+        className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
       />
       {/* 값이 있으면 오른쪽 끝에 X 버튼 — 클릭 시 선택값/검색어 초기화 */}
       {value && (
@@ -563,7 +563,7 @@ function Typeahead({
       {open && (!hideUntilTyping || qNorm) && (
         <div
           ref={listRef}
-          className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-lg shadow-lg"
+          className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg"
         >
           {matched.length === 0 && (
             <div className="px-3 py-2 text-sm text-gray-500">검색 결과 없음</div>
@@ -642,7 +642,7 @@ function driverSummary(rows: DriverRow[]): string {
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-none px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
   const summary = driverSummary(rows);
   // 서브우퍼: 종류는 우퍼·패시브 라디에이터만, 셀(구조/재질/크기/개수)은 처음부터 펼침
   const typeOpts = subwoofer ? ['우퍼', '패시브 라디에이터'] : DRIVER_TYPES;
@@ -657,7 +657,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '' })}
-                className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
                 {typeOpts.map((t) => (
@@ -729,7 +729,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       </button>
       {/* 자동 요약 (읽기 전용) — 임피던스 회색칸처럼 선택 내역을 문자열로 */}
       {summary && (
-        <div className="px-3 py-2 bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg text-sm text-gray-700 break-words">
+        <div className="px-3 py-2 bg-[#f7f7f7] border border-[#e0e0e0] rounded-none text-sm text-gray-700 break-words">
           {summary}
         </div>
       )}
@@ -748,7 +748,7 @@ const AMP_POWER_TYPES = ['전체', ...DRIVER_TYPES.filter((t) => t !== '동축' 
 function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
   const update = (i: number, patch: Partial<AmpPowerRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-lg px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-none px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
   return (
     <div className="space-y-2">
       {rows.map((row, i) => (
@@ -758,7 +758,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
             <select
               value={row.type}
               onChange={(e) => update(i, { type: e.target.value })}
-              className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+              className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
             >
               <option value="" disabled>종류</option>
               {AMP_POWER_TYPES.map((t) => (
@@ -1137,7 +1137,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         <div className="lg:col-span-9 space-y-6">
           <section
             id="section-info"
-            className="bg-white border border-[#e0e0e0] rounded-xl p-6"
+            className="bg-white border border-[#e0e0e0] rounded-none p-6"
           >
             <h2 className="text-2xl font-bold mb-2">제품 정보</h2>
             <div className="space-y-4">
@@ -1228,7 +1228,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 
@@ -1245,7 +1245,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={components}
                   onChange={(e) => setComponents(e.target.value)}
                   placeholder=""
-                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 
@@ -1270,7 +1270,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         setConditionWorkingDetail('');
                       }
                     }}
-                    className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
                       condition ? '' : 'text-gray-400'
                     }`}
                   >
@@ -1291,7 +1291,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={ownership}
                     onChange={(e) => setOwnership(e.target.value)}
                     disabled={!condition.startsWith('used_')}
-                    className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                       ownership ? '' : 'text-gray-400'
                     }`}
                   >
@@ -1313,7 +1313,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={conditionAppearance}
                       onChange={(e) => setConditionAppearance(e.target.value)}
                       disabled={!condition.startsWith('used_')}
-                      className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                      className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                         conditionAppearance ? '' : 'text-gray-400'
                       }`}
                     >
@@ -1330,7 +1330,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => setConditionAppearanceDetail(e.target.value)}
                     disabled={!condition.startsWith('used_')}
                     placeholder=""
-                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -1344,7 +1344,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={conditionWorking}
                       onChange={(e) => setConditionWorking(e.target.value)}
                       disabled={!condition.startsWith('used_')}
-                      className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                      className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                         conditionWorking ? '' : 'text-gray-400'
                       }`}
                     >
@@ -1360,7 +1360,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => setConditionWorkingDetail(e.target.value)}
                     disabled={!condition.startsWith('used_')}
                     placeholder=""
-                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -1374,7 +1374,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={title}
                   onChange={(e) => { setTitle(e.target.value); setTitleEdited(true); }}
                   placeholder=""
-                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 
@@ -1395,7 +1395,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
-          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <button
               type="button"
               onClick={() => setTechExpanded((v) => !v)}
@@ -1422,7 +1422,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <input
                           value={subcategory || category}
                           readOnly
-                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 bg-[#f7f7f7] text-gray-500 cursor-default"
+                          className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 bg-[#f7f7f7] text-gray-500 cursor-default"
                         />
                       </div>
                     );
@@ -1437,7 +1437,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <select
                             value={v}
                             onChange={(e) => setSpec(e.target.value)}
-                            className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${v ? 'pr-16' : 'pr-9'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                            className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${v ? 'pr-16' : 'pr-9'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
                               v ? '' : 'text-gray-400'
                             }`}
                           >
@@ -1503,7 +1503,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             onChange={(e) => setSpec(free ? e.target.value : numOnly(e.target.value))}
                             inputMode={free ? 'text' : 'decimal'}
                             placeholder=""
-                            className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 py-2 focus:outline-none focus:border-[#000000] ${
+                            className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 py-2 focus:outline-none focus:border-[#000000] ${
                               unit ? 'pr-10' : 'pr-3'
                             }`}
                           />
@@ -1530,7 +1530,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               value={specs[f.key] || ''}
                               onChange={(e) => setSpec(numOnly(e.target.value))}
                               inputMode="decimal"
-                              className={`w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
+                              className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
                             />
                             {unit && (
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{unit}</span>
@@ -1540,7 +1540,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             <select
                               value={typeVal}
                               onChange={(e) => setSpecs({ ...specs, [typeKey]: e.target.value })}
-                              className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${typeVal ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${typeVal ? '' : 'text-gray-400'}`}
+                              className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${typeVal ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${typeVal ? '' : 'text-gray-400'}`}
                             >
                               <option value="" disabled>선택</option>
                               {f.input.options.map((o) => (
@@ -1582,7 +1582,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   }}
                                   inputMode="decimal"
                                   placeholder="출력값"
-                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">W</span>
                               </div>
@@ -1595,7 +1595,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     setPowerPairs(pairs);
                                     setSpecs({ ...specs, powerRated: buildPower(pairs) });
                                   }}
-                                  className={`w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
+                                  className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
                                 >
                                   <option value="" disabled>기준</option>
                                   {ohmOpts.map((o) => (
@@ -1664,7 +1664,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => setRange({ low: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="하한"
-                              className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                              className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{lowUnit}</span>
                           </div>
@@ -1675,7 +1675,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => setRange({ high: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="상한"
-                              className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                              className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{highUnit}</span>
                           </div>
@@ -1699,7 +1699,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           onChange={(e) => update(i, { [axis]: numOnly(e.target.value) })}
                           inputMode="decimal"
                           placeholder={ph}
-                          className="w-full h-[42px] border border-[#e0e0e0] rounded-lg pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+                          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
                         />
                         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">mm</span>
                       </div>
@@ -1719,7 +1719,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 value={r.note}
                                 onChange={(e) => update(i, { note: e.target.value })}
                                 placeholder="비고"
-                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                               />
                               {rows.length > 1 ? (
                                 <button
@@ -1806,13 +1806,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 value={row.value}
                                 onChange={(e) => { const nv = numOnly(e.target.value); setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, value: nv } : x))); }}
                                 inputMode="decimal"
-                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                               />
                               <div className="relative w-24 flex-shrink-0">
                                 <select
                                   value={row.unit}
                                   onChange={(e) => { const u = e.target.value; setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, unit: u } : x))); }}
-                                  className="w-full appearance-none border border-[#e0e0e0] rounded-lg pl-3 pr-8 h-[42px] bg-white focus:outline-none focus:border-[#000000]"
+                                  className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-8 h-[42px] bg-white focus:outline-none focus:border-[#000000]"
                                 >
                                   <option value="Hz">Hz</option>
                                   <option value="kHz">kHz</option>
@@ -1855,7 +1855,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={specs[f.key] || ''}
                       onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                     />
                   </div>
                 ))}
@@ -1869,7 +1869,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
           <section
             id="section-photos"
-            className="bg-white border border-[#e0e0e0] rounded-xl p-6"
+            className="bg-white border border-[#e0e0e0] rounded-none p-6"
           >
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-xl font-bold">
@@ -1888,7 +1888,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {PHOTO_EXAMPLES.map((ex) => (
                   <div key={ex.label} className="text-center">
-                    <div className="aspect-square rounded-lg overflow-hidden bg-white border border-[#e0e0e0] mb-1">
+                    <div className="aspect-square rounded-none overflow-hidden bg-white border border-[#e0e0e0] mb-1">
                       <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
                     </div>
                     <p className="text-xs text-gray-600">{ex.label}</p>
@@ -1913,7 +1913,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               onClick={openFilePicker}
               onDrop={onDrop}
               onDragOver={onDragOver}
-              className="border-2 border-dashed border-[#e0e0e0] hover:border-gray-700 hover:bg-[#f7f7f7] rounded-lg py-12 flex flex-col items-center justify-center text-center cursor-pointer transition"
+              className="border-2 border-dashed border-[#e0e0e0] hover:border-gray-700 hover:bg-[#f7f7f7] rounded-none py-12 flex flex-col items-center justify-center text-center cursor-pointer transition"
             >
               <button
                 type="button"
@@ -1935,7 +1935,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
             )}
             {uploadError && (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
+              <div className="mt-3 rounded-none border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-700">
                 {uploadError}
               </div>
             )}
@@ -1948,7 +1948,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   {images.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-square rounded-lg overflow-hidden border-2 border-[#e0e0e0] bg-[#f7f7f7] group"
+                      className="relative aspect-square rounded-none overflow-hidden border-2 border-[#e0e0e0] bg-[#f7f7f7] group"
                     >
                       <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
                       {idx === 0 && (
@@ -1970,14 +1970,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             )}
           </section>
 
-          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <h3 className="text-xl font-bold mb-4">항목을 설명하세요.</h3>
 
             <div>
               <label className="block font-semibold mb-1">
                 이 상품과 그 상태에 대해 설명해 주세요 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
               </label>
-              <div className="border border-[#e0e0e0] rounded-lg overflow-hidden focus-within:border-[#000000]">
+              <div className="border border-[#e0e0e0] rounded-none overflow-hidden focus-within:border-[#000000]">
                 <div className="flex gap-1 px-2 py-1.5 border-b border-[#e0e0e0] bg-[#f7f7f7]">
                   <button className="w-7 h-7 rounded hover:bg-[#e0e0e0] flex items-center justify-center text-gray-700">
                     <Bold className="w-4 h-4" />
@@ -2033,14 +2033,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
                     placeholder=""
-                    className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                    className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                   />
                 </div>
               )}
             </div>
           </section>
 
-          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <div className="flex items-center gap-2 mb-4">
               <Youtube className="w-5 h-5 text-red-600" />
               <h3 className="text-xl font-bold">상품 목록에 YouTube 동영상을 삽입하세요</h3>
@@ -2052,14 +2052,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={youtubeLink}
                   onChange={(e) => setYoutubeLink(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">유튜브 영상을 검색하세요</label>
                 <input
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-lg px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
             </div>
@@ -2068,7 +2068,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <h2 id="section-price" className="text-2xl font-bold pl-2 pt-2">
             가격
           </h2>
-          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2080,7 +2080,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={price}
                       onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">원</span>
                   </div>
@@ -2094,7 +2094,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={comparePrice}
                       onChange={(e) => setComparePrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">원</span>
                   </div>
@@ -2124,7 +2124,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const hasMarketData = true;
             if (!hasMarketData) {
               return (
-                <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+                <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
                   <h3 className="text-xl font-bold mb-2">가격 변동 내역</h3>
                   <p className="text-sm text-gray-500">
                     해당 제품의 시장 가격 데이터가 아직 없습니다.
@@ -2170,7 +2170,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 : '현재 평균 시장 가격대 안에 있어요';
 
             return (
-              <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+              <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
                 <h3 className="text-xl font-bold mb-4">
                   이 제품은 <span className={zoneColor}>{zoneLabel}</span>이에요
                 </h3>
@@ -2230,7 +2230,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <h2 id="section-shipping" className="text-2xl font-bold pl-2 pt-2">
             배송
           </h2>
-          <section className="bg-white border border-[#e0e0e0] rounded-xl p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <div className="space-y-2 mb-4">
               {[
                 { value: 'free', label: '무료 배송', desc: '판매자가 배송비를 부담' },
@@ -2239,7 +2239,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               ].map((opt) => (
                 <label
                   key={opt.value}
-                  className={`flex items-start gap-3 p-3 rounded-lg border-2 cursor-pointer transition ${
+                  className={`flex items-start gap-3 p-3 rounded-none border-2 cursor-pointer transition ${
                     shippingType === opt.value
                       ? 'border-[#000000] bg-[#f7f7f7]'
                       : 'border-[#e0e0e0] hover:border-[#e0e0e0]'
@@ -2268,7 +2268,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={shippingCost}
                     onChange={(e) => setShippingCost(e.target.value.replace(/[^0-9]/g, ''))}
                     placeholder=""
-                    className="w-full border border-[#e0e0e0] rounded-lg pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                    className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                   />
                   <span className="absolute right-3 top-2 text-gray-500">원</span>
                 </div>
@@ -2285,10 +2285,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </label>
           </section>
 
-          <div className="bg-white border border-[#e0e0e0] rounded-xl p-6">
-            <div className="rounded-lg bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0] p-4 space-y-3 mb-5">
+          <div className="bg-white border border-[#e0e0e0] rounded-none p-6">
+            <div className="rounded-none bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0] p-4 space-y-3 mb-5">
               <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded-lg bg-[#e0e0e0] flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-none bg-[#e0e0e0] flex items-center justify-center flex-shrink-0">
                   <Tag className="w-4 h-4 text-[#000000]" />
                 </div>
                 <div>
@@ -2297,7 +2297,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-none bg-blue-100 flex items-center justify-center flex-shrink-0">
                   <Truck className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
@@ -2306,7 +2306,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
               <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <div className="w-8 h-8 rounded-none bg-amber-100 flex items-center justify-center flex-shrink-0">
                   <HelpCircle className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
@@ -2317,7 +2317,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
 
             {submitError && (
-              <div className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              <div className="mb-3 rounded-none border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                 {submitError}
               </div>
             )}
@@ -2325,15 +2325,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-[#000000] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#000000] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 bg-[#000000] text-white py-3 px-6 rounded-none font-semibold hover:bg-[#000000] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
                 {submitting ? '등록 중…' : '상품 등록하기'}
               </button>
-              <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-lg font-semibold hover:border-gray-400 transition">
+              <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-none font-semibold hover:border-gray-400 transition">
                 임시 저장
               </button>
-              <button className="text-gray-600 py-3 px-6 rounded-lg font-semibold hover:text-[#000000] transition">
+              <button className="text-gray-600 py-3 px-6 rounded-none font-semibold hover:text-[#000000] transition">
                 취소
               </button>
             </div>
