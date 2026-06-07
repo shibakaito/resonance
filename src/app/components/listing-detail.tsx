@@ -331,7 +331,7 @@ export function ListingDetail({ id }: { id?: string }) {
                         />
                       </button>
                       <div className="aspect-square bg-[#f7f7f7]">
-                        <img src={item.img} alt={item.title} className="w-full h-full object-contain" />
+                        <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
                       </div>
                       <div className="p-3">
                         <h4 className="text-sm font-semibold truncate">{item.title}</h4>
@@ -1090,7 +1090,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       />
                     </button>
                     <div className="aspect-square bg-[#f7f7f7]">
-                      <img src={item.img} alt={item.title} className="w-full h-full object-contain" />
+                      <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
                     </div>
                     <div className="p-3">
                       <h4 className="text-sm font-semibold truncate">{item.title}</h4>
