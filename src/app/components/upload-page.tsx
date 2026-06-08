@@ -1070,7 +1070,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (id === 'info') return Boolean(brand && model && category);
     if (id === 'photos') return images.length > 0 && description.length > 10;
     if (id === 'price') return Boolean(price);
-    if (id === 'shipping') return true;
+    if (id === 'shipping') return Boolean(shippingType);
     return false;
   };
 
