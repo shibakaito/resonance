@@ -166,7 +166,7 @@ export type ListingInput = {
   price: string;          // 폼 문자열 (콤마 등 포함 가능)
   comparePrice: string;
   acceptOffers: boolean;
-  shippingType: 'free' | 'flat' | 'calculated';
+  shippingType: 'free' | 'flat' | 'calculated' | ''; // 빈 문자열 = 미선택
   shippingCost: string;
   localPickup: boolean;
   specs?: Record<string, unknown>; // jsonb로 저장될 카테고리별 상세 스펙 (외관/작동 등)
