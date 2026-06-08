@@ -1418,7 +1418,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <input
                           value={subcategory || category}
@@ -1432,7 +1432,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'select') {
                     const v = specs[f.key] || '';
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="relative">
                           <select
@@ -1477,7 +1477,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         }
                       : undefined;
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <Typeahead
                           value={specs[f.key] || ''}
@@ -1496,7 +1496,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const unit = f.input.unit;
                     const free = f.input.free; // 자유 텍스트면 숫자 필터 X
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="relative">
                           <input
@@ -1523,7 +1523,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const typeKey = `${f.key}Type`;
                     const typeVal = specs[typeKey] || '';
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
@@ -1568,7 +1568,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'power') {
                     const ohmOpts = f.input.ohmOptions ?? AMP_OHM_OPTS;
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {powerPairs.map((p, idx) => (
@@ -1656,7 +1656,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       setSpecs((s) => ({ ...s, [f.key]: buildFreq(nr.low, nr.high, lowUnit, highUnit) }));
                     };
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
@@ -1706,7 +1706,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
@@ -1754,7 +1754,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
                     if (f.key === 'impedance') {
                       return (
-                        <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                        <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                           <label>{f.label}</label>
                           <ImpedanceSelect
                             options={f.input.options}
@@ -1766,7 +1766,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       );
                     }
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <MultiSelectDropdown
                           options={f.input.options}
@@ -1780,7 +1780,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 드라이버 구성 빌더 (스피커) ──
                   if (f.input.kind === 'drivers') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} subwoofer={subcategory === '서브우퍼'} />
                       </div>
@@ -1789,7 +1789,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 앰프 출력(액티브): 드라이버 종류 + 출력값(자유 입력) ──
                   if (f.input.kind === 'ampPower') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <AmpPowerBuilder rows={ampPowerRows} onChange={setAmpPowerRows} />
                       </div>
@@ -1798,7 +1798,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 크로스오버: 주파수(Hz) 여러 개 + "크로스오버 추가" ──
                   if (f.input.kind === 'crossover') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {crossoverValues.map((row, idx) => (
@@ -1850,7 +1850,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
               <div className="space-y-4">
                 {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
-                  <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[200px_1fr] gap-3 sm:items-start">
+                  <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
                     <label>{f.label}</label>
                     <input
                       value={specs[f.key] || ''}
