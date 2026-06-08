@@ -1849,7 +1849,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             ) : (
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
               <div className="space-y-4">
-                {SPEC_FIELDS.map((f) => (
+                {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
                   <div key={f.key}>
                     <label className="block font-semibold mb-1">{f.label}</label>
                     <input
