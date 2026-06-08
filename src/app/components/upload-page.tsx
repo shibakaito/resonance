@@ -1096,7 +1096,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <li key={step.id} className="relative pl-10 pb-6 last:pb-0">
                     {idx < STEPS.length - 1 && (
                       <span
-                        className={`absolute left-3 top-7 w-0.5 h-full -ml-px ${
+                        className={`absolute left-3 top-6 bottom-0 w-0.5 -ml-px ${
                           isDone ? 'bg-gray-700' : 'bg-[#e0e0e0]'
                         }`}
                       />
