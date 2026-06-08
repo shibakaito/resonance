@@ -204,3 +204,58 @@
   overflow: hidden;
   animation: megaRollUp 360ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
 }
+
+/* ── 레퍼런스(SONUS) 에디토리얼 톤: 제품 정보(Basic) + 기술 사양(Spec) ── */
+/* 제품 정보 라벨: 대문자 회색 eyebrow */
+#section-info label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 600;
+  color: #717182;
+}
+/* 제품 정보 입력: 회색 채움·무테두리 → 포커스 흰 배경 + 파랑 */
+#section-info input,
+#section-info select,
+#section-info textarea {
+  background-color: #f4f4f5;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+}
+#section-info input:focus,
+#section-info select:focus,
+#section-info textarea:focus {
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  outline: none;
+}
+/* 기술 사양 입력: 회색 채움·무테두리 박스 → 포커스 흰 배경 + 파랑 (제품 정보와 동일) */
+.spec-field input,
+.spec-field select,
+.spec-field textarea {
+  background-color: #f4f4f5;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+}
+.spec-field input:focus,
+.spec-field select:focus,
+.spec-field textarea:focus {
+  background-color: #ffffff;
+  border-color: #3b82f6;
+  outline: none;
+}
+/* 앞칸 = 헤더 셀: 회색 박스에 필드명 (외관/작동의 앞 박스처럼) */
+.spec-field label {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 0.75rem;
+  background-color: #f4f4f5;
+  border-radius: 0.5rem;
+  /* 폰트 = 오른쪽 값(input)과 통일: 16px · 일반 굵기 · 대문자 없음 · gray-500 */
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: 1rem;
+  font-weight: 400;
+  color: oklch(0.551 0.027 264.364);
+}
