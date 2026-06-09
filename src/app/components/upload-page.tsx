@@ -613,8 +613,8 @@ function Typeahead({
 
 // 드라이버 구성 빌더 — 행 1개 = 드라이버 1개. 종류에 따라 구조/재질(또는 담당대역) 옵션·칼럼이 바뀜(cascading).
 // 검색+드롭다운(단일)은 Typeahead 재사용(단자 위젯은 다중이라, 단일판 Typeahead 사용). A단계: 렌더만(요약·저장 없음).
-type DriverRow = { type: string; structure: string; material: string; band: string; size: string; count: string };
-const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', count: '' };
+type DriverRow = { type: string; structure: string; material: string; band: string; size: string; sizeUnit: string; count: string };
+const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' };
 
 // 종류 → 담당 영역(대역). way 계산용. 동축은 담당대역 문자열을 '+'/'/'로 쪼개 각 역할명을 대역으로.
 const ROLE_BAND: Record<string, string> = { '우퍼': '저역', '미드우퍼': '중저역', '미드레인지': '중역', '트위터': '고역', '슈퍼 트위터': '초고역', '풀레인지': '전대역' };
@@ -625,20 +625,22 @@ function driverSummary(rows: DriverRow[]): string {
   if (active.length === 0) return '';
   const bands = new Set<string>();
   let drivers = 0;
+  let allCounted = true; // 활성 행 전부 개수 입력됐을 때만 'N driver' 표시
   const parts: string[] = [];
   for (const r of active) {
     const n = parseInt(r.count, 10);
-    if (Number.isFinite(n)) drivers += n;
+    if (Number.isFinite(n) && n > 0) drivers += n;
+    else allCounted = false;
     if (r.type === '동축') {
       (r.band || '').split(/[+/]/).map((s) => s.trim()).filter(Boolean).forEach((seg) => bands.add(ROLE_BAND[seg] ?? seg));
-      parts.push(`${r.size} ${r.structure} 타입(${r.band})${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+      parts.push(`${r.size ? r.size + r.sizeUnit : ''} ${r.structure} 타입(${r.band})${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
     } else {
       bands.add(ROLE_BAND[r.type] ?? r.type);
       const mat = (r.material || '').replace(/\s*콘$/, ''); // 페이퍼 콘 → 페이퍼
-      parts.push(`${r.size} ${mat} ${r.structure} ${r.type}${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+      parts.push(`${r.size ? r.size + r.sizeUnit : ''} ${mat} ${r.structure} ${r.type}${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
     }
   }
-  return `${bands.size}-way, ${drivers} driver, ${parts.join(' / ')}`;
+  return `${bands.size}-way, ${allCounted ? `${drivers} driver, ` : ''}${parts.join(' / ')}`;
 }
 
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
@@ -655,7 +657,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
         return (
           <div key={i} className="flex items-center gap-1.5 -mr-6">
             {/* 종류 (항상 표시) */}
-            <div className="relative w-28 flex-shrink-0">
+            <div className="relative w-44 flex-shrink-0">
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '' })}
@@ -695,8 +697,19 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 value={row.size}
                 onChange={(e) => update(i, { size: e.target.value })}
                 placeholder="크기"
-                className={`${inputCls} w-28 flex-shrink-0`}
+                className={`${inputCls} w-16 flex-shrink-0`}
               />
+              <div className="relative w-20 flex-shrink-0">
+                <select
+                  value={row.sizeUnit}
+                  onChange={(e) => update(i, { sizeUnit: e.target.value })}
+                  className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 pr-7 h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000]"
+                >
+                  <option value="inch">inch</option>
+                  <option value="mm">mm</option>
+                </select>
+                <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              </div>
               <input
                 value={row.count}
                 onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
@@ -731,7 +744,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       </button>
       {/* 자동 요약 (읽기 전용) — 임피던스 회색칸처럼 선택 내역을 문자열로 */}
       {summary && (
-        <div className="px-3 py-2 bg-[#f7f7f7] border border-[#e0e0e0] rounded-none text-sm text-gray-700 break-words">
+        <div className="px-3 py-2 bg-[#f7f7f7] rounded-none text-sm text-gray-700 break-words">
           {summary}
         </div>
       )}
