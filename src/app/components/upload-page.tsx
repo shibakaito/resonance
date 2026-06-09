@@ -1540,8 +1540,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     return (
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
-                        <div className="flex gap-2 items-center">
-                          <div className="relative flex-1 min-w-0">
+                        <div className="flex gap-1.5 items-center -mr-6">
+                          <div className="relative flex-[3_1_44px] min-w-0">
                             <input
                               value={specs[f.key] || ''}
                               onChange={(e) => setSpec(numOnly(e.target.value))}
@@ -1552,7 +1552,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{unit}</span>
                             )}
                           </div>
-                          <div className="relative w-32 flex-shrink-0">
+                          <span className="text-gray-400">×</span>
+                          <div className="relative flex-1 min-w-0">
                             <select
                               value={typeVal}
                               onChange={(e) => setSpecs({ ...specs, [typeKey]: e.target.value })}
@@ -1575,6 +1576,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             )}
                             <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                           </div>
+                          <div className="w-5 flex-shrink-0" />
                         </div>
                       </div>
                     );
