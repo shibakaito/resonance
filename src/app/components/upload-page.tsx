@@ -656,8 +656,8 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
         const isCoax = row.type === '동축';
         return (
           <div key={i} className="flex items-center gap-1.5 -mr-6">
-            {/* 종류 (항상 표시) */}
-            <div className="relative w-44 flex-shrink-0">
+            {/* 종류 (항상 표시) — 빈 상태: 1줄 꽉(flex-1), 선택/서브우퍼: w-44로 줄고 나머지 칸 분할 */}
+            <div className={`relative ${(subwoofer || row.type) ? 'w-44 flex-shrink-0' : 'flex-1 min-w-0'}`}>
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' })}
