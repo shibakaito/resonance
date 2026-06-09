@@ -220,7 +220,7 @@
 #section-info textarea {
   background-color: #f4f4f5;
   border: 1px solid transparent;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 #section-info input:focus,
 #section-info select:focus,
@@ -235,7 +235,7 @@
 .spec-field textarea {
   background-color: #f4f4f5;
   border: 1px solid transparent;
-  border-radius: 0.5rem;
+  border-radius: 0;
 }
 .spec-field input:focus,
 .spec-field select:focus,
