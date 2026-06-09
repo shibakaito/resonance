@@ -660,7 +660,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
             <div className="relative w-44 flex-shrink-0">
               <select
                 value={row.type}
-                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '' })}
+                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' })}
                 className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
@@ -672,7 +672,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 <button
                   type="button"
                   aria-label="종류 초기화"
-                  onClick={() => update(i, { type: '', structure: '', material: '', band: '' })}
+                  onClick={() => update(i, { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' })}
                   className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
                 >
                   <X className="w-3.5 h-3.5" />
