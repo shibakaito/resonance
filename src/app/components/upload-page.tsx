@@ -618,29 +618,37 @@ const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', ban
 
 // 종류 → 담당 영역(대역). way 계산용. 동축은 담당대역 문자열을 '+'/'/'로 쪼개 각 역할명을 대역으로.
 const ROLE_BAND: Record<string, string> = { '우퍼': '저역', '미드우퍼': '중저역', '미드레인지': '중역', '트위터': '고역', '슈퍼 트위터': '초고역', '풀레인지': '전대역' };
-// 드라이버 행들 → 요약 문자열. way=서로 다른 담당 영역 수, driver=개수 합.
-//   일반/풀레인지: "{크기} {재질(끝 '콘' 제거)} {구조} {종류} ({개수})" / 동축: "{크기} {구조} 타입({담당대역}) ({개수})"
-function driverSummary(rows: DriverRow[]): string {
+// 드라이버 행들 → 칩 배열(속성별). [N-way] [N-driver?] [크기] [재질] [구조] [종류 (개수)] ...
+//   동축은 재질 없이 종류(담당대역). N-driver 칩은 활성 행 전부 개수 입력됐을 때만.
+function driverSummary(rows: DriverRow[]): string[] {
   const active = rows.filter((r) => r.type);
-  if (active.length === 0) return '';
+  if (active.length === 0) return [];
   const bands = new Set<string>();
   let drivers = 0;
-  let allCounted = true; // 활성 행 전부 개수 입력됐을 때만 'N driver' 표시
-  const parts: string[] = [];
+  let allCounted = true; // 활성 행 전부 개수 입력됐을 때만 'N-driver' 칩 표시
+  const chips: string[] = [];
   for (const r of active) {
     const n = parseInt(r.count, 10);
     if (Number.isFinite(n) && n > 0) drivers += n;
     else allCounted = false;
+    const cnt = r.count ? ` (${r.count})` : '';
     if (r.type === '동축') {
       (r.band || '').split(/[+/]/).map((s) => s.trim()).filter(Boolean).forEach((seg) => bands.add(ROLE_BAND[seg] ?? seg));
-      parts.push(`${r.size ? r.size + r.sizeUnit : ''} ${r.structure} 타입(${r.band})${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+      if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
+      if (r.structure) chips.push(r.structure);
+      chips.push(`${r.type}(${r.band})${cnt}`);
     } else {
       bands.add(ROLE_BAND[r.type] ?? r.type);
       const mat = (r.material || '').replace(/\s*콘$/, ''); // 페이퍼 콘 → 페이퍼
-      parts.push(`${r.size ? r.size + r.sizeUnit : ''} ${mat} ${r.structure} ${r.type}${r.count ? ` (${r.count})` : ''}`.replace(/\s+/g, ' ').trim());
+      if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
+      if (mat) chips.push(mat);
+      if (r.structure) chips.push(r.structure);
+      chips.push(`${r.type}${cnt}`);
     }
   }
-  return `${bands.size}-way, ${allCounted ? `${drivers} driver, ` : ''}${parts.join(' / ')}`;
+  const head = [`${bands.size}-way`];
+  if (allCounted) head.push(`${drivers}-driver`);
+  return [...head, ...chips];
 }
 
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
@@ -655,7 +663,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       {rows.map((row, i) => {
         const isCoax = row.type === '동축';
         return (
-          <div key={i} className="flex items-center gap-1.5 -mr-6">
+          <div key={i} className="relative flex items-center gap-1.5">
             {/* 종류 (항상 표시) — 빈 상태: 1줄 꽉(flex-1), 선택/서브우퍼: w-44로 줄고 나머지 칸 분할 */}
             <div className={`relative ${(subwoofer || row.type) ? 'w-44 flex-shrink-0' : 'flex-1 min-w-0'}`}>
               <select
@@ -719,18 +727,16 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
               />
             </div>
             )}
-            {/* 삭제 (항상 표시) */}
-            {rows.length > 1 ? (
+            {/* 삭제 — 필드 끝~카드 오른쪽 끝 거터 중앙에 절대배치 (행 2개 이상일 때만) */}
+            {rows.length > 1 && (
               <button
                 type="button"
                 aria-label="행 삭제"
                 onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-                className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                className="absolute left-full ml-[10px] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
               >
                 <X className="w-4 h-4" />
               </button>
-            ) : (
-              <div className="w-5 flex-shrink-0" />
             )}
           </div>
         );
@@ -742,10 +748,12 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       >
         <Plus className="w-3.5 h-3.5" /> 드라이버 추가
       </button>
-      {/* 자동 요약 (읽기 전용) — 임피던스 회색칸처럼 선택 내역을 문자열로 */}
-      {summary && (
-        <div className="px-3 py-2 bg-[#f7f7f7] rounded-none text-sm text-gray-700 break-words">
-          {summary}
+      {/* 자동 요약 (읽기 전용) — 속성별 칩 [1-way][1-driver][15inch][페이퍼][콘 타입][우퍼 (1)], X 없음 */}
+      {summary.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {summary.map((chip, idx) => (
+            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-[#f7f7f7] rounded-none text-sm text-gray-700">{chip}</span>
+          ))}
         </div>
       )}
     </div>
@@ -994,7 +1002,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           } else if (f.input.kind === 'drivers') {
             // 드라이버 구성(빌더): 행들 → 요약 문자열 (UI 요약과 동일)
             const v = driverSummary(driverRows);
-            if (v) tech[f.key] = v;
+            if (v.length) tech[f.key] = v.join(' ');
           } else if (f.input.kind === 'ampPower') {
             // 앰프 출력(빌더): 종류별 출력값 → "우퍼 200W / 트위터 100W" (종류 있는 행만)
             const v = ampPowerRows
