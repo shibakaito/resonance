@@ -369,22 +369,24 @@ function MultiSelectDropdown({
           </div>
         )}
       </div>
-      {/* 선택된 항목 칩 — 흰색 영역, 각 칩 개별 X */}
-      <div className="min-h-[42px] mt-2 border border-[#e0e0e0] rounded-none bg-white px-2 py-1.5 flex flex-wrap gap-2 items-center">
-        {selected.map((o) => (
-          <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] border border-[#e0e0e0] rounded-none text-sm text-gray-700">
-            {o}
-            <button
-              type="button"
-              aria-label={`${o} 삭제`}
-              onClick={() => remove(o)}
-              className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </span>
-        ))}
-      </div>
+      {/* 선택된 항목 칩 — 선택됐을 때만 표시, 박스/테두리 없이 */}
+      {selected.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2 items-center">
+          {selected.map((o) => (
+            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] rounded-none text-sm text-gray-700">
+              {o}
+              <button
+                type="button"
+                aria-label={`${o} 삭제`}
+                onClick={() => remove(o)}
+                className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
