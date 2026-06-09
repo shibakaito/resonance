@@ -651,7 +651,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       {rows.map((row, i) => {
         const isCoax = row.type === '동축';
         return (
-          <div key={i} className="flex items-center gap-1.5">
+          <div key={i} className="flex items-center gap-1.5 -mr-6">
             {/* 종류 (항상 표시) */}
             <div className="relative w-28 flex-shrink-0">
               <select
@@ -710,12 +710,12 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 type="button"
                 aria-label="행 삭제"
                 onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-                className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
               >
                 <X className="w-4 h-4" />
               </button>
             ) : (
-              <div className="w-7 flex-shrink-0" />
+              <div className="w-5 flex-shrink-0" />
             )}
           </div>
         );
@@ -752,7 +752,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
   return (
     <div className="space-y-2">
       {rows.map((row, i) => (
-        <div key={i} className="flex items-center gap-1.5">
+        <div key={i} className="flex items-center gap-1.5 -mr-6">
           {/* 앞칸: 드라이버 종류 (항상 표시) */}
           <div className="relative w-28 flex-shrink-0">
             <select
@@ -790,12 +790,12 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
               type="button"
               aria-label="행 삭제"
               onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-              className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+              className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
             >
               <X className="w-4 h-4" />
             </button>
           ) : (
-            <div className="w-7 flex-shrink-0" />
+            <div className="w-5 flex-shrink-0" />
           )}
         </div>
       ))}
@@ -804,7 +804,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
         onClick={() => onChange([...rows, { ...BLANK_AMP_POWER_ROW }])}
         className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
       >
-        <Plus className="w-3.5 h-3.5" /> 드라이버 추가
+        <Plus className="w-3.5 h-3.5" /> 앰프 출력 추가
       </button>
     </div>
   );
@@ -1138,7 +1138,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         <div className="lg:col-span-9 space-y-6">
           <section
             id="section-info"
-            className="bg-white border border-[#e0e0e0] rounded-none p-6"
+            className="bg-white border border-[#e0e0e0] rounded-none py-6 px-10"
           >
             <h2 className="text-2xl font-bold mb-2">제품 정보</h2>
             <div className="space-y-4">
@@ -1396,7 +1396,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
-          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+          <section className="bg-white border border-[#e0e0e0] rounded-none py-6 px-10">
             <button
               type="button"
               onClick={() => setTechExpanded((v) => !v)}
@@ -1418,7 +1418,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <input
                           value={subcategory || category}
@@ -1432,7 +1432,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'select') {
                     const v = specs[f.key] || '';
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="relative">
                           <select
@@ -1477,7 +1477,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         }
                       : undefined;
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <Typeahead
                           value={specs[f.key] || ''}
@@ -1496,7 +1496,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const unit = f.input.unit;
                     const free = f.input.free; // 자유 텍스트면 숫자 필터 X
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="relative">
                           <input
@@ -1523,7 +1523,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const typeKey = `${f.key}Type`;
                     const typeVal = specs[typeKey] || '';
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
@@ -1568,11 +1568,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'power') {
                     const ohmOpts = f.input.ohmOptions ?? AMP_OHM_OPTS;
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {powerPairs.map((p, idx) => (
-                            <div key={idx} className="flex gap-2 items-center">
+                            <div key={idx} className="flex gap-1.5 items-center -mr-6">
                               <div className="relative flex-1 min-w-0">
                                 <input
                                   value={p.w}
@@ -1619,7 +1619,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 )}
                                 <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                               </div>
-                              {powerPairs.length > 1 && (
+                              {powerPairs.length > 1 ? (
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -1628,10 +1628,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     setSpecs({ ...specs, powerRated: buildPower(pairs) });
                                   }}
                                   aria-label="삭제"
-                                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
+                              ) : (
+                                <div className="w-5 flex-shrink-0" />
                               )}
                             </div>
                           ))}
@@ -1656,7 +1658,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       setSpecs((s) => ({ ...s, [f.key]: buildFreq(nr.low, nr.high, lowUnit, highUnit) }));
                     };
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
@@ -1706,33 +1708,36 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
-                            <div key={i} className="flex gap-1.5 items-center">
+                            <div key={i} className="flex gap-1.5 items-center -mr-6">
                               {dimInput(r.w, 'w', 'W', i)}
                               <span className="text-gray-400">×</span>
                               {dimInput(r.d, 'd', 'D', i)}
                               <span className="text-gray-400">×</span>
                               {dimInput(r.h, 'h', 'H', i)}
-                              <input
-                                value={r.note}
-                                onChange={(e) => update(i, { note: e.target.value })}
-                                placeholder="비고"
-                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
-                              />
+                              <span className="text-gray-400">×</span>
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  value={r.note}
+                                  onChange={(e) => update(i, { note: e.target.value })}
+                                  placeholder="비고"
+                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                />
+                              </div>
                               {rows.length > 1 ? (
                                 <button
                                   type="button"
                                   aria-label="삭제"
                                   onClick={() => commit(rows.filter((_, idx) => idx !== i))}
-                                  className="w-7 h-7 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
                               ) : (
-                                <div className="w-7 flex-shrink-0" />
+                                <div className="w-5 flex-shrink-0" />
                               )}
                             </div>
                           ))}
@@ -1754,7 +1759,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
                     if (f.key === 'impedance') {
                       return (
-                        <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                        <div key={f.key} className="spec-field">
                           <label>{f.label}</label>
                           <ImpedanceSelect
                             options={f.input.options}
@@ -1766,7 +1771,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       );
                     }
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <MultiSelectDropdown
                           options={f.input.options}
@@ -1780,7 +1785,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 드라이버 구성 빌더 (스피커) ──
                   if (f.input.kind === 'drivers') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} subwoofer={subcategory === '서브우퍼'} />
                       </div>
@@ -1789,7 +1794,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 앰프 출력(액티브): 드라이버 종류 + 출력값(자유 입력) ──
                   if (f.input.kind === 'ampPower') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <AmpPowerBuilder rows={ampPowerRows} onChange={setAmpPowerRows} />
                       </div>
@@ -1798,11 +1803,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 크로스오버: 주파수(Hz) 여러 개 + "크로스오버 추가" ──
                   if (f.input.kind === 'crossover') {
                     return (
-                      <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                      <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {crossoverValues.map((row, idx) => (
-                            <div key={idx} className="flex gap-2 items-center">
+                            <div key={idx} className="flex gap-1.5 items-center -mr-6">
                               <input
                                 value={row.value}
                                 onChange={(e) => { const nv = numOnly(e.target.value); setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, value: nv } : x))); }}
@@ -1820,15 +1825,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 </select>
                                 <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                               </div>
-                              {crossoverValues.length > 1 && (
+                              {crossoverValues.length > 1 ? (
                                 <button
                                   type="button"
                                   aria-label="삭제"
                                   onClick={() => setCrossoverValues((prev) => prev.filter((_, i) => i !== idx))}
-                                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
+                              ) : (
+                                <div className="w-5 flex-shrink-0" />
                               )}
                             </div>
                           ))}
@@ -1850,7 +1857,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
               <div className="space-y-4">
                 {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
-                  <div key={f.key} className="spec-field grid grid-cols-1 sm:grid-cols-[144px_1fr] gap-2 sm:items-start">
+                  <div key={f.key} className="spec-field">
                     <label>{f.label}</label>
                     <input
                       value={specs[f.key] || ''}

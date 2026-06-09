@@ -210,7 +210,7 @@
 #section-info label {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 11px;
+  font-size: 13px;
   font-weight: 600;
   color: #717182;
 }
@@ -244,18 +244,13 @@
   border-color: #3b82f6;
   outline: none;
 }
-/* 앞칸 = 헤더 셀: 회색 박스에 필드명 (외관/작동의 앞 박스처럼) */
+/* 기술 사양 라벨 = 제품 정보와 동일한 eyebrow (라벨 위·입력 아래 1열). 2칸 분할 버전은 커밋 bd64ce1에 보관 */
 .spec-field label {
-  display: flex;
-  align-items: center;
-  min-height: 42px;
-  padding: 0 0.75rem;
-  background-color: #f4f4f5;
-  border-radius: 0.5rem;
-  /* 폰트 = 오른쪽 값(input)과 통일: 16px · 일반 굵기 · 대문자 없음 · gray-500 */
-  text-transform: none;
-  letter-spacing: normal;
-  font-size: 1rem;
-  font-weight: 400;
-  color: oklch(0.551 0.027 264.364);
+  display: block;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 13px;
+  font-weight: 600;
+  color: #717182;
 }
