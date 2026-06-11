@@ -85,6 +85,10 @@ const isTtHifi = (s: Record<string, string | string[]>) => isTurntable(s) && s.t
 const isTtAllInOne = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'all_in_one';
 const isTtDj = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'dj';
 const ttHifiOrDj = (s: Record<string, string | string[]>) => isTtHifi(s) || isTtDj(s); // 기계부 스펙 공유 (올인원 숨김)
+// 턴테이블 구성품 조건부 — 사운드바 subIncl 패턴 (포함/내장 값일 때만 세부 필드 노출)
+const ttCartIncl = (s: Record<string, string | string[]>) => isTurntable(s) && s.cartridge === 'included';
+const ttPhonoBuilt = (s: Record<string, string | string[]>) => isTurntable(s) && s.phonoBuiltIn === 'built_in';
+const ttSpkIncl = (s: Record<string, string | string[]>) => isTtAllInOne(s) && (s.speakerConfig === 'built_in' || s.speakerConfig === 'detachable');
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -384,6 +388,10 @@ export const TT_TONEARM_SHAPE_OPTS = labelOpts('tonearmShape');   // straight / 
 export const TT_TONEARM_OPTS = labelOpts('tonearm');              // included / not_included / replaced — 빈티지 톤암 교체 대응
 export const TT_EXTRA_FEATURES = ['FM/AM 라디오', '카세트', 'CD', 'USB 재생', '녹음']; // 올인원·빈티지 콘솔 부가 기능
 export const TT_PITCH_RANGE_OPTS = ['±8%', '±10%', '±16%', '±24%', '±50%'];           // DJ 피치 조절 폭 (다중)
+// ── 3단계: 구성품 조건부 옵션 ──
+// 카트리지 방식 — 포노앰프 PHONO_CARTRIDGE_OPTS와 'MM'/'MC' 문자열 동일(교차 검색). 세라믹은 올인원용 추가
+export const TT_CART_TYPE_OPTS = ['MM', 'MC', '세라믹'];
+export const TT_SPEAKER_CONFIG_OPTS = labelOpts('speakerConfig'); // built_in / detachable / none
 
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
@@ -405,10 +413,15 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'headshellRemovable', label: '헤드셸 교체', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
   { key: 'trackingForceAdj', label: '침압 조절', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
   { key: 'antiSkating', label: '안티스케이팅', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
-  // ── 턴테이블: 구성품 포함 여부 (포함 시 세부 필드는 3단계에서) ──
+  // ── 턴테이블: 구성품 조건부 (포함/내장 선택 시 세부 노출 — 사운드바 subIncluded 패턴) ──
   { key: 'cartridge', label: '카트리지', input: { kind: 'select', options: TT_CARTRIDGE_OPTS }, showWhen: isTurntable },
+  { key: 'cartType', label: '카트리지 방식', input: { kind: 'select', options: TT_CART_TYPE_OPTS }, showWhen: ttCartIncl },
+  { key: 'cartModel', label: '카트리지 모델', input: { kind: 'text', free: true }, showWhen: ttCartIncl }, // 예: Ortofon 2M Red
   { key: 'phonoBuiltIn', label: '포노앰프 내장', input: { kind: 'select', options: TT_PHONO_BUILTIN_OPTS }, showWhen: isTurntable },
-  // ── 턴테이블: 올인원·포터블 전용 ──
+  { key: 'phonoBypass', label: 'Phono/Line 전환', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttPhonoBuilt },
+  // ── 턴테이블: 올인원·포터블 전용 (스피커 출력은 사운드바 totalPower 패턴) ──
+  { key: 'speakerConfig', label: '스피커 구성', input: { kind: 'select', options: TT_SPEAKER_CONFIG_OPTS }, showWhen: isTtAllInOne },
+  { key: 'speakerPower', label: '스피커 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: ttSpkIncl },
   { key: 'extraFeatures', label: '부가 기능', input: { kind: 'multi', options: TT_EXTRA_FEATURES }, showWhen: isTtAllInOne },
   { key: 'portable', label: '휴대형(배터리)', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isTtAllInOne },
   // ── 턴테이블: DJ 전용 퍼포먼스 ──

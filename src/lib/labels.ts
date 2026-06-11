@@ -73,6 +73,7 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   phonoBuiltIn: { built_in: { ko: '내장' }, none: { ko: '미내장' } },
   bluetooth: { none: { ko: '없음' }, rx: { ko: '수신' }, tx: { ko: '송신' }, rx_tx: { ko: '송수신' } },
   ttType: { hifi: { ko: '하이파이' }, all_in_one: { ko: '올인원·포터블' }, dj: { ko: 'DJ' } },
+  speakerConfig: { built_in: { ko: '내장 스피커' }, detachable: { ko: '분리형 스피커 동봉' }, none: { ko: '없음' } },
   platterMaterial: { aluminum_diecast: { ko: '알루미늄 다이캐스트' }, acrylic: { ko: '아크릴' }, glass: { ko: '유리' }, steel: { ko: '스틸' }, mdf: { ko: 'MDF' }, plastic: { ko: '플라스틱' } },
   tonearmShape: { straight: { ko: '스트레이트' }, s_shape: { ko: 'S자형' }, j_shape: { ko: 'J자형' } },
   conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC / PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
