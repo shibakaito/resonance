@@ -232,11 +232,14 @@ function MultiSelectDropdown({
   onChange,
   aliases,
 }: {
-  options: string[];
+  options: (string | { value: string; label: string })[]; // {value,label}=영문키 저장+한글 표시, 문자열=저장·표시 동일
   selected: string[];
   onChange: React.Dispatch<React.SetStateAction<string[]>>;
   aliases?: Record<string, string[]>; // 단자명 → 검색 별칭 목록
 }) {
+  // 옵션 정규화 — selected/저장은 항상 value, 화면 표시는 label
+  const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
+  const labelOf = (v: string) => opts.find((x) => x.value === v)?.label ?? v;
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [activeIdx, setActiveIdx] = useState(-1);
@@ -266,19 +269,21 @@ function MultiSelectDropdown({
   // 공백·슬래시·하이픈·· 제거 + 소문자 (예: 'aesebu' → 'AES/EBU' 매칭)
   const norm = (s: string) => s.replace(/[\s/·\-]+/g, '').toLowerCase();
   const nq = norm(query);
-  // 단일 검색어 → 매칭 옵션 (옵션명/별칭 양방향 부분일치)
+  // 단일 검색어 → 매칭 옵션 value 목록 (라벨/키/별칭 양방향 부분일치)
   const compute = (qStr: string): string[] => {
     const nqq = norm(qStr);
-    if (!nqq) return options;
-    return options.filter((o) =>
-      [o, ...(aliases?.[o] ?? [])].some((c) => {
-        const nc = norm(c);
-        return nc.includes(nqq) || (nc.length >= 2 && nqq.includes(nc));
-      })
-    );
+    if (!nqq) return opts.map((o) => o.value);
+    return opts
+      .filter((o) =>
+        [o.label, o.value, ...(aliases?.[o.value] ?? [])].some((c) => {
+          const nc = norm(c);
+          return nc.includes(nqq) || (nc.length >= 2 && nqq.includes(nc));
+        })
+      )
+      .map((o) => o.value);
   };
   // 1차: 원본 검색어. 0건이면 한영 자판 변환 fallback (browse 검색과 동일 패턴)
-  let matched = !nq ? options : compute(query);
+  let matched = !nq ? opts.map((o) => o.value) : compute(query);
   if (nq && matched.length === 0) {
     // 한글 자모로 영문 단자를 친 경우 (예: 'ㄱㅊㅁ' → 'rca')
     const en = ko2en(query);
@@ -289,8 +294,8 @@ function MultiSelectDropdown({
       if (ko !== query && (ko.match(/[가-힣]/g)?.length ?? 0) >= 2) matched = compute(ko);
     }
   }
-  // 직접 입력 항목을 함께 노출하는 조건 (검색어가 옵션명과 정확히 같으면 제외)
-  const showDirect = !!query.trim() && !options.some((o) => norm(o) === nq);
+  // 직접 입력 항목을 함께 노출하는 조건 (검색어가 옵션 라벨/키와 정확히 같으면 제외)
+  const showDirect = !!query.trim() && !opts.some((o) => norm(o.label) === nq || norm(o.value) === nq);
   // 키보드 네비게이션 대상: 매칭 항목들 + (있으면) 직접 입력
   const navList: { kind: 'opt' | 'direct'; value: string }[] = [
     ...matched.map((o) => ({ kind: 'opt' as const, value: o })),
@@ -345,7 +350,7 @@ function MultiSelectDropdown({
                   onClick={() => toggle(o)}
                   className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${nav ? 'bg-[#f7f7f7]' : ''} ${active ? 'bg-[#f7f7f7] font-semibold text-[#000000]' : 'text-gray-800'}`}
                 >
-                  <span>{highlightMatch(o, query)}</span>
+                  <span>{highlightMatch(labelOf(o), query)}</span>
                   {active && <Check className="w-4 h-4 text-[#000000] flex-shrink-0" />}
                 </button>
               );
@@ -374,10 +379,10 @@ function MultiSelectDropdown({
         <div className="mt-2 flex flex-wrap gap-2 items-center">
           {selected.map((o) => (
             <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] rounded-none text-sm text-gray-700">
-              {o}
+              {labelOf(o)}
               <button
                 type="button"
-                aria-label={`${o} 삭제`}
+                aria-label={`${labelOf(o)} 삭제`}
                 onClick={() => remove(o)}
                 className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700"
               >
@@ -1787,7 +1792,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <div key={f.key} className="spec-field">
                           <label>{f.label}</label>
                           <ImpedanceSelect
-                            options={f.input.options}
+                            options={f.input.options as string[]}
                             selected={sel}
                             onChange={setSel}
                             displayText={impedanceRange(sel)}

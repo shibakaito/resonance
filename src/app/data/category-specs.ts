@@ -28,7 +28,7 @@ export type SpecInput =
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'power'; ohmOptions?: string[] }                    // 출력값(W) + 기준 옴, 쌍 추가 가능 / ohmOptions로 옴 목록 교체(헤드폰 등)
-  | { kind: 'multi'; options: string[] }                        // 다중 선택 버튼 (임피던스/입력·출력 단자)
+  | { kind: 'multi'; options: SelectOption[] }                  // 다중 선택 버튼 (임피던스/입력·출력 단자). {value,label}이면 영문키 저장+한글 표시
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
   | { kind: 'drivers' }                                         // 드라이버 구성 빌더 (종류/구조/재질/크기/개수 — 패시브·액티브 공용)
   | { kind: 'ampPower' };                                       // 앰프 출력 빌더 (액티브 — 드라이버 종류 + 출력값)
@@ -78,6 +78,8 @@ const isMcSut = (s: Record<string, string | string[]>) => s.__sub === 'MC 스텝
 const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
 // 헤드폰 앰프 포터블 게이팅 — 사용 형태가 포터블(배터리)일 때 배터리 스펙 노출
 const isHpPortable = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpForm === '포터블(배터리)';
+// 소스기기 하위 게이트 — 턴테이블 (다른 소스기기 하위는 공통 꼬리만 노출)
+const isTurntable = (s: Record<string, string | string[]>) => s.__sub === '턴테이블';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -359,8 +361,43 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' }, showWhen: detailSet },
 ];
 
+// ── 소스기기(턴테이블) 옵션 상수 ──
+// select·speeds: labels.ts(SPEC_LABELS) 파생 — 영문키 저장, browse 필터 키(driveType/cartridge/speeds 등)와 일치
+export const TT_DRIVE_OPTS = labelOpts('driveType');            // belt_drive / direct_drive / idler_drive
+export const TT_SPEED_OPTS = labelOpts('speeds');               // 33 / 45 / 78 (다중 선택, 영문키 저장)
+export const TT_AUTO_OPTS = labelOpts('autoMode');              // full_auto / semi_auto / manual
+export const TT_CARTRIDGE_OPTS = labelOpts('cartridge');        // included / not_included
+export const TT_PHONO_BUILTIN_OPTS = labelOpts('phonoBuiltIn'); // built_in / none
+export const TT_BLUETOOTH_OPTS = labelOpts('bluetooth');        // none / rx / tx / rx_tx
+export const TT_DUSTCOVER_OPTS = labelOpts('dustCover');        // yes / no / damaged (중고라 '손상 있음' 포함)
+// 출력 단자 — 턴테이블 전용 짧은 목록 (턴테이블은 입력 없는 출력 기기. RCA/XLR/USB 검색 별칭은 TERMINAL_ALIASES 재사용)
+export const TT_OUTPUT_TERMINALS = ['RCA', 'XLR', '3.5mm', 'Headphone Out', 'USB'];
+
+// ── 소스기기 스펙 필드 (1단계: 턴테이블 공통 필드 — 하위유형 분기는 2단계, 구성품 세부는 3단계) ──
+// 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
+export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
+  { key: 'type', label: '타입', input: { kind: 'auto' } },
+  // ── 턴테이블: 구동·회전 ──
+  { key: 'driveType', label: '구동 방식', input: { kind: 'select', options: TT_DRIVE_OPTS }, showWhen: isTurntable },
+  { key: 'speeds', label: '회전수', input: { kind: 'multi', options: TT_SPEED_OPTS }, showWhen: isTurntable },
+  { key: 'autoMode', label: '조작 방식', input: { kind: 'select', options: TT_AUTO_OPTS }, showWhen: isTurntable },
+  // ── 턴테이블: 구성품 포함 여부 (포함 시 세부 필드는 3단계에서) ──
+  { key: 'cartridge', label: '카트리지', input: { kind: 'select', options: TT_CARTRIDGE_OPTS }, showWhen: isTurntable },
+  { key: 'phonoBuiltIn', label: '포노앰프 내장', input: { kind: 'select', options: TT_PHONO_BUILTIN_OPTS }, showWhen: isTurntable },
+  // ── 턴테이블: 연결 ──
+  { key: 'bluetooth', label: '블루투스', input: { kind: 'select', options: TT_BLUETOOTH_OPTS }, showWhen: isTurntable },
+  { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: TT_OUTPUT_TERMINALS }, showWhen: isTurntable },
+  { key: 'dustCover', label: '더스트 커버', input: { kind: 'select', options: TT_DUSTCOVER_OPTS }, showWhen: isTurntable },
+  // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
+  { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
+  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
+  { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
+  { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
+];
+
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.
 export const SPEC_FIELDS_BY_CATEGORY: Record<string, CategorySpecField[]> = {
   앰프: AMP_SPEC_FIELDS,
   스피커: SPEAKER_SPEC_FIELDS,
+  소스기기: SOURCE_SPEC_FIELDS,
 };

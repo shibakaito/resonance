@@ -70,6 +70,8 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   cartridge: { included: { ko: '포함' }, not_included: { ko: '미포함' } },
   autoMode: { full_auto: { ko: '풀 오토' }, semi_auto: { ko: '세미 오토' }, manual: { ko: '매뉴얼' } },
   dustCover: { yes: { ko: '있음' }, no: { ko: '없음' }, damaged: { ko: '손상 있음' } },
+  phonoBuiltIn: { built_in: { ko: '내장' }, none: { ko: '미내장' } },
+  bluetooth: { none: { ko: '없음' }, rx: { ko: '수신' }, tx: { ko: '송신' }, rx_tx: { ko: '송수신' } },
   conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC / PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
   plating: { gold: { ko: '금도금' }, rhodium: { ko: '로듐 도금' }, silver: { ko: '은도금' }, nickel: { ko: '니켈 도금' }, none: { ko: '무도금' } },
   shield: { shielded: { ko: '실드' }, unshielded: { ko: '무실드' }, double_shielded: { ko: '이중 실드' } },
