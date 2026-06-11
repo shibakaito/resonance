@@ -80,6 +80,11 @@ const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpTyp
 const isHpPortable = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpForm === '포터블(배터리)';
 // 소스기기 하위 게이트 — 턴테이블 (다른 소스기기 하위는 공통 꼬리만 노출)
 const isTurntable = (s: Record<string, string | string[]>) => s.__sub === '턴테이블';
+// 턴테이블 하위 유형(ttType) — 스피커 isPassive/isActive 패턴. 미선택 시 유형별 블록 전부 숨김
+const isTtHifi = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'hifi';
+const isTtAllInOne = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'all_in_one';
+const isTtDj = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'dj';
+const ttHifiOrDj = (s: Record<string, string | string[]>) => isTtHifi(s) || isTtDj(s); // 기계부 스펙 공유 (올인원 숨김)
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -372,21 +377,48 @@ export const TT_BLUETOOTH_OPTS = labelOpts('bluetooth');        // none / rx / t
 export const TT_DUSTCOVER_OPTS = labelOpts('dustCover');        // yes / no / damaged (중고라 '손상 있음' 포함)
 // 출력 단자 — 턴테이블 전용 짧은 목록 (턴테이블은 입력 없는 출력 기기. RCA/XLR/USB 검색 별칭은 TERMINAL_ALIASES 재사용)
 export const TT_OUTPUT_TERMINALS = ['RCA', 'XLR', '3.5mm', 'Headphone Out', 'USB'];
+// ── 2단계: 하위 유형(ttType) 분기 옵션 ──
+export const TT_TYPE_OPTS = labelOpts('ttType');                  // hifi / all_in_one / dj
+export const TT_PLATTER_OPTS = labelOpts('platterMaterial');      // aluminum_diecast / acrylic / glass / steel / mdf / plastic
+export const TT_TONEARM_SHAPE_OPTS = labelOpts('tonearmShape');   // straight / s_shape / j_shape
+export const TT_TONEARM_OPTS = labelOpts('tonearm');              // included / not_included / replaced — 빈티지 톤암 교체 대응
+export const TT_EXTRA_FEATURES = ['FM/AM 라디오', '카세트', 'CD', 'USB 재생', '녹음']; // 올인원·빈티지 콘솔 부가 기능
+export const TT_PITCH_RANGE_OPTS = ['±8%', '±10%', '±16%', '±24%', '±50%'];           // DJ 피치 조절 폭 (다중)
 
-// ── 소스기기 스펙 필드 (1단계: 턴테이블 공통 필드 — 하위유형 분기는 2단계, 구성품 세부는 3단계) ──
+// ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
+// 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·휴대형) / DJ=+퍼포먼스(토크·피치·역재생)
 export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
-  // ── 턴테이블: 구동·회전 ──
+  { key: 'ttType', label: '형식', input: { kind: 'select', options: TT_TYPE_OPTS }, showWhen: isTurntable }, // ★ 분기 키 (스피커 '형식'과 동일 패턴)
+  // ── 턴테이블: 구동·회전 (전 유형) ──
   { key: 'driveType', label: '구동 방식', input: { kind: 'select', options: TT_DRIVE_OPTS }, showWhen: isTurntable },
+  { key: 'motorType', label: '모터', input: { kind: 'text', free: true }, showWhen: ttHifiOrDj }, // 예: AC 싱크로너스, DC 서보
   { key: 'speeds', label: '회전수', input: { kind: 'multi', options: TT_SPEED_OPTS }, showWhen: isTurntable },
   { key: 'autoMode', label: '조작 방식', input: { kind: 'select', options: TT_AUTO_OPTS }, showWhen: isTurntable },
+  { key: 'wowFlutter', label: '와우 앤 플러터', input: { kind: 'text', free: true }, showWhen: ttHifiOrDj }, // 측정 기준 혼재(WRMS/JIS)라 자유 입력
+  { key: 'snr', label: 'S/N', input: { kind: 'text', unit: 'dB' }, showWhen: ttHifiOrDj }, // 앰프와 동일 키 재사용
+  // ── 턴테이블: 플래터·톤암 (하이파이·DJ — 올인원은 무의미라 숨김) ──
+  { key: 'platterMaterial', label: '플래터 재질', input: { kind: 'select', options: TT_PLATTER_OPTS }, showWhen: ttHifiOrDj },
+  { key: 'tonearmShape', label: '톤암 형태', input: { kind: 'select', options: TT_TONEARM_SHAPE_OPTS }, showWhen: ttHifiOrDj },
+  { key: 'tonearm', label: '톤암', input: { kind: 'select', options: TT_TONEARM_OPTS }, showWhen: ttHifiOrDj }, // 포함/미포함/교체됨 — 빈티지 톤암 교체 대응
+  { key: 'headshellRemovable', label: '헤드셸 교체', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
+  { key: 'trackingForceAdj', label: '침압 조절', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
+  { key: 'antiSkating', label: '안티스케이팅', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj },
   // ── 턴테이블: 구성품 포함 여부 (포함 시 세부 필드는 3단계에서) ──
   { key: 'cartridge', label: '카트리지', input: { kind: 'select', options: TT_CARTRIDGE_OPTS }, showWhen: isTurntable },
   { key: 'phonoBuiltIn', label: '포노앰프 내장', input: { kind: 'select', options: TT_PHONO_BUILTIN_OPTS }, showWhen: isTurntable },
+  // ── 턴테이블: 올인원·포터블 전용 ──
+  { key: 'extraFeatures', label: '부가 기능', input: { kind: 'multi', options: TT_EXTRA_FEATURES }, showWhen: isTtAllInOne },
+  { key: 'portable', label: '휴대형(배터리)', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isTtAllInOne },
+  // ── 턴테이블: DJ 전용 퍼포먼스 ──
+  { key: 'startingTorque', label: '시작 토크', input: { kind: 'text', unit: 'kg·cm' }, showWhen: isTtDj },
+  { key: 'pitchRange', label: '피치 조절 폭', input: { kind: 'multi', options: TT_PITCH_RANGE_OPTS }, showWhen: isTtDj },
+  { key: 'reversePlay', label: '역재생', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isTtDj },
   // ── 턴테이블: 연결 ──
   { key: 'bluetooth', label: '블루투스', input: { kind: 'select', options: TT_BLUETOOTH_OPTS }, showWhen: isTurntable },
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: TT_OUTPUT_TERMINALS }, showWhen: isTurntable },
+  { key: 'groundTerminal', label: '접지 단자', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj }, // 앰프 포노 그룹과 동일 키 재사용
   { key: 'dustCover', label: '더스트 커버', input: { kind: 'select', options: TT_DUSTCOVER_OPTS }, showWhen: isTurntable },
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
