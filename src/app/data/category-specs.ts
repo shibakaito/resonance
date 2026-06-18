@@ -89,6 +89,8 @@ const ttHifiOrDj = (s: Record<string, string | string[]>) => isTtHifi(s) || isTt
 const ttCartIncl = (s: Record<string, string | string[]>) => isTurntable(s) && s.cartridge === 'included';
 const ttPhonoBuilt = (s: Record<string, string | string[]>) => isTurntable(s) && s.phonoBuiltIn === 'built_in';
 const ttSpkIncl = (s: Record<string, string | string[]>) => isTtAllInOne(s) && (s.speakerConfig === 'built_in' || s.speakerConfig === 'detachable');
+// 카세트 데크 — 소스기기 하위 게이트 (1단계: 공통 필드. 3축 분기·정비는 2·3단계)
+const isCassette = (s: Record<string, string | string[]>) => s.__sub === '카세트 데크';
 
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
@@ -393,6 +395,23 @@ export const TT_PITCH_RANGE_OPTS = ['±8%', '±10%', '±16%', '±24%', '±50%'];
 export const TT_CART_TYPE_OPTS = ['MM', 'MC', '세라믹'];
 export const TT_SPEAKER_CONFIG_OPTS = labelOpts('speakerConfig'); // built_in / detachable / none
 
+// ── 카세트 데크 옵션 (1단계 공통) — select·multi는 labelOpts(영문키 저장), 단자·헤드재질은 문자열 ──
+export const CAS_HEAD_COUNT_OPTS = labelOpts('headCount');        // two_head / three_head (★축A 트리거)
+export const CAS_DECK_COUNT_OPTS = labelOpts('deckCount');        // single / double (★축D 트리거)
+export const CAS_AUTOREVERSE_OPTS = labelOpts('autoReverse');     // none / playback / rec_play (★축C 트리거)
+export const CAS_CAPSTAN_OPTS = labelOpts('capstan');             // single / dual
+export const CAS_DRIVE_OPTS = labelOpts('transportDrive');        // direct / dc_servo / belt
+export const CAS_BIAS_OPTS = labelOpts('bias');                   // fixed / fine / manual_cal
+export const CAS_METER_OPTS = labelOpts('levelMeter');            // analog_vu / fluorescent / led_peak
+export const CAS_TAPE_TYPE_OPTS = labelOpts('tapeType');          // 재생 지원 I/II/IV/FeCr
+export const CAS_TAPE_TYPE_REC_OPTS = labelOpts('tapeType', ['type_1', 'type_2', 'type_4']); // 녹음 (FeCr 제외)
+export const CAS_NR_OPTS = labelOpts('noiseReduction');           // Dolby B/C/S/dbx (HX Pro는 NR 아님 → 별도 YES_NO)
+export const CAS_HEAD_MATERIALS = ['퍼멀로이', '센더스트', '페라이트', '아몰퍼스', '크리스탈로이']; // searchSelect freeText (Laser Amorphous 등 직접입력)
+export const CAS_INPUT_TERMINALS = ['RCA', '마이크'];             // 녹음 입력 (TERMINAL_ALIASES 재사용)
+export const CAS_OUTPUT_TERMINALS = ['RCA', '헤드폰', 'USB'];     // 재생 출력 + USB 디지털
+export const CAS_SNR_NR_OPTS = ['NR Off', 'Dolby B', 'Dolby C', 'Dolby S', 'dbx']; // S/N numSelect 조건(선택)
+export const CAS_WF_STD_OPTS = ['WRMS', 'DIN', 'NAB', 'IEC', 'JIS'];               // W&F numSelect 측정규격(선택)
+
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
 // 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·휴대형) / DJ=+퍼포먼스(토크·피치·역재생)
@@ -433,6 +452,27 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: TT_OUTPUT_TERMINALS }, showWhen: isTurntable },
   { key: 'groundTerminal', label: '접지 단자', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttHifiOrDj }, // 앰프 포노 그룹과 동일 키 재사용
   { key: 'dustCover', label: '더스트 커버', input: { kind: 'select', options: TT_DUSTCOVER_OPTS }, showWhen: isTurntable },
+
+  // ── 카세트 데크 (1단계: 공통 필드 — 3축 트리거 포함, 축 하위필드는 2단계 / 정비는 3단계) ──
+  { key: 'headCount', label: '헤드 수', input: { kind: 'select', options: CAS_HEAD_COUNT_OPTS }, showWhen: isCassette },        // ★ 축A 트리거
+  { key: 'deckCount', label: '데크 수', input: { kind: 'select', options: CAS_DECK_COUNT_OPTS }, showWhen: isCassette },        // ★ 축D 트리거
+  { key: 'autoReverse', label: '오토리버스', input: { kind: 'select', options: CAS_AUTOREVERSE_OPTS }, showWhen: isCassette },  // ★ 축C 트리거
+  { key: 'headMaterial', label: '헤드 재질', input: { kind: 'searchSelect', options: CAS_HEAD_MATERIALS }, showWhen: isCassette },
+  { key: 'capstan', label: '캡스턴', input: { kind: 'select', options: CAS_CAPSTAN_OPTS }, showWhen: isCassette },
+  { key: 'transportDrive', label: '구동 방식', input: { kind: 'select', options: CAS_DRIVE_OPTS }, showWhen: isCassette },
+  { key: 'tapeTypePlay', label: '지원 테이프(재생)', input: { kind: 'multi', options: CAS_TAPE_TYPE_OPTS }, showWhen: isCassette },
+  { key: 'tapeTypeRec', label: '녹음 가능 테이프', input: { kind: 'multi', options: CAS_TAPE_TYPE_REC_OPTS }, showWhen: isCassette },
+  { key: 'noiseReduction', label: '노이즈 리덕션', input: { kind: 'multi', options: CAS_NR_OPTS }, showWhen: isCassette },
+  { key: 'hxPro', label: 'Dolby HX Pro', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isCassette },              // NR 아님(녹음 바이어스)이라 별도
+  { key: 'bias', label: '바이어스 조정', input: { kind: 'select', options: CAS_BIAS_OPTS }, showWhen: isCassette },
+  { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: isCassette }, // 대표값(보통 Metal)
+  { key: 'snr', label: 'S/N', input: { kind: 'numSelect', unit: 'dB', options: CAS_SNR_NR_OPTS }, showWhen: isCassette },        // 값 + NR 조건(선택)
+  { key: 'wowFlutter', label: '와우 앤 플러터', input: { kind: 'numSelect', unit: '%', options: CAS_WF_STD_OPTS }, showWhen: isCassette }, // 값 + 측정규격(선택)
+  { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' }, showWhen: isCassette },
+  { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: CAS_INPUT_TERMINALS }, showWhen: isCassette },          // 녹음 입력
+  { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: CAS_OUTPUT_TERMINALS }, showWhen: isCassette },        // 재생 출력 + USB
+  { key: 'levelMeter', label: '레벨 미터', input: { kind: 'select', options: CAS_METER_OPTS }, showWhen: isCassette },
+  { key: 'pitchControl', label: '피치 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isCassette },
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
