@@ -546,16 +546,20 @@ export function ListingDetail({ id }: { id?: string }) {
                 input?: { kind: string; options?: (string | { value: string; label: string })[] };
                 showWhen?: (s: Record<string, string | string[]>) => boolean;
               }[];
-              // 표시값: 배열→"a, b" 나열 / select(영문키 저장, 예 스피커 passive)는 옵션 label로 한글 변환 / 그 외 문자열은 그대로
+              // 표시값: 배열→"a, b" 나열 / select·multi(영문키 저장, 예 스피커 passive·턴테이블 회전수)는 옵션 label로 한글 변환 / 그 외 문자열은 그대로
+              const optLabel = (
+                f: { input?: { kind: string; options?: (string | { value: string; label: string })[] } },
+                v: string,
+              ): string => {
+                const opt = f.input?.options?.find((o) => (typeof o === 'string' ? o : o.value) === v);
+                return opt ? (typeof opt === 'string' ? opt : opt.label) : v;
+              };
               const fmt = (
                 f: { input?: { kind: string; options?: (string | { value: string; label: string })[] } },
                 v: string | string[],
               ): string => {
-                if (Array.isArray(v)) return v.join(', ');
-                if (f.input?.kind === 'select' && f.input.options) {
-                  const opt = f.input.options.find((o) => (typeof o === 'string' ? o : o.value) === v);
-                  if (opt) return typeof opt === 'string' ? opt : opt.label;
-                }
+                if (Array.isArray(v)) return v.map((x) => optLabel(f, x)).join(', ');
+                if (f.input?.kind === 'select') return optLabel(f, v);
                 return v;
               };
               const rows = schema.filter((f) => {
