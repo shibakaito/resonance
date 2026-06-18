@@ -86,6 +86,8 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   tapeType: { type_1: { ko: 'Type I (Normal)' }, type_2: { ko: 'Type II (CrO2)' }, type_4: { ko: 'Type IV (Metal)' }, fecr: { ko: 'FeCr (Type III)' } },
   noiseReduction: { dolby_b: { ko: 'Dolby B' }, dolby_c: { ko: 'Dolby C' }, dolby_s: { ko: 'Dolby S' }, dbx: { ko: 'dbx' } },
   levelMeter: { analog_vu: { ko: '아날로그 VU' }, fluorescent: { ko: '형광(FL)' }, led_peak: { ko: 'LED 피크' } },
+  dubbingSpeed: { realtime: { ko: '등속' }, high_speed: { ko: '고속(2배)' }, both: { ko: '등속+고속' } },
+  reverseMethod: { head_rotate: { ko: '헤드 회전' }, tape_flip: { ko: '테이프 물리 반전(UDAR)' }, naac: { ko: '자동 아지머스(NAAC)' } },
   conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC / PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
   plating: { gold: { ko: '금도금' }, rhodium: { ko: '로듐 도금' }, silver: { ko: '은도금' }, nickel: { ko: '니켈 도금' }, none: { ko: '무도금' } },
   shield: { shielded: { ko: '실드' }, unshielded: { ko: '무실드' }, double_shielded: { ko: '이중 실드' } },
