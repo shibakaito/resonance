@@ -418,6 +418,10 @@ export const CAS_WF_STD_OPTS = ['WRMS', 'DIN', 'NAB', 'IEC', 'JIS'];            
 // ── 카세트 2단계: 3축 분기 하위필드 옵션 ──
 export const CAS_DUBBING_SPEED_OPTS = labelOpts('dubbingSpeed');   // realtime / high_speed / both
 export const CAS_REVERSE_METHOD_OPTS = labelOpts('reverseMethod'); // head_rotate / tape_flip(UDAR) / naac
+// ── 카세트 3단계: 정비/상태 옵션 (외관/작동 상태와 별개 — 카세트 고유 소모품·서비스 이력) ──
+export const CAS_HEAD_WEAR_OPTS = labelOpts('headWear');          // good / light_wear / relapped / replaced / heavy_wear
+export const CAS_MAINTENANCE_OPTS = labelOpts('maintenance');     // belt / pinch_roller / overhaul / recap / calibration (multi)
+export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / playback_only / broken (결함 고지)
 
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
@@ -485,6 +489,10 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: CAS_OUTPUT_TERMINALS }, showWhen: isCassette },        // 재생 출력 + USB
   { key: 'levelMeter', label: '레벨 미터', input: { kind: 'select', options: CAS_METER_OPTS }, showWhen: isCassette },
   { key: 'pitchControl', label: '피치 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isCassette },
+  // ── 카세트 정비/상태 (3단계 — isCassette 게이트, 외관/작동 상태와 별개 축) ──
+  { key: 'headWear', label: '헤드 상태', input: { kind: 'select', options: CAS_HEAD_WEAR_OPTS }, showWhen: isCassette },
+  { key: 'maintenance', label: '정비 이력', input: { kind: 'multi', options: CAS_MAINTENANCE_OPTS }, showWhen: isCassette },
+  { key: 'recFunction', label: '녹음 기능', input: { kind: 'select', options: CAS_REC_FUNCTION_OPTS }, showWhen: isCassette }, // 결함 고지 핵심(재생전용/불가)
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },

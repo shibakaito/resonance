@@ -88,6 +88,10 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   levelMeter: { analog_vu: { ko: '아날로그 VU' }, fluorescent: { ko: '형광(FL)' }, led_peak: { ko: 'LED 피크' } },
   dubbingSpeed: { realtime: { ko: '등속' }, high_speed: { ko: '고속(2배)' }, both: { ko: '등속+고속' } },
   reverseMethod: { head_rotate: { ko: '헤드 회전' }, tape_flip: { ko: '테이프 물리 반전(UDAR)' }, naac: { ko: '자동 아지머스(NAAC)' } },
+  // ── 카세트 3단계: 정비/상태 ──
+  headWear: { good: { ko: '양호' }, light_wear: { ko: '미세 마모' }, relapped: { ko: '연마(relap)됨' }, replaced: { ko: '교체됨' }, heavy_wear: { ko: '마모 심함' } },
+  maintenance: { belt: { ko: '벨트 교체' }, pinch_roller: { ko: '핀치롤러 교체' }, overhaul: { ko: '오버홀' }, recap: { ko: '리캡' }, calibration: { ko: '캘리브레이션' } },
+  recFunction: { normal: { ko: '정상' }, playback_only: { ko: '재생 전용' }, broken: { ko: '불가' } },
   conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC / PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
   plating: { gold: { ko: '금도금' }, rhodium: { ko: '로듐 도금' }, silver: { ko: '은도금' }, nickel: { ko: '니켈 도금' }, none: { ko: '무도금' } },
   shield: { shielded: { ko: '실드' }, unshielded: { ko: '무실드' }, double_shielded: { ko: '이중 실드' } },
