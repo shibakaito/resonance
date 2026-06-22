@@ -1806,7 +1806,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <div className="space-y-2">
                           {rows.map((r, i) => (
                             <div key={i} className="flex gap-1.5 items-center -mr-6">
-                              <div className="relative flex-1 min-w-0">
+                              {/* 값(kg) — 크기 W+D+H 3칸 + 그 사이 ×2개 폭(basis 44px=×2개분). 크기 행과 동일 컬럼 정렬 */}
+                              <div className="relative flex-[3_1_44px] min-w-0">
                                 <input
                                   value={r.value}
                                   onChange={(e) => update(i, { value: numOnly(e.target.value) })}
@@ -1817,6 +1818,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">{unit}</span>
                                 )}
                               </div>
+                              <span className="text-gray-400">×</span>
                               <div className="relative flex-1 min-w-0">
                                 <input
                                   value={r.note}
