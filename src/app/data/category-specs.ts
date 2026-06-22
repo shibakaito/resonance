@@ -27,6 +27,7 @@ export type SpecInput =
   | { kind: 'numSelect'; unit?: string; options: string[] }     // 숫자 입력 + 오른쪽 드롭다운 (예: 출력값 + RMS/Peak)
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
+  | { kind: 'valueNote'; unit?: string }                        // [값+단위][비고] 행 빌더 (무게 — 크기처럼 비고+추가)
   | { kind: 'power'; ohmOptions?: string[] }                    // 출력값(W) + 기준 옴, 쌍 추가 가능 / ohmOptions로 옴 목록 교체(헤드폰 등)
   | { kind: 'multi'; options: SelectOption[] }                  // 다중 선택 버튼 (임피던스/입력·출력 단자). {value,label}이면 영문키 저장+한글 표시
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
@@ -261,7 +262,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'remote', label: '리모컨', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 무전원
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
-  { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
+  { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 1단계: 무게 빌더(값+비고+추가) — 앰프만 먼저
 ];
 
 // ── 스피커 옵션 상수 ──

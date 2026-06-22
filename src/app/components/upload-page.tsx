@@ -898,6 +898,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [ranges, setRanges] = useState<Record<string, { low: string; high: string }>>({});
   // 크기(W×D×H mm + 비고) — key별 '행 배열'로 보관 (크기 칸 여러 개·+버튼 추가 지원)
   const [dims, setDims] = useState<Record<string, { w: string; d: string; h: string; note: string }[]>>({});
+  const [valNotes, setValNotes] = useState<Record<string, { value: string; note: string }[]>>({}); // 무게 빌더 — [값][비고] 행 배열
   // 다중 선택 버튼 (지원 임피던스 / 입력·출력 단자) — 저장 시 배열로 specs.tech에
   const [impedances, setImpedances] = useState<string[]>([]);
   // 다중 선택(단자·무선·포맷 등) 공통 상태 — key별 배열로 보관. (impedance는 전용 위젯이라 별도)
@@ -936,6 +937,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 크기 행 배열 → 문자열. 각 행 "W×D×H (비고)", 여러 행은 ' / '로. (W·D·H 모두 빈 행 제외)
   const buildDims = (rows: { w: string; d: string; h: string; note: string }[]) =>
     rows.map((r) => { const dim = buildDim(r.w, r.d, r.h); if (!dim) return ''; return r.note.trim() ? `${dim} (${r.note.trim()})` : dim; }).filter(Boolean).join(' / ');
+  // 무게 빌더: 값+단위+비고 행 → "12kg (비고) / ..." (크기 buildDims와 동일 방식)
+  const buildValNotes = (rows: { value: string; note: string }[], unit?: string) =>
+    rows.map((r) => { const v = r.value.trim(); if (!v) return ''; const vu = `${v}${unit ?? ''}`; return r.note.trim() ? `${vu} (${r.note.trim()})` : vu; }).filter(Boolean).join(' / ');
   const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
@@ -995,6 +999,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           } else if (f.input.kind === 'dimensions') {
             // 크기: key별 행 배열 → "W×D×H (비고) / ..." 조립
             const v = buildDims(dims[f.key] ?? []);
+            if (v) tech[f.key] = v;
+          } else if (f.input.kind === 'valueNote') {
+            // 무게: 값+단위+비고 행 배열 → "12kg (비고) / ..." 조립
+            const v = buildValNotes(valNotes[f.key] ?? [], f.input.unit);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'crossover') {
             // 크로스오버: 주파수(Hz) 여러 개 → "250Hz / 2500Hz"
@@ -1777,6 +1785,66 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크기 추가
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 무게 빌더 (값+비고+추가 — 크기 dimensions와 통일) ──
+                  if (f.input.kind === 'valueNote') {
+                    const unit = f.input.unit;
+                    const rows = valNotes[f.key] ?? [{ value: '', note: '' }];
+                    const commit = (next: { value: string; note: string }[]) => {
+                      setValNotes((m) => ({ ...m, [f.key]: next }));
+                      setSpecs((s) => ({ ...s, [f.key]: buildValNotes(next, unit) }));
+                    };
+                    const update = (i: number, patch: Partial<{ value: string; note: string }>) =>
+                      commit(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+                    return (
+                      <div key={f.key} className="spec-field">
+                        <label>{f.label}</label>
+                        <div className="space-y-2">
+                          {rows.map((r, i) => (
+                            <div key={i} className="flex gap-1.5 items-center -mr-6">
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  value={r.value}
+                                  onChange={(e) => update(i, { value: numOnly(e.target.value) })}
+                                  inputMode="decimal"
+                                  className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 ${unit ? 'pr-9' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
+                                />
+                                {unit && (
+                                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">{unit}</span>
+                                )}
+                              </div>
+                              <div className="relative flex-1 min-w-0">
+                                <input
+                                  value={r.note}
+                                  onChange={(e) => update(i, { note: e.target.value })}
+                                  placeholder="비고"
+                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                />
+                              </div>
+                              {rows.length > 1 ? (
+                                <button
+                                  type="button"
+                                  aria-label="삭제"
+                                  onClick={() => commit(rows.filter((_, idx) => idx !== i))}
+                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              ) : (
+                                <div className="w-5 flex-shrink-0" />
+                              )}
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => commit([...rows, { value: '', note: '' }])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> {f.label} 추가
                           </button>
                         </div>
                       </div>
