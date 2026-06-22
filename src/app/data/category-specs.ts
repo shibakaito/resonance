@@ -374,7 +374,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
-  { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' }, showWhen: detailSet },
+  { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' }, showWhen: detailSet }, // 3단계: 무게 빌더 — 스피커
 ];
 
 // ── 소스기기(턴테이블) 옵션 상수 ──
@@ -498,7 +498,7 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
-  { key: 'weight', label: '무게', input: { kind: 'text', unit: 'kg' } },
+  { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 3단계: 무게 빌더 — 소스기기
 ];
 
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.
