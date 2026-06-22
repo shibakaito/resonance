@@ -890,7 +890,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
   const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
   // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
-  const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string }[]>([{ w: '', ohm: '' }]);
+  const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string; note?: string }[]>([{ w: '', ohm: '', note: '' }]);
   // range(하한~상한) — key별 보관 (주파수 응답·권장 임피던스 등 range 칸이 여러 개 동시에 떠도 독립)
   const [ranges, setRanges] = useState<Record<string, { low: string; high: string }>>({});
   // 크기(W×D×H mm + 비고) — key별 '행 배열'로 보관 (크기 칸 여러 개·+버튼 추가 지원)
@@ -920,8 +920,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     return nums.length === 1 ? `${nums[0]}Ω` : `${nums[0]}~${nums[nums.length - 1]}Ω`;
   };
   // 조립 함수 (저장/표시용 문자열)
-  const buildPower = (pairs: { w: string; ohm: string }[]) =>
-    pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}`).join(', ');
+  const buildPower = (pairs: { w: string; ohm: string; note?: string }[]) =>
+    pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}${p.note && p.note.trim() ? ` (${p.note.trim()})` : ''}`).join(', ');
   const buildFreq = (lo: string, hi: string, loUnit = 'Hz', hiUnit = 'kHz') => {
     const l = lo.trim(), h = hi.trim();
     if (!l && !h) return '';
@@ -1608,6 +1608,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <div className="space-y-2">
                           {powerPairs.map((p, idx) => (
                             <div key={idx} className="flex gap-1.5 items-center -mr-6">
+                              {/* 출력값: 남는 공간 전부 (flex-1) */}
                               <div className="relative flex-1 min-w-0">
                                 <input
                                   value={p.w}
@@ -1623,6 +1624,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">W</span>
                               </div>
                               <span className="text-gray-400">@</span>
+                              {/* 기준 옴: w-28 고정 */}
                               <div className="relative w-28 flex-shrink-0">
                                 <select
                                   value={p.ohm}
@@ -1654,6 +1656,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 )}
                                 <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                               </div>
+                              <span className="text-gray-400">×</span>
+                              {/* 비고: 114px 고정 (기준 112보다 2px 넓게) */}
+                              <input
+                                value={p.note ?? ''}
+                                onChange={(e) => {
+                                  const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, note: e.target.value } : x));
+                                  setPowerPairs(pairs);
+                                  setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                }}
+                                placeholder="비고"
+                                className="w-[114px] flex-shrink-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                              />
                               {powerPairs.length > 1 ? (
                                 <button
                                   type="button"
@@ -1674,7 +1688,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           ))}
                           <button
                             type="button"
-                            onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '' }])}
+                            onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '', note: '' }])}
                             className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 임피던스별 출력 추가
