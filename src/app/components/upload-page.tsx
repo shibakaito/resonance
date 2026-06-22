@@ -172,16 +172,31 @@ function ImpedanceSelect({
   };
   return (
     <div ref={ref}>
-      {/* 드롭다운 — 펼치면 select처럼 항목 목록, 선택 항목은 왼쪽에 체크 */}
+      {/* 드롭다운 1칸으로 통합 — 버튼 라벨에 선택값(범위) 표시, 우측에 X 초기화 */}
       <div className="relative">
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 flex items-center bg-white focus:outline-none focus:border-[#000000]"
+          className="w-full h-[42px] border border-transparent rounded-none pl-3 pr-16 flex items-center bg-[#f4f4f5] focus:outline-none focus:bg-white focus:border-[#3b82f6]"
         >
-          <span className="text-gray-400">선택하세요</span>
+          {selected.length > 0 ? (
+            <span className="text-gray-800">{displayText}</span>
+          ) : (
+            <span className="text-gray-400">선택하세요</span>
+          )}
           <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform ${open ? 'rotate-180' : ''}`} />
         </button>
+        {/* X 초기화 — ChevronDown 왼쪽, 선택 있을 때만. 버블링 막아 드롭다운 토글 방지 */}
+        {selected.length > 0 && (
+          <button
+            type="button"
+            aria-label="초기화"
+            onClick={(e) => { e.stopPropagation(); onChange([]); }}
+            className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
         {open && (
           <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg py-1">
             {options.map((o) => {
@@ -199,24 +214,6 @@ function ImpedanceSelect({
               );
             })}
           </div>
-        )}
-      </div>
-      {/* 회색 읽기전용 범위칸 + X 초기화 */}
-      <div className="relative mt-2">
-        <input
-          readOnly
-          value={displayText}
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-[#f7f7f7] text-gray-600 cursor-default focus:outline-none"
-        />
-        {selected.length > 0 && (
-          <button
-            type="button"
-            aria-label="초기화"
-            onClick={() => onChange([])}
-            className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
-          >
-            <X className="w-4 h-4" />
-          </button>
         )}
       </div>
     </div>
