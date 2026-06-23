@@ -24,7 +24,7 @@ export type SpecInput =
   | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택 (native select)
   | { kind: 'searchSelect'; options: string[]; aliases?: Record<string, string>; keyboardLayout?: boolean } // 검색 드롭다운(Typeahead) — 한글 저장. aliases=한글→영어 검색어, keyboardLayout=한영 오타 매칭
   | { kind: 'text'; unit?: string; free?: boolean }             // 숫자 입력 + (선택)단위 / free=true면 자유 텍스트(숫자 필터 X)
-  | { kind: 'numSelect'; unit?: string; options: string[] }     // 숫자 입력 + 오른쪽 드롭다운 (예: 출력값 + RMS/Peak)
+  | { kind: 'numSelect'; unit?: string; options: string[]; glue?: boolean } // 숫자 + 우측 드롭다운(조건/단위). glue=true면 드롭다운값 공백없이 붙여 저장(단위용 "47kΩ")
   | { kind: 'range'; lowUnit: string; highUnit: string }        // 하한~상한 2칸
   | { kind: 'dimensions' }                                      // 가로×깊이×높이 3칸 (mm)
   | { kind: 'valueNote'; unit?: string }                        // [값+단위][비고] 행 빌더 (무게 — 크기처럼 비고+추가)
@@ -128,6 +128,8 @@ export const PHONO_CARTRIDGE_OPTS = ['MM', 'MC', 'MM/MC'];
 export const PHONO_MCBOOST_OPTS = ['능동 헤드앰프', '내장 SUT', '전류입력'];
 // 포노앰프 EQ 커브 (다중)
 export const EQ_CURVE_OPTS = ['RIAA', 'eRIAA', 'Decca', 'Columbia', 'NAB', 'Teldec'];
+export const PHONO_IMP_UNITS = ['Ω', 'kΩ'];   // 포노 입력 임피던스 numSelect 단위(공백없이 붙임)
+export const PHONO_LEVEL_UNITS = ['mV', 'V']; // 포노 출력 레벨 numSelect 단위
 // MC 스텝업 헤드앰프 사용 소자
 export const MC_DEVICE_OPTS = ['JFET', 'BJT', 'IC/Op-amp'];
 // MC 스텝업 트랜스 코어 재질
@@ -199,31 +201,32 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'tubes', label: '진공관 종류', input: { kind: 'text', free: true }, showWhen: isTubeAmp },
   // ── 포노앰프 전용: 지원 카트리지 + MM 블록 ──
   { key: 'cartridgeSupport', label: '지원 카트리지', input: { kind: 'select', options: PHONO_CARTRIDGE_OPTS }, showWhen: isPhonoAmp },
-  { key: 'mmGain', label: 'MM 게인', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
-  { key: 'mmLoad', label: 'MM 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
-  { key: 'mmCap', label: 'MM 입력 정전용량', input: { kind: 'text', free: true }, showWhen: isPhonoMM },
+  { key: 'mmGain', label: 'MM 게인', input: { kind: 'text', unit: 'dB' }, showWhen: isPhonoMM },
+  { key: 'mmLoad', label: 'MM 입력 임피던스', input: { kind: 'numSelect', options: PHONO_IMP_UNITS, glue: true }, showWhen: isPhonoMM },
+  { key: 'mmCap', label: 'MM 입력 정전용량', input: { kind: 'text', unit: 'pF' }, showWhen: isPhonoMM },
   // ── 포노앰프 전용: MC 블록 (지원 카트리지에 MC 포함 시) ──
   { key: 'mcBoostMode', label: 'MC 승압 방식', input: { kind: 'select', options: PHONO_MCBOOST_OPTS }, showWhen: isPhonoMC },
-  { key: 'mcGain', label: 'MC 게인', input: { kind: 'text', free: true }, showWhen: isPhonoMC },
-  { key: 'mcLoad', label: 'MC 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isPhonoMC },
-  // ── 포노앰프 전용: RIAA·EQ·필터 (포노앰프 공통) ──
-  { key: 'riaaAccuracy', label: 'RIAA 정확도', input: { kind: 'text', free: true }, showWhen: isPhonoAmp },
+  { key: 'mcGain', label: 'MC 게인', input: { kind: 'text', unit: 'dB' }, showWhen: isPhonoMC },
+  { key: 'mcLoad', label: 'MC 입력 임피던스', input: { kind: 'numSelect', options: PHONO_IMP_UNITS, glue: true }, showWhen: isPhonoMC },
+  // ── 포노앰프 전용: EQ·필터 (포노앰프 공통) ──
   { key: 'eqCurves', label: 'EQ 커브', input: { kind: 'multi', options: EQ_CURVE_OPTS }, showWhen: isPhonoAmp },
   { key: 'subsonic', label: '서브소닉 필터', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
   { key: 'monoSwitch', label: '모노 스위치', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoAmp },
+  // ── 포노앰프 전용: 입력 레벨 (감도·최대입력) ──
+  { key: 'inputSensitivity', label: '입력 감도', input: { kind: 'text', unit: 'mV' }, showWhen: isPhonoAmp },
+  { key: 'maxInput', label: '최대 입력', input: { kind: 'text', unit: 'mV' }, showWhen: isPhonoAmp },
   // ── 포노앰프 전용: 출력 / 포노 공통: 접지 ──
-  { key: 'outputLevel', label: '출력 레벨', input: { kind: 'text', free: true }, showWhen: isPhonoAmp },
+  { key: 'outputLevel', label: '출력 레벨', input: { kind: 'numSelect', options: PHONO_LEVEL_UNITS, glue: true }, showWhen: isPhonoAmp },
   { key: 'outputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPhonoAmp },
   { key: 'groundTerminal', label: '접지 단자', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isPhonoGroup },
   // ── MC 스텝업 헤드앰프(능동) 전용 ──
-  { key: 'mcHeadGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
-  { key: 'mcHeadLoad', label: '입력 임피던스', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadGain', label: '게인', input: { kind: 'text', unit: 'dB' }, showWhen: isMcHeadAmp },
+  { key: 'mcHeadLoad', label: '입력 임피던스', input: { kind: 'numSelect', options: PHONO_IMP_UNITS, glue: true }, showWhen: isMcHeadAmp },
   { key: 'mcHeadOutImp', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isMcHeadAmp },
   { key: 'mcHeadDevice', label: '사용 소자', input: { kind: 'select', options: MC_DEVICE_OPTS }, showWhen: isMcHeadAmp },
   { key: 'mcHeadCartImp', label: '권장 카트리지 임피던스', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
   // ── MC 스텝업 트랜스(패시브 SUT) 전용 ──
   { key: 'sutRatio', label: '승압비', input: { kind: 'text', free: true }, showWhen: isMcSut },
-  { key: 'sutGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isMcSut },
   { key: 'sutReflected', label: '반사 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isMcSut },
   { key: 'sutCartImp', label: '권장 카트리지 임피던스', input: { kind: 'text', free: true }, showWhen: isMcSut },
   { key: 'sutTransModel', label: '트랜스 제조사·모델', input: { kind: 'text', free: true }, showWhen: isMcSut },

@@ -1024,7 +1024,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             // 숫자 + 타입(RMS/Peak) → "150W RMS" (숫자 있을 때만 저장)
             const num = specs[f.key]?.trim();
             const t = specs[`${f.key}Type`]?.trim();
-            if (num) tech[f.key] = `${num}${f.input.unit ?? ''}${t ? ` ${t}` : ''}`;
+            if (num) tech[f.key] = `${num}${f.input.unit ?? ''}${t ? (f.input.glue ? t : ` ${t}`) : ''}`;
           } else {
             // select / text: specs 레코드의 단순 문자열
             const v = specs[f.key]?.trim();
