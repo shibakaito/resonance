@@ -32,7 +32,8 @@ export type SpecInput =
   | { kind: 'multi'; options: SelectOption[] }                  // 다중 선택 버튼 (임피던스/입력·출력 단자). {value,label}이면 영문키 저장+한글 표시
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
   | { kind: 'drivers' }                                         // 드라이버 구성 빌더 (종류/구조/재질/크기/개수 — 패시브·액티브 공용)
-  | { kind: 'ampPower' };                                       // 앰프 출력 빌더 (액티브 — 드라이버 종류 + 출력값)
+  | { kind: 'ampPower' }                                       // 앰프 출력 빌더 (액티브 — 드라이버 종류 + 출력값)
+  | { kind: 'tubeBuilder' };                                    // 진공관 빌더 — 역할/종류/개수 행 배열 (UI는 2단계)
 
 // showWhen: 현재 입력값(specs)에서 이 필드를 보일지 판단. 없으면 항상 표시.
 //   스피커 형식(speakerDetail=passive/active)에 따라 필드를 갈라 보여줄 때 사용.
@@ -119,6 +120,13 @@ export const AVR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 export const AVR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby TrueHD', 'Dolby Digital Plus', 'DTS:X', 'DTS-HD MA', 'DTS Neural:X', 'Auro-3D', 'IMAX Enhanced'];
 export const AVR_ROOMCAL_OPTS = ['없음', 'Audyssey', 'YPAO', 'Dirac Live', 'MCACC', 'AccuEQ'];
 export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드'];
+// 진공관 빌더 — 역할별 대표관(이름만, 등가/브랜드/음색 제외). 직접입력은 렌더 컴포넌트가 제공
+export const TUBE_ROLE_OPTS = ['출력관', '프리관', '드라이브관', '정류관'];
+export const TUBE_POWER_OPTS = ['KT88','KT90','KT120','KT150','KT170','6550','EL34','6CA7','KT77','KT66','6L6GC','5881','EL84','6V6','7591','300B','845','211','2A3','PX25','45'];
+export const TUBE_PRE_OPTS = ['12AX7','12AU7','12AT7','12AY7','6DJ8','6922','E88CC','6SN7','6SL7','5751','6N1P'];
+export const TUBE_DRIVER_OPTS = ['12BH7','5687','E182CC','7119','6N6P','6H30','EF86','6CG7','ECC99'];
+export const TUBE_RECT_OPTS = ['GZ34','5U4G','5Y3','5R4','274B','5V4G'];
+export const TUBE_TYPE_MAP: Record<string, string[]> = { '출력관': TUBE_POWER_OPTS, '프리관': TUBE_PRE_OPTS, '드라이브관': TUBE_DRIVER_OPTS, '정류관': TUBE_RECT_OPTS };
 export const AMP_CLASS_OPTS = ['Class A', 'Class AB', 'Class B', 'Class D', 'Class G', 'Class H']; // 동작 클래스
 export const AMP_OHM_OPTS = ['2Ω', '4Ω', '6Ω', '8Ω', '16Ω']; // 정격 출력 기준 옴 + 지원 임피던스 공용
 export const AMP_PHONO_OPTS = ['MM', 'MC', 'MM/MC', '없음'];
@@ -198,7 +206,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'channel', label: '채널', input: { kind: 'select', options: PREAMP_CHANNEL_OPTS }, showWhen: isPreamp }, // 프리앰프 전용: 모노블럭 대신 모노
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS }, showWhen: (s) => !isMcSut(s) }, // MC 스텝업 트랜스(패시브)는 증폭 방식 없음
-  { key: 'tubes', label: '진공관 종류', input: { kind: 'text', free: true }, showWhen: isTubeAmp },
+  { key: 'tubes', label: '진공관 종류', input: { kind: 'tubeBuilder' }, showWhen: isTubeAmp },
   // ── 포노앰프 전용: 지원 카트리지 + MM 블록 ──
   { key: 'cartridgeSupport', label: '지원 카트리지', input: { kind: 'select', options: PHONO_CARTRIDGE_OPTS }, showWhen: isPhonoAmp },
   { key: 'mmGain', label: 'MM 게인', input: { kind: 'text', unit: 'dB' }, showWhen: isPhonoMM },

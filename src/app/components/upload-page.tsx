@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -905,6 +905,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [ampPowerRows, setAmpPowerRows] = useState<AmpPowerRow[]>([{ ...BLANK_AMP_POWER_ROW }]);
   // 크로스오버 주파수(Hz) 여러 개 — 추가 버튼으로 행 늘림. 저장 시 'A / B / C'로 조립.
   const [crossoverValues, setCrossoverValues] = useState<{ value: string; unit: string }[]>([{ value: '', unit: 'Hz' }]);
+  // 진공관 빌더 — 역할/종류/개수 행 배열 (1단계: 상태·조립만, UI는 2단계)
+  const [tubeRows, setTubeRows] = useState<{ role: string; type: string; qty: string }[]>([{ role: '', type: '', qty: '' }]);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
@@ -937,6 +939,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 무게 빌더: 값+단위+비고 행 → "12kg (비고) / ..." (크기 buildDims와 동일 방식)
   const buildValNotes = (rows: { value: string; note: string }[], unit?: string) =>
     rows.map((r) => { const v = r.value.trim(); if (!v) return ''; const vu = `${v}${unit ?? ''}`; return r.note.trim() ? `${vu} (${r.note.trim()})` : vu; }).filter(Boolean).join(' / ');
+  // 진공관 빌더: 행 → "역할 종류 ×개수". role·type 둘 다 빈 행 제외, 개수 없으면 ×생략, ' / '로 연결
+  const buildTubes = (rows: { role: string; type: string; qty: string }[]) =>
+    rows
+      .filter((r) => r.role.trim() || r.type.trim())
+      .map((r) => {
+        const head = [r.role.trim(), r.type.trim()].filter(Boolean).join(' ');
+        return r.qty.trim() ? `${head} ×${r.qty.trim()}` : head;
+      })
+      .join(' / ');
   const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
@@ -1025,6 +1036,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const num = specs[f.key]?.trim();
             const t = specs[`${f.key}Type`]?.trim();
             if (num) tech[f.key] = `${num}${f.input.unit ?? ''}${t ? (f.input.glue ? t : ` ${t}`) : ''}`;
+          } else if (f.input.kind === 'tubeBuilder') {
+            // 진공관(빌더): 역할/종류/개수 행 → "출력관 KT88 ×4 / 프리관 12AX7 ×2"
+            const v = buildTubes(tubeRows);
+            if (v) tech[f.key] = v;
           } else {
             // select / text: specs 레코드의 단순 문자열
             const v = specs[f.key]?.trim();
@@ -1956,6 +1971,90 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크로스오버 추가
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+                  // ── 진공관 빌더: 역할 + 종류(역할별 동적) + 개수 행 배열 + "진공관 추가" ──
+                  if (f.input.kind === 'tubeBuilder') {
+                    return (
+                      <div key={f.key} className="spec-field">
+                        <label>{f.label}</label>
+                        <div className="space-y-2">
+                          {tubeRows.map((row, idx) => {
+                            const typeOpts = TUBE_TYPE_MAP[row.role] ?? [];
+                            const update = (patch: Partial<{ role: string; type: string; qty: string }>) => {
+                              const next = tubeRows.map((x, i) => (i === idx ? { ...x, ...patch } : x));
+                              setTubeRows(next);
+                              setSpecs({ ...specs, tubes: buildTubes(next) });
+                            };
+                            return (
+                              <div key={idx} className="flex gap-1.5 items-center -mr-6">
+                                {/* 역할 — 변경 시 종류 리셋. 선택 시 우측 X(역할+종류 둘 다 초기화), ▼ 왼쪽 */}
+                                <div className="relative flex-1 min-w-0">
+                                  <select
+                                    value={row.role}
+                                    onChange={(e) => update({ role: e.target.value, type: '' })}
+                                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${row.role ? 'pr-14' : 'pr-8'} h-[42px] bg-white focus:outline-none focus:border-[#000000] ${row.role ? '' : 'text-gray-400'}`}
+                                  >
+                                    <option value="" disabled>역할</option>
+                                    {TUBE_ROLE_OPTS.map((o) => (
+                                      <option key={o} value={o} className="text-[#000000]">{o}</option>
+                                    ))}
+                                  </select>
+                                  {row.role && (
+                                    <button
+                                      type="button"
+                                      aria-label="초기화"
+                                      onClick={() => update({ role: '', type: '' })}
+                                      className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  )}
+                                  <ChevronDown className="w-4 h-4 absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                                </div>
+                                {/* 종류 — Typeahead(검색+직접입력). 역할별 동적 옵션, 역할 미선택 시 옵션 없음+직접입력 차단 */}
+                                <div className="flex-1 min-w-0">
+                                  <Typeahead
+                                    value={row.type}
+                                    onChange={(v) => update({ type: v })}
+                                    options={typeOpts}
+                                    freeText={!!row.role}
+                                    placeholder="종류"
+                                  />
+                                </div>
+                                {/* 개수 */}
+                                <input
+                                  value={row.qty}
+                                  onChange={(e) => update({ qty: numOnly(e.target.value) })}
+                                  inputMode="numeric"
+                                  placeholder="개수"
+                                  className="w-20 flex-shrink-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                />
+                                {/* 행삭제 (2행 이상일 때만) */}
+                                {tubeRows.length > 1 ? (
+                                  <button
+                                    type="button"
+                                    aria-label="삭제"
+                                    onClick={() => { const next = tubeRows.filter((_, i) => i !== idx); setTubeRows(next); setSpecs({ ...specs, tubes: buildTubes(next) }); }}
+                                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <div className="w-5 flex-shrink-0" />
+                                )}
+                              </div>
+                            );
+                          })}
+                          <button
+                            type="button"
+                            onClick={() => setTubeRows((prev) => [...prev, { role: '', type: '', qty: '' }])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 진공관 추가
                           </button>
                         </div>
                       </div>
