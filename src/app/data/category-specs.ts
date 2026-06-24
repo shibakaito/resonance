@@ -224,16 +224,15 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'mcHeadLoad', label: '입력 임피던스', input: { kind: 'numSelect', options: PHONO_IMP_UNITS, glue: true }, showWhen: isMcHeadAmp },
   { key: 'mcHeadOutImp', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isMcHeadAmp },
   { key: 'mcHeadDevice', label: '사용 소자', input: { kind: 'select', options: MC_DEVICE_OPTS }, showWhen: isMcHeadAmp },
-  { key: 'mcHeadCartImp', label: '권장 카트리지 임피던스', input: { kind: 'text', free: true }, showWhen: isMcHeadAmp },
   // ── MC 스텝업 트랜스(패시브 SUT) 전용 ──
   { key: 'sutRatio', label: '승압비', input: { kind: 'text', free: true }, showWhen: isMcSut },
-  { key: 'sutReflected', label: '반사 입력 임피던스', input: { kind: 'text', free: true }, showWhen: isMcSut },
-  { key: 'sutCartImp', label: '권장 카트리지 임피던스', input: { kind: 'text', free: true }, showWhen: isMcSut },
-  { key: 'sutTransModel', label: '트랜스 제조사·모델', input: { kind: 'text', free: true }, showWhen: isMcSut },
+  { key: 'sutTransModel', label: '트랜스 모델', input: { kind: 'text', free: true }, showWhen: isMcSut },
   { key: 'sutCore', label: '코어 재질', input: { kind: 'select', options: SUT_CORE_OPTS }, showWhen: isMcSut },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) && !isPreamp(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) && !isPreamp(s) },
   { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
+  // 권장 카트리지 임피던스 — MC 헤드앰프·SUT 공용(재활용), 주파수 응답 바로 위
+  { key: 'mcHeadCartImp', label: '권장 카트리지 임피던스', input: { kind: 'range', lowUnit: 'Ω', highUnit: 'Ω' }, showWhen: (s) => isMcHeadAmp(s) || isMcSut(s) },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },
   { key: 'impedance', label: '지원 임피던스', input: { kind: 'multi', options: AMP_OHM_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) && !isPreamp(s) }, // 헤드폰 앰프·포노 그룹·프리앰프 숨김
   { key: 'thd', label: 'THD', input: { kind: 'text', unit: '%' }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 THD 무의미
