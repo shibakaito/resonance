@@ -76,10 +76,6 @@ const isPhonoMC = (s: Record<string, string | string[]>) => isPhonoAmp(s) && (s.
 const isMcHeadAmp = (s: Record<string, string | string[]>) => s.__sub === 'MC 스텝업 헤드앰프';
 // MC 스텝업 트랜스 (패시브 SUT) 전용
 const isMcSut = (s: Record<string, string | string[]>) => s.__sub === 'MC 스텝업 트랜스';
-// 헤드폰 앰프 DAC 내장 게이팅 — 구성 형태가 'DAC 내장(올인원)'일 때 DAC 스펙 노출
-const hpHasDac = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpType === 'DAC 내장(올인원)';
-// 헤드폰 앰프 포터블 게이팅 — 사용 형태가 포터블(배터리)일 때 배터리 스펙 노출
-const isHpPortable = (s: Record<string, string | string[]>) => isHpAmp(s) && s.hpForm === '포터블(배터리)';
 // 소스기기 하위 게이트 — 턴테이블 (다른 소스기기 하위는 공통 꼬리만 노출)
 const isTurntable = (s: Record<string, string | string[]>) => s.__sub === '턴테이블';
 // 턴테이블 하위 유형(ttType) — 스피커 isPassive/isActive 패턴. 미선택 시 유형별 블록 전부 숨김
@@ -196,8 +192,6 @@ export const HP_OUTPUT_TERMINALS = ['6.35mm', '3.5mm', '4.4mm (Pentaconn)', '4-p
 export const HP_OHM_OPTS = ['16Ω', '32Ω', '50Ω', '80Ω', '150Ω', '250Ω', '300Ω', '600Ω'];
 // 헤드폰 앰프 사용 형태
 export const HP_FORM_OPTS = ['데스크탑', '포터블(배터리)', 'USB 동글'];
-// 헤드폰 앰프 구성 형태
-export const HP_TYPE_OPTS = ['순수 헤드폰 앰프', '헤드폰 앰프 + 프리앰프', 'DAC 내장(올인원)'];
 
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
@@ -260,12 +254,8 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'hpGain', label: '게인', input: { kind: 'text', unit: 'dB' }, showWhen: isHpAmp },
   { key: 'hpOutputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isHpAmp },
   { key: 'hpImpedanceRange', label: '권장 헤드폰 임피던스', input: { kind: 'range', lowUnit: 'Ω', highUnit: 'Ω' }, showWhen: isHpAmp },
-  { key: 'hpType', label: '구성 형태', input: { kind: 'select', options: HP_TYPE_OPTS }, showWhen: isHpAmp },
-  { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: hpHasDac },
-  { key: 'hpResolution', label: '지원 해상도', input: { kind: 'text', free: true }, showWhen: hpHasDac },
+  { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: isHpAmp }, // 상시 표기(구성형태 게이팅 제거)
   { key: 'hpForm', label: '사용 형태', input: { kind: 'select', options: HP_FORM_OPTS }, showWhen: isHpAmp },
-  { key: 'hpBattery', label: '배터리 용량', input: { kind: 'text', unit: 'mAh' }, showWhen: isHpPortable },
-  { key: 'hpRuntime', label: '재생 시간', input: { kind: 'text', unit: '시간' }, showWhen: isHpPortable },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 해당 없음
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
