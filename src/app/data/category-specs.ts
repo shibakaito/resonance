@@ -249,7 +249,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'roomCal', label: '룸 보정', input: { kind: 'select', options: AVR_ROOMCAL_OPTS }, showWhen: isAvr },
   // ── 헤드폰 앰프 전용: 헤드폰 출력 단자 · 게인 · 출력 임피던스 ──
   { key: 'hpOutputs', label: '헤드폰 출력 단자', input: { kind: 'multi', options: HP_OUTPUT_TERMINALS }, showWhen: isHpAmp },
-  { key: 'hpGain', label: '게인', input: { kind: 'text', free: true }, showWhen: isHpAmp },
+  { key: 'hpGain', label: '게인', input: { kind: 'text', unit: 'dB' }, showWhen: isHpAmp },
   { key: 'hpOutputImpedance', label: '출력 임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isHpAmp },
   { key: 'hpImpedanceRange', label: '권장 헤드폰 임피던스', input: { kind: 'range', lowUnit: 'Ω', highUnit: 'Ω' }, showWhen: isHpAmp },
   { key: 'hpType', label: '구성 형태', input: { kind: 'select', options: HP_TYPE_OPTS }, showWhen: isHpAmp },
