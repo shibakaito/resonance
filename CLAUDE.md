@@ -18,5 +18,6 @@
 - GitHub 계정은 shibakaito 하나로 통일 — 리포·Vercel·Supabase 공통. 다른 GitHub 계정 사용 X
 - shibakaito/resonance main → Vercel resonance-ebon.vercel.app 자동 배포
 - Supabase kaito Project(Free, ap-northeast-1). 7일 미사용 시 일시정지 → 대시보드 Resume(ref·키 유지, 약 2분). 스키마 supabase/listings.sql, 복구 스크립트 supabase/rls-storage.sql(새 프로젝트 재생성 시에만)
+- 일시정지 방지: Vercel Cron 매일 /api/keepalive → listings select. 크론이나 라우트 지우면 7일 뒤 Supabase 다시 정지됨
 - 키는 .env.local(NEXT_PUBLIC_SUPABASE_URL/ANON_KEY) + Vercel 환경변수 — 프로젝트 바뀌면 둘 다 갱신
 - 2026-10-30 이후 새 테이블은 Data API GRANT 필요(rls-storage.sql 섹션 4 참고)
