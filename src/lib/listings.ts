@@ -35,8 +35,34 @@ type ListingRow = {
 // 카테고리 슬러그 → 한글 (없으면 원본 그대로)
 const cat = (slug: string | null | undefined) => categoryFromSlug(slug ?? undefined) ?? (slug ?? '');
 
+// ── 정격 출력 파서 ────────────────────────────────────────────────────────────
+// specs.tech.powerRated 는 판매 폼의 앰프 출력 빌더(upload-page.tsx 의 buildPower)가 만든
+// 조립 문자열입니다:  "<숫자>W[ @ <숫자>Ω][ (비고)]" 항목들을 ", " 로 이어 붙인 형태.
+//   예) "100W @ 8Ω, 150W @ 4Ω"  /  "60W @ 8Ω (양채널 구동)"  /  "75W"  /  "해당없음"
+// 규칙: 8Ω 기준값 우선 → 없으면 첫 번째 항목의 W → 비었거나 숫자 없음("해당없음") → 0.
+// ⚠️ 빌더의 조립 포맷을 바꾸면 이 파서도 같이 고칠 것 (정격 출력 범위 필터가 이 값을 씁니다).
+export function parsePowerW(raw: unknown): number {
+  if (typeof raw !== 'string' || !raw.trim()) return 0;
+  // 항목 = 맨 앞 "<숫자>W" (+ 선택 " @ <숫자>Ω"). 비고 괄호 안의 숫자는 맨 앞이 아니라 무시됩니다.
+  const ITEM = /^\s*(\d+(?:\.\d+)?)\s*W(?:\s*@\s*(\d+(?:\.\d+)?)\s*[\u03A9\u2126])?/i;
+  let first: number | null = null;
+  for (const part of raw.split(',')) {
+    const m = ITEM.exec(part);
+    if (!m) continue;
+    const w = Number(m[1]);
+    if (m[2] !== undefined && Number(m[2]) === 8) return w; // 8Ω 기준값 우선
+    if (first === null) first = w;
+  }
+  return first ?? 0;
+}
+
 function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
+  // 기술 사양 네임스페이스(specs.tech) — 새 판매 폼이 스펙을 저장하는 곳.
+  // 이번 단계에선 power 만 여기서 읽고, 나머지 스펙 필드는 다음 커밋에서 tech 로 전환.
+  // 옛 flat 키(s.power 등)는 되살리지 않음 — flat 시드 행은 삭제·재시드 예정.
+  const tech: Record<string, unknown> =
+    s.tech && typeof s.tech === 'object' && !Array.isArray(s.tech) ? (s.tech as Record<string, unknown>) : {};
   const yn = (v: unknown) => label('yes_no', v as string);
   return {
     id: row.id,
@@ -64,7 +90,6 @@ function mapRow(row: ListingRow): Listing {
     // specs.tech 의 값을 그대로 보존 (문자열 + 문자열 배열). 빈 값/빈 배열 제외.
     // 라벨·순서·표시는 상세 페이지가 카테고리별 스키마로 결정 (앰프는 배열도 포함).
     techSpecs: (() => {
-      const tech = (s.tech && typeof s.tech === 'object') ? s.tech as Record<string, unknown> : {};
       const out: Record<string, string | string[]> = {};
       for (const [k, v] of Object.entries(tech)) {
         if (typeof v === 'string') {
@@ -86,7 +111,7 @@ function mapRow(row: ListingRow): Listing {
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
     ampDetail: label('ampDetail', s.ampDetail),
     ampMethod: label('ampMethod', s.ampMethod),
-    power: s.power ?? 0,
+    power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 조립 문자열 파싱 (flat s.power 는 더 안 읽음)
     headphoneImpedance: s.headphoneImpedance ?? 0,
     impedances: Array.isArray(s.impedances) ? s.impedances.map((x: string) => label('impedance', x)) : [],
     phono: label('phono', s.phono),

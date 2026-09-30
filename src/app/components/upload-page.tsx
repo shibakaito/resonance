@@ -922,6 +922,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     return nums.length === 1 ? `${nums[0]}Ω` : `${nums[0]}~${nums[nums.length - 1]}Ω`;
   };
   // 조립 함수 (저장/표시용 문자열)
+  // ⚠️ 이 조립 포맷("100W @ 8Ω, 150W @ 4Ω (비고)")을 바꾸면 src/lib/listings.ts 의 parsePowerW 도 같이 고칠 것
+  //    (정격 출력 범위 필터가 저장된 문자열을 그 파서로 숫자화합니다).
   const buildPower = (pairs: { w: string; ohm: string; note?: string }[]) =>
     pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}${p.note && p.note.trim() ? ` (${p.note.trim()})` : ''}`).join(', ');
   const buildFreq = (lo: string, hi: string, loUnit = 'Hz', hiUnit = 'kHz') => {
