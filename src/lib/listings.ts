@@ -204,10 +204,11 @@ const toMoney = (s: string): number | null => {
 };
 
 // 판매 폼 입력값을 DB 영문 키/슬러그로 변환해 listings 테이블에 INSERT. 새 매물 id 반환.
-export async function insertListing(form: ListingInput): Promise<string> {
+// 판매 폼 입력값 → DB 행(컬럼 객체). 폼(insertListing)과 시드 스크립트(scripts/seed-listings.ts)가 공용 — 단일 출처.
+export function toListingRow(form: ListingInput) {
   const primaryKo = form.subcategory || form.category; // 하위 카테고리 우선
   const categoriesKo = computeCategories(primaryKo);    // 교차 등록 규칙 적용(한글)
-  const row = {
+  return {
     status: 'active',
     seller_id: null, // 로그인 기능 전이라 null
     title: form.title || null,
@@ -234,6 +235,10 @@ export async function insertListing(form: ListingInput): Promise<string> {
     local_pickup: form.localPickup,
     specs: form.specs ?? {},                                // 카테고리별 상세 스펙 (외관/작동 등)
   };
+}
+
+export async function insertListing(form: ListingInput): Promise<string> {
+  const row = toListingRow(form);
   const { data, error } = await supabase
     .from('listings')
     .insert(row)
