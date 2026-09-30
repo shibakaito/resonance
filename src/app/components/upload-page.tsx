@@ -23,6 +23,7 @@ import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -615,43 +616,8 @@ function Typeahead({
 
 // 드라이버 구성 빌더 — 행 1개 = 드라이버 1개. 종류에 따라 구조/재질(또는 담당대역) 옵션·칼럼이 바뀜(cascading).
 // 검색+드롭다운(단일)은 Typeahead 재사용(단자 위젯은 다중이라, 단일판 Typeahead 사용). A단계: 렌더만(요약·저장 없음).
-type DriverRow = { type: string; structure: string; material: string; band: string; size: string; sizeUnit: string; count: string };
+// DriverRow 타입 · ROLE_BAND · driverSummary(요약 칩 조립)는 src/lib/spec-builders.ts 로 이동 (폼·시드 스크립트 공용)
 const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' };
-
-// 종류 → 담당 영역(대역). way 계산용. 동축은 담당대역 문자열을 '+'/'/'로 쪼개 각 역할명을 대역으로.
-const ROLE_BAND: Record<string, string> = { '우퍼': '저역', '미드우퍼': '중저역', '미드레인지': '중역', '트위터': '고역', '슈퍼 트위터': '초고역', '풀레인지': '전대역' };
-// 드라이버 행들 → 칩 배열(속성별). [N-way] [N-driver?] [크기] [재질] [구조] [종류 (개수)] ...
-//   동축은 재질 없이 종류(담당대역). N-driver 칩은 활성 행 전부 개수 입력됐을 때만.
-function driverSummary(rows: DriverRow[]): string[] {
-  const active = rows.filter((r) => r.type);
-  if (active.length === 0) return [];
-  const bands = new Set<string>();
-  let drivers = 0;
-  let allCounted = true; // 활성 행 전부 개수 입력됐을 때만 'N-driver' 칩 표시
-  const chips: string[] = [];
-  for (const r of active) {
-    const n = parseInt(r.count, 10);
-    if (Number.isFinite(n) && n > 0) drivers += n;
-    else allCounted = false;
-    const cnt = r.count ? ` (${r.count})` : '';
-    if (r.type === '동축') {
-      (r.band || '').split(/[+/]/).map((s) => s.trim()).filter(Boolean).forEach((seg) => bands.add(ROLE_BAND[seg] ?? seg));
-      if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
-      if (r.structure) chips.push(r.structure);
-      chips.push(`${r.type}(${r.band})${cnt}`);
-    } else {
-      bands.add(ROLE_BAND[r.type] ?? r.type);
-      const mat = (r.material || '').replace(/\s*콘$/, ''); // 페이퍼 콘 → 페이퍼
-      if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
-      if (mat) chips.push(mat);
-      if (r.structure) chips.push(r.structure);
-      chips.push(`${r.type}${cnt}`);
-    }
-  }
-  const head = [`${bands.size}-way`];
-  if (allCounted) head.push(`${drivers}-driver`);
-  return [...head, ...chips];
-}
 
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
@@ -764,11 +730,9 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
 
 // 앰프 출력 빌더(액티브 전용) — 행 1개 = 드라이버 종류(앞칸) + 그 드라이버를 구동하는 앰프 출력값(뒤칸, 자유 입력).
 // "앰프 구성" 바로 아래에 표시. 요약(보기) 박스는 두지 않음 — way/driver 요약은 드라이버 구성에만.
-type AmpPowerRow = { type: string; power: string };
+// AmpPowerRow 타입은 src/lib/spec-builders.ts (폼·시드 공용)
 const BLANK_AMP_POWER_ROW: AmpPowerRow = { type: '', power: '' };
-// 앰프 출력 종류 목록 — '전체'(단일 앰프가 전 대역 구동, 예: 싱글앰프) 맨 앞 + 동축·패시브 라디에이터 제외
-// (동축=복합 유닛이라 매칭 모호 / 패시브 라디에이터=앰프 없는 수동 유닛)
-const AMP_POWER_TYPES = ['전체', ...DRIVER_TYPES.filter((t) => t !== '동축' && t !== '패시브 라디에이터')];
+// AMP_POWER_TYPES(앰프 출력 종류 목록)는 src/lib/spec-builders.ts 로 이동 (폼·시드 공용)
 
 function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
   const update = (i: number, patch: Partial<AmpPowerRow>) =>
@@ -921,35 +885,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     const nums = arr.map((o) => parseInt(o, 10)).sort((a, b) => a - b);
     return nums.length === 1 ? `${nums[0]}Ω` : `${nums[0]}~${nums[nums.length - 1]}Ω`;
   };
-  // 조립 함수 (저장/표시용 문자열)
-  // ⚠️ 이 조립 포맷("100W @ 8Ω, 150W @ 4Ω (비고)")을 바꾸면 src/lib/listings.ts 의 parsePowerW 도 같이 고칠 것
-  //    (정격 출력 범위 필터가 저장된 문자열을 그 파서로 숫자화합니다).
-  const buildPower = (pairs: { w: string; ohm: string; note?: string }[]) =>
-    pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}${p.note && p.note.trim() ? ` (${p.note.trim()})` : ''}`).join(', ');
-  const buildFreq = (lo: string, hi: string, loUnit = 'Hz', hiUnit = 'kHz') => {
-    const l = lo.trim(), h = hi.trim();
-    if (!l && !h) return '';
-    return `${l ? l + loUnit : ''}~${h ? h + hiUnit : ''}`;
-  };
-  const buildDim = (w: string, d: string, h: string) => {
-    if (!w.trim() && !d.trim() && !h.trim()) return '';
-    return `${w.trim()}×${d.trim()}×${h.trim()}`;
-  };
-  // 크기 행 배열 → 문자열. 각 행 "W×D×H (비고)", 여러 행은 ' / '로. (W·D·H 모두 빈 행 제외)
-  const buildDims = (rows: { w: string; d: string; h: string; note: string }[]) =>
-    rows.map((r) => { const dim = buildDim(r.w, r.d, r.h); if (!dim) return ''; return r.note.trim() ? `${dim} (${r.note.trim()})` : dim; }).filter(Boolean).join(' / ');
-  // 무게 빌더: 값+단위+비고 행 → "12kg (비고) / ..." (크기 buildDims와 동일 방식)
-  const buildValNotes = (rows: { value: string; note: string }[], unit?: string) =>
-    rows.map((r) => { const v = r.value.trim(); if (!v) return ''; const vu = `${v}${unit ?? ''}`; return r.note.trim() ? `${vu} (${r.note.trim()})` : vu; }).filter(Boolean).join(' / ');
-  // 진공관 빌더: 행 → "역할 종류 ×개수". role·type 둘 다 빈 행 제외, 개수 없으면 ×생략, ' / '로 연결
-  const buildTubes = (rows: { role: string; type: string; qty: string }[]) =>
-    rows
-      .filter((r) => r.role.trim() || r.type.trim())
-      .map((r) => {
-        const head = [r.role.trim(), r.type.trim()].filter(Boolean).join(' ');
-        return r.qty.trim() ? `${head} ×${r.qty.trim()}` : head;
-      })
-      .join(' / ');
+  // 조립 함수(buildPower/buildFreq/buildDims/buildValNotes/buildTubes/buildCrossover/buildAmpPower/buildNumSelect)는
+  // src/lib/spec-builders.ts 에서 import (폼·시드 스크립트 공용 — 포맷의 단일 출처)
   const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
@@ -987,6 +924,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       // 기술 사양 → specs.tech 중첩 객체에 저장 (값/배열 있는 것만, 빈 값·빈 배열 제외).
       // ⚠️ 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지 위해 tech 네임스페이스 분리.
       // ⚠️ 카테고리별 스키마(앰프 등)가 있으면 그 필드를 kind별로 조립, 없으면 기존 SPEC_FIELDS 폴백(분기).
+      // ⚠️ 아래 kind별 분기는 scripts/seed-listings.ts 의 buildTechLikeForm 과 거울 관계 — 분기를 바꾸면 거기도 같이.
       const tech: Record<string, string | string[]> = {};
       const catFields = SPEC_FIELDS_BY_CATEGORY[category];
       if (catFields) {
@@ -1016,7 +954,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'crossover') {
             // 크로스오버: 주파수(Hz) 여러 개 → "250Hz / 2500Hz"
-            const v = crossoverValues.filter((x) => x.value.trim()).map((x) => `${x.value.trim()}${x.unit}`).join(' / ');
+            const v = buildCrossover(crossoverValues);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'multi') {
             // 다중 선택: 배열 그대로 (임피던스/입력·출력 단자/무선)
@@ -1028,16 +966,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             if (v.length) tech[f.key] = v.join(' ');
           } else if (f.input.kind === 'ampPower') {
             // 앰프 출력(빌더): 종류별 출력값 → "우퍼 200W / 트위터 100W" (종류 있는 행만)
-            const v = ampPowerRows
-              .filter((r) => r.type)
-              .map((r) => (r.power.trim() ? `${r.type} ${r.power.trim()}` : r.type))
-              .join(' / ');
+            const v = buildAmpPower(ampPowerRows);
             if (v) tech[f.key] = v;
           } else if (f.input.kind === 'numSelect') {
             // 숫자 + 타입(RMS/Peak) → "150W RMS" (숫자 있을 때만 저장)
-            const num = specs[f.key]?.trim();
-            const t = specs[`${f.key}Type`]?.trim();
-            if (num) tech[f.key] = `${num}${f.input.unit ?? ''}${t ? (f.input.glue ? t : ` ${t}`) : ''}`;
+            const v = buildNumSelect(specs[f.key], specs[`${f.key}Type`], f.input.unit, f.input.glue);
+            if (v) tech[f.key] = v;
           } else if (f.input.kind === 'tubeBuilder') {
             // 진공관(빌더): 역할/종류/개수 행 → "출력관 KT88 ×4 / 프리관 12AX7 ×2"
             const v = buildTubes(tubeRows);

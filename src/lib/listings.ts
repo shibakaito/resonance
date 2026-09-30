@@ -36,7 +36,7 @@ type ListingRow = {
 const cat = (slug: string | null | undefined) => categoryFromSlug(slug ?? undefined) ?? (slug ?? '');
 
 // ── 정격 출력 파서 ────────────────────────────────────────────────────────────
-// specs.tech.powerRated 는 판매 폼의 앰프 출력 빌더(upload-page.tsx 의 buildPower)가 만든
+// specs.tech.powerRated 는 판매 폼의 앰프 출력 빌더(src/lib/spec-builders.ts 의 buildPower)가 만든
 // 조립 문자열입니다:  "<숫자>W[ @ <숫자>Ω][ (비고)]" 항목들을 ", " 로 이어 붙인 형태.
 //   예) "100W @ 8Ω, 150W @ 4Ω"  /  "60W @ 8Ω (양채널 구동)"  /  "75W"  /  "해당없음"
 // 규칙: 8Ω 기준값 우선 → 없으면 첫 번째 항목의 W → 비었거나 숫자 없음("해당없음") → 0.
