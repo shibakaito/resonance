@@ -85,7 +85,7 @@ const SEEDS: Seed[] = [
       multi: { eqCurves: ['RIAA'], inputs: ['RCA', 'XLR'], outputs: ['RCA Out', 'XLR Out'] }, ranges: { freqResponse: { low: '10', high: '50' } },
       dims: { dimensions: [D('220', '215', '53')] }, valNotes: { weight: [KG('2')] } } },
   { category: '앰프', sub: '헤드폰 앰프', brand: 'Sennheiser', model: 'HDV 820', year: '2018', condition: 'used_excellent', price: 2400000, country: '독일', ownership: 'single_owner',
-    description: 'DAC 내장 밸런스 헤드폰 앰프. 4.4mm·XLR 출력.',
+    description: 'DAC 내장 밸런스 헤드폰 앰프. 4.4mm·XLR 출력.', // powerPairs 는 스키마의 헤드폰 전용 키 hpOutput(부하별 출력)로 저장됨 → power 필터엔 0
     draft: { values: { device: '트랜지스터', opClass: 'Class AB', thd: '0.001', snr: '115', hpGain: '12', hpOutputImpedance: '0.5', hpDacChip: 'ESS SABRE ES9028', hpForm: '데스크탑', voltage: '프리볼트' },
       powerPairs: [P('2.4', '32Ω'), P('0.48', '300Ω'), P('0.24', '600Ω')], ranges: { freqResponse: { low: '10', high: '100' }, hpImpedanceRange: { low: '16', high: '600' } },
       multi: { inputs: ['XLR', 'RCA', 'USB-B', 'Optical', 'Coaxial'], outputs: ['XLR Out', 'RCA Out'], hpOutputs: ['4.4mm (Pentaconn)', '4-pin XLR', '듀얼 3-pin XLR', '6.35mm'] },

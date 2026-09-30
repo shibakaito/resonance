@@ -8,6 +8,8 @@
 //   - emptyFilters/cloneFilters/countFilters 등 헬퍼
 // 화면 컴포넌트들은 이 파일에서 필요한 것을 import 해서 사용합니다.
 // ============================================================================
+// 앰프 필터 옵션은 판매 폼 상수(category-specs.ts)를 그대로 씀 — 폼이 저장하는 값 = 필터가 고르는 값 (단일 출처, 정규화 없음)
+import { AMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS } from '@/app/data/category-specs';
 
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
 export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
@@ -23,13 +25,13 @@ export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가�
 
 // 앰프 전용 필터 옵션
 export const AMP_TYPES = ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '리시버', 'AV 리시버', '헤드폰 앰프'];
-export const AMP_DETAILS = ['모노블록', '스테레오', '멀티채널'];
-export const AMP_METHODS = ['트랜지스터', '진공관', '하이브리드'];
-export const IMPEDANCE_OPTS = ['2Ω', '4Ω', '8Ω', '16Ω'];
-export const PHONO_OPTS = ['없음', 'MM', 'MC', 'MM/MC'];
-export const TONE_OPTS = ['있음', '없음'];
-export const REMOTE_OPTS = ['있음', '없음'];
-export const VOLTAGE_OPTS = ['100V', '120V', '220V', '프리볼트'];
+export const AMP_DETAILS = AMP_CHANNEL_OPTS;   // 세부 카테고리(채널) = 폼 '채널' 옵션: 모노블럭 / 스테레오 / 멀티채널
+export const AMP_METHODS = AMP_DEVICE_OPTS;    // 증폭 방식 = 폼 '증폭 방식' 옵션: 진공관 / 트랜지스터 / 하이브리드
+export const IMPEDANCE_OPTS = AMP_OHM_OPTS;    // 지원 임피던스 = 폼 옴 옵션: 2Ω / 4Ω / 6Ω / 8Ω / 16Ω
+export const PHONO_OPTS = AMP_PHONO_OPTS;      // 포노 입력 = 폼 옵션: MM / MC / MM/MC / 없음
+export const TONE_OPTS = YES_NO_OPTS;          // 톤 컨트롤 = 있음 / 없음
+export const REMOTE_OPTS = YES_NO_OPTS;        // 리모컨 = 있음 / 없음
+export const VOLTAGE_OPTS = AMP_VOLTAGE_OPTS;  // 전원전압 = 폼 '전원' 옵션
 
 // 스피커 전용 필터 옵션
 export const SPEAKER_DETAILS = ['패시브', '액티브'];

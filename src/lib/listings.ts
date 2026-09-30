@@ -58,12 +58,17 @@ export function parsePowerW(raw: unknown): number {
 
 function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
-  // 기술 사양 네임스페이스(specs.tech) — 새 판매 폼이 스펙을 저장하는 곳.
-  // 이번 단계에선 power 만 여기서 읽고, 나머지 스펙 필드는 다음 커밋에서 tech 로 전환.
-  // 옛 flat 키(s.power 등)는 되살리지 않음 — flat 시드 행은 삭제·재시드 예정.
+  // 기술 사양 네임스페이스(specs.tech) — 판매 폼이 스펙을 저장하는 곳. 옛 flat 키는 읽지 않음(2026-09-30 재시드 완료).
+  // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance).
+  // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수를 쓰므로 변환·정규화 없음.
+  // 나머지 앰프/스피커/턴테이블 스펙 필드는 다음 커밋에서 전환.
   const tech: Record<string, unknown> =
     s.tech && typeof s.tech === 'object' && !Array.isArray(s.tech) ? (s.tech as Record<string, unknown>) : {};
   const yn = (v: unknown) => label('yes_no', v as string);
+  // tech 값 읽기: 문자열은 trim, 배열은 빈 문자열 제외. 없으면 '' / [].
+  const techStr = (k: string) => (typeof tech[k] === 'string' ? (tech[k] as string).trim() : '');
+  const techArr = (k: string) =>
+    Array.isArray(tech[k]) ? (tech[k] as unknown[]).filter((x): x is string => typeof x === 'string' && x.trim() !== '') : [];
   return {
     id: row.id,
     brand: row.brand,
@@ -109,11 +114,11 @@ function mapRow(row: ListingRow): Listing {
       : 0,
     // 앰프
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
-    ampDetail: label('ampDetail', s.ampDetail),
-    ampMethod: label('ampMethod', s.ampMethod),
+    ampDetail: techStr('channel'), // 세부 카테고리(채널): tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
+    ampMethod: techStr('device'),  // 증폭 방식: tech.device — 필터 AMP_METHODS(=폼 AMP_DEVICE_OPTS)와 같은 값
     power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 조립 문자열 파싱 (flat s.power 는 더 안 읽음)
     headphoneImpedance: s.headphoneImpedance ?? 0,
-    impedances: Array.isArray(s.impedances) ? s.impedances.map((x: string) => label('impedance', x)) : [],
+    impedances: techArr('impedance'), // 지원 임피던스: tech.impedance — 필터 IMPEDANCE_OPTS(=폼 AMP_OHM_OPTS, '6Ω' 포함)와 같은 값
     phono: label('phono', s.phono),
     toneControl: yn(s.toneControl),
     remote: yn(s.remote),

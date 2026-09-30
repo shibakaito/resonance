@@ -232,7 +232,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'sutCore', label: '코어 재질', input: { kind: 'select', options: SUT_CORE_OPTS }, showWhen: isMcSut },
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: (s) => !isPhonoGroup(s) && !isPreamp(s) },
   { key: 'powerRated', label: '정격 출력', input: { kind: 'power' }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) && !isPreamp(s) },
-  { key: 'powerRated', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp },
+  { key: 'hpOutput', label: '부하별 출력', input: { kind: 'power', ohmOptions: HP_OHM_OPTS }, showWhen: isHpAmp }, // 헤드폰 앰프 전용 키 — powerRated(정격 출력·8Ω 기준 필터)와 분리해 parsePowerW 에 안 들어가게 (헤드폰 앰프는 power=0)
   // 권장 카트리지 임피던스 — MC 헤드앰프·SUT 공용(재활용), 주파수 응답 바로 위
   { key: 'mcHeadCartImp', label: '권장 카트리지 임피던스', input: { kind: 'range', lowUnit: 'Ω', highUnit: 'Ω' }, showWhen: (s) => isMcHeadAmp(s) || isMcSut(s) },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' } },

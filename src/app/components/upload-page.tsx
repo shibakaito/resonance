@@ -1566,7 +1566,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   onChange={(e) => {
                                     const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, w: numOnly(e.target.value) } : x));
                                     setPowerPairs(pairs);
-                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                   }}
                                   inputMode="decimal"
                                   placeholder="출력값"
@@ -1582,7 +1582,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   onChange={(e) => {
                                     const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: e.target.value } : x));
                                     setPowerPairs(pairs);
-                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                   }}
                                   className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
                                 >
@@ -1598,7 +1598,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     onClick={() => {
                                       const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: '' } : x));
                                       setPowerPairs(pairs);
-                                      setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                      setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                     }}
                                     className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
                                   >
@@ -1614,7 +1614,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 onChange={(e) => {
                                   const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, note: e.target.value } : x));
                                   setPowerPairs(pairs);
-                                  setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                  setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                 }}
                                 placeholder="비고"
                                 className="w-[114px] flex-shrink-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
@@ -1625,7 +1625,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   onClick={() => {
                                     const pairs = powerPairs.filter((_, i) => i !== idx);
                                     setPowerPairs(pairs);
-                                    setSpecs({ ...specs, powerRated: buildPower(pairs) });
+                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                   }}
                                   aria-label="삭제"
                                   className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
