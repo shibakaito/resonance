@@ -16,6 +16,7 @@
 - 브라우저 확인은 Claude in Chrome(사용자 세션)으로, 읽기 전용. 변경은 지시 시에만
 - 테스트 매물은 [테스트] 접두사. 삭제는 대시보드 SQL (anon 키는 RLS로 DELETE 불가)
 - 시드: npx --yes tsx scripts/seed-listings.ts --dry-run / 실행 시 [테스트] 가드. 테스트 접두사는 description. 삭제: delete from listings where description like '[테스트]%'
+- 폼 현황표: npx --yes tsx scripts/form-status.ts → docs/form-status.md 재생성 (폼 스키마·업로드 폼 바꾸면 같이 커밋)
 ## 인프라
 - GitHub 계정은 shibakaito 하나로 통일 — 리포·Vercel·Supabase 공통. 다른 GitHub 계정 사용 X
 - shibakaito/resonance main → Vercel resonance-ebon.vercel.app 자동 배포
