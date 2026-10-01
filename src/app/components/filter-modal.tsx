@@ -22,7 +22,6 @@ import {
   CONDITIONS,
   CONDITION_DISPLAY,
   CONDUCTOR_OPTS,
-  CONNECTION_TYPES,
   COUNTRY_OPTS,
   CROSS_LISTING,
   Counts,
@@ -387,7 +386,7 @@ export function FilterModal({
   const setFieldKeys: (keyof Filters)[] = [
     'brand', 'condition', 'ownership', 'country', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
-    'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'connection', 'wooferSize',
+    'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
@@ -785,14 +784,6 @@ export function FilterModal({
 
           {isSpeaker && (
             <>
-              <Section title="연결 방식" defaultOpen>
-                <CheckGroup
-                  options={CONNECTION_TYPES}
-                  selected={draft.connection}
-                  onToggle={toggleIn('connection')}
-                  counts={counts.connection}
-                />
-              </Section>
               <Section title="드라이버 구성">
                 <CheckGroup
                   options={DRIVER_CONFIGS}

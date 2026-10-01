@@ -7,6 +7,7 @@
 // 규칙:
 //   · 값은 category-specs.ts 옵션 배열에서만 고름 → validateSeed 가 검증 (문자열 직접 입력 금지)
 //   · 조립 문자열(정격 출력·주파수·크기·무게·진공관·드라이버…)은 src/lib/spec-builders.ts 의 빌더 그대로 사용
+//     (드라이버 필터용 파생 키 driverWays·wooferMaxInch 도 같은 빌더 driverDerived — validateSeed 는 입력 초안만 검사해서 파생 키와 무관)
 //   · 최상위 컬럼 매핑은 src/lib/listings.ts 의 toListingRow 그대로 사용 (폼과 단일 출처)
 //   · kind별 분기 buildTechLikeForm 은 upload-page.tsx handleSubmit 의 분기와 거울 관계 ⚠️ 바꾸면 같이
 //   · description 은 "[테스트] " 접두 → 정리는 SQL 한 줄: delete from listings where description like '[테스트]%'
@@ -193,7 +194,7 @@ function loadEnvLocal() {
 // ── 폼 handleSubmit 의 kind별 분기와 거울 관계 (upload-page.tsx "⚠️ 아래 kind별 분기는 ..." 참조) ──
 function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: string, d: Draft, B: typeof import('@/lib/spec-builders')) {
   const values = d.values ?? {};
-  const tech: Record<string, string | string[]> = {};
+  const tech: Record<string, string | string[] | number> = {}; // number = 드라이버 파생 키 wooferMaxInch
   const gate: Record<string, string | string[]> = { ...values, __sub: sub };
   for (const f of fields) {
     if (f.showWhen && !f.showWhen(gate)) continue;           // 폼: 화면에 안 보이는 필드는 저장하지 않음
@@ -212,6 +213,7 @@ function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: s
     else if (inp.kind === 'tubeBuilder') v = B.buildTubes(d.tubes ?? []);
     else v = (values[f.key] ?? '').trim();                  // select / searchSelect / text
     if (Array.isArray(v) ? v.length > 0 : v) tech[f.key] = v;
+    if (inp.kind === 'drivers') Object.assign(tech, B.driverDerived(d.drivers ?? [])); // + 필터용 파생 키 driverWays·wooferMaxInch (폼과 같음)
   }
   return tech;
 }

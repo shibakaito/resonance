@@ -274,16 +274,27 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
 ];
 
 // ── 스피커 옵션 상수 ──
-// select 5종: labels.ts에서 파생(저장=영문키, 표시=한글). 필터 키(speakerDetail 등)와 이름 일치.
+// labels.ts에서 파생(저장=영문키, 표시=한글). 필터 키(speakerDetail 등)와 이름 일치.
 export const SPEAKER_DETAIL_OPTS = labelOpts('speakerDetail');                                  // passive/active
+// 폼 칸이 아니라 드라이버 빌더 파생 키 driverWays 의 어휘 (spec-builders.ts driverDerived → 필터 '드라이버 구성' 옵션)
 export const SPEAKER_DRIVER_OPTS = labelOpts('driverConfig');                                   // full_range/coaxial/2way/3way/4way_plus
+// 우퍼 크기 필터 구간 — 드라이버 빌더 파생 키 wooferMaxInch(우퍼·미드우퍼 최대 크기, inch)를 묶음. max = 구간 상한(이하).
+//   경계는 흔한 규격 사이 중간값: 5.25" → 5인치 이하, 200mm(7.9") → 6~8인치, 250mm(9.8") → 10인치, 300mm(11.8") → 12인치
+export const SPEAKER_WOOFER_BUCKETS: { label: string; max: number }[] = [
+  { label: '5인치 이하', max: 5.5 },
+  { label: '6~8인치', max: 9 },
+  { label: '10인치', max: 11 },
+  { label: '12인치', max: 13.5 },
+  { label: '15인치 이상', max: Infinity },
+];
+// inch 값 → 구간 라벨. 미입력(null) = '' (우퍼 크기 필터에서 제외)
+export const wooferBucket = (inch: number | null): string =>
+  inch == null ? '' : SPEAKER_WOOFER_BUCKETS.find((b) => inch <= b.max)?.label ?? '';
 export const SPEAKER_ENCLOSURE_OPTS = labelOpts('enclosure').map((o) => o.label);                // 검색 드롭다운용 한글 문자열 목록 (labels.ts에서 추출)
 // 인클로저 한글 라벨 → 영어 검색어 (labels.ts 영문키 기반: _ → 공백). 영어로도 검색되게.
 export const SPEAKER_ENCLOSURE_ALIASES: Record<string, string> = Object.fromEntries(
   labelOpts('enclosure').map((o) => [o.label, o.value.replace(/_/g, ' ')]),
 );
-export const SPEAKER_CONNECTION_OPTS = labelOpts('connection');                                 // wired/bluetooth/network
-export const SPEAKER_WOOFER_OPTS = labelOpts('wooferSize');                                      // under_4in/5in/6_5in/7_8in/10in/12in/15in_plus
 export const SPEAKER_OHM_OPTS = AMP_OHM_OPTS.filter((o) => o !== '2Ω');                         // 임피던스 select — 앰프 옴 목록에서 2Ω 제외, '8Ω' 문자열 저장(앰프와 같은 표기)
 // 액티브 스피커 전용 select 옵션 (labels.ts에 없어 한글 그대로 저장)
 export const SPK_AMP_CONFIG_OPTS = ['싱글앰프', '바이앰프', '트라이앰프', '멀티앰프'];

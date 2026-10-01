@@ -10,7 +10,7 @@
 // ============================================================================
 // 앰프·스피커·턴테이블 필터 옵션은 판매 폼 상수(category-specs.ts)에서 가져옴 — 단일 출처, 정규화 없음.
 //   문자열 옵션(앰프·인클로저·임피던스)은 그대로, {value,label} 옵션(스피커 형식·턴테이블 영문키)은 optLabels 로 표시 문자열만 — mapRow 가 같은 옵션표의 optLabel 로 Listing 값을 만듦
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabels, SPEAKER_DETAIL_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabels, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
 export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
@@ -35,13 +35,12 @@ export const TONE_OPTS = YES_NO_OPTS;          // 톤 컨트롤 = 있음 / 없�
 export const REMOTE_OPTS = YES_NO_OPTS;        // 리모컨 = 있음 / 없음
 export const VOLTAGE_OPTS = AMP_VOLTAGE_OPTS;  // 전원전압 = 폼 '전원' 옵션
 
-// 스피커 전용 필터 옵션 — 세부 카테고리·인클로저·임피던스는 폼 옵션 그대로 (드라이버 구성·연결 방식·우퍼 크기는 폼에 원천 없음 → 4c)
+// 스피커 전용 필터 옵션 — 폼 옵션 그대로. 드라이버 구성·우퍼 크기는 드라이버 빌더 파생 키(driverWays·wooferMaxInch)의 어휘·구간
 export const SPEAKER_DETAILS = optLabels(SPEAKER_DETAIL_OPTS); // 폼 '형식': 패시브 / 액티브
-export const DRIVER_CONFIGS = ['풀레인지', '동축', '2-way', '3-way', '4-way 이상'];
+export const DRIVER_CONFIGS = optLabels(SPEAKER_DRIVER_OPTS);  // 풀레인지 / 동축 / 2-way / 3-way / 4-way 이상 (매물당 여러 개 — 예: 동축 + 2-way)
 export const ENCLOSURE_TYPES = SPEAKER_ENCLOSURE_OPTS;         // 폼 인클로저 검색 드롭다운 12종 (한글 저장)
 export const SPEAKER_IMPEDANCE = SPEAKER_OHM_OPTS;             // 폼 임피던스 select: 4Ω / 6Ω / 8Ω / 16Ω
-export const CONNECTION_TYPES = ['유선', '블루투스', '네트워크'];
-export const WOOFER_SIZES = ['4인치 이하', '5인치', '6.5인치', '7~8인치', '10인치', '12인치', '15인치 이상'];
+export const WOOFER_SIZES = SPEAKER_WOOFER_BUCKETS.map((b) => b.label); // 5인치 이하 / 6~8인치 / 10인치 / 12인치 / 15인치 이상
 // 턴테이블 전용 필터 옵션 = 폼 옵션의 표시 문자열(optLabels) — 폼은 영문키 저장, mapRow 가 optLabel 로 같은 한글로 바꿔 비교
 export const DRIVE_TYPES = optLabels(TT_DRIVE_OPTS);        // 벨트 / 다이렉트 / 아이들러 드라이브
 export const TONEARM_OPTS = optLabels(TT_TONEARM_OPTS);     // 포함 / 미포함 / 교체됨
@@ -163,11 +162,10 @@ export type Listing = {
   voltage: string;
   // 스피커 전용 속성 (스피커 카테고리에서만 사용)
   speakerDetail: string;
-  driverConfig: string;
+  driverConfig: string[]; // 드라이버 구성 (여러 개 가능 — 예: ['동축', '2-way'])
   enclosure: string;
   speakerImpedance: string;
-  connection: string;
-  wooferSize: string;
+  wooferSize: string; // 우퍼 크기 구간 라벨 (예: '6~8인치'). 미입력 = ''
   sensitivity: number | null; // 감도 (dB). 미입력 = null
   recPower: number | null; // 권장 앰프 출력 (W). 미입력 = null
   // 턴테이블 전용 속성
@@ -231,7 +229,6 @@ export type Filters = {
   driverConfig: Set<string>;
   enclosure: Set<string>;
   speakerImpedance: Set<string>;
-  connection: Set<string>;
   wooferSize: Set<string>;
   sensitivityMin: number | null;
   sensitivityMax: number | null;
@@ -284,7 +281,6 @@ export const emptyFilters = (): Filters => ({
   driverConfig: new Set(),
   enclosure: new Set(),
   speakerImpedance: new Set(),
-  connection: new Set(),
   wooferSize: new Set(),
   sensitivityMin: null,
   sensitivityMax: null,
@@ -335,7 +331,6 @@ export function cloneFilters(f: Filters): Filters {
     driverConfig: new Set(f.driverConfig),
     enclosure: new Set(f.enclosure),
     speakerImpedance: new Set(f.speakerImpedance),
-    connection: new Set(f.connection),
     wooferSize: new Set(f.wooferSize),
     sensitivityMin: f.sensitivityMin,
     sensitivityMax: f.sensitivityMax,
@@ -365,7 +360,7 @@ export function countFilters(f: Filters): number {
   const setKeys: (keyof Filters)[] = [
     'brand', 'condition', 'ownership', 'country', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
-    'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'connection', 'wooferSize',
+    'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
@@ -426,10 +421,9 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   }
   if (isSpeaker) {
     if (f.speakerDetail.size > 0) r = r.filter((l) => f.speakerDetail.has(l.speakerDetail));
-    if (f.driverConfig.size > 0) r = r.filter((l) => f.driverConfig.has(l.driverConfig));
+    if (f.driverConfig.size > 0) r = r.filter((l) => l.driverConfig.some((d) => f.driverConfig.has(d))); // 하나라도 맞으면 (지원 임피던스와 같음)
     if (f.enclosure.size > 0) r = r.filter((l) => f.enclosure.has(l.enclosure));
     if (f.speakerImpedance.size > 0) r = r.filter((l) => f.speakerImpedance.has(l.speakerImpedance));
-    if (f.connection.size > 0) r = r.filter((l) => f.connection.has(l.connection));
     if (f.wooferSize.size > 0) r = r.filter((l) => f.wooferSize.has(l.wooferSize));
     if (f.sensitivityMin != null || f.sensitivityMax != null) r = r.filter((l) => inRange(l.sensitivity, f.sensitivityMin, f.sensitivityMax)); // 미입력(null — 액티브 등) 제외
     if (f.recPowerMin != null || f.recPowerMax != null) r = r.filter((l) => inRange(l.recPower, f.recPowerMin, f.recPowerMax));

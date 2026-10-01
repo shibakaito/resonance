@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Upload,
@@ -23,7 +23,7 @@ import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
-import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
+import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
 
@@ -866,6 +866,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [multiSel, setMultiSel] = useState<Record<string, string[]>>({});
   // 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계.
   const [driverRows, setDriverRows] = useState<DriverRow[]>([{ ...BLANK_DRIVER_ROW }]);
+  // 드라이버 행 → 필터용 파생 키 { driverWays, wooferMaxInch } (행이 바뀔 때마다 계산, 저장 시 tech 에 같이 씀)
+  const driverKeys = useMemo(() => driverDerived(driverRows), [driverRows]);
   const [ampPowerRows, setAmpPowerRows] = useState<AmpPowerRow[]>([{ ...BLANK_AMP_POWER_ROW }]);
   // 크로스오버 주파수(Hz) 여러 개 — 추가 버튼으로 행 늘림. 저장 시 'A / B / C'로 조립.
   const [crossoverValues, setCrossoverValues] = useState<{ value: string; unit: string }[]>([{ value: '', unit: 'Hz' }]);
@@ -925,7 +927,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       // ⚠️ 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지 위해 tech 네임스페이스 분리.
       // ⚠️ 카테고리별 스키마(앰프 등)가 있으면 그 필드를 kind별로 조립, 없으면 기존 SPEC_FIELDS 폴백(분기).
       // ⚠️ 아래 kind별 분기는 scripts/seed-listings.ts 의 buildTechLikeForm 과 거울 관계 — 분기를 바꾸면 거기도 같이.
-      const tech: Record<string, string | string[]> = {};
+      const tech: Record<string, string | string[] | number> = {}; // number = 드라이버 파생 키 wooferMaxInch
       const catFields = SPEC_FIELDS_BY_CATEGORY[category];
       if (catFields) {
         for (const f of catFields) {
@@ -961,9 +963,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const arr = f.key === 'impedance' ? impedances : (multiSel[f.key] ?? []);
             if (arr.length > 0) tech[f.key] = arr;
           } else if (f.input.kind === 'drivers') {
-            // 드라이버 구성(빌더): 행들 → 요약 문자열 (UI 요약과 동일)
+            // 드라이버 구성(빌더): 행들 → 요약 문자열 (UI 요약과 동일) + 필터용 파생 키 driverWays·wooferMaxInch (스키마 필드 아님)
             const v = driverSummary(driverRows);
             if (v.length) tech[f.key] = v.join(' ');
+            Object.assign(tech, driverKeys);
           } else if (f.input.kind === 'ampPower') {
             // 앰프 출력(빌더): 종류별 출력값 → "우퍼 200W / 트위터 100W" (종류 있는 행만)
             const v = buildAmpPower(ampPowerRows);

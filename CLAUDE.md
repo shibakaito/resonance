@@ -9,7 +9,7 @@
 - 케이블은 매핑 없음 → spec-fields.ts 옛 SPEC_FIELDS로 폴백(앰프 필드 노출). 미해결. labels.ts에 케이블 라벨은 이미 있음
 - 패턴: select는 영문키 저장+labels 변환, 조건부는 showWhen 술어(카테고리 __sub / 값 기반), 빈 값 저장·표시 제외, numSelect = 값+조건 조립, 빌더(크기/무게/드라이버/크로스오버/앰프출력 등)는 [값][비고]+"추가", X버튼 거터 규칙 동일
 - 새 카테고리 = 해당 대분류 배열에 블록 추가 + 게이트 술어 (앰프에 AVR, 소스기기에 카세트 추가한 방식)
-- src/lib/listings.ts mapRow는 옛 flat 키만 읽음 → specs.tech 스펙 필터 미연동 (다음 핵심 작업)
+- src/lib/listings.ts mapRow는 specs.tech만 읽음. 필터 옵션 = 폼 옵션(optLabel), 숫자는 미입력 null, 파생 키는 빌더에서 생성
 ## 검증
 - 변경 후 tsc + 형제 카테고리 회귀 (필드 누수 없나)
 - UI는 측정보다 사용자 스크린샷 기준. 사용자 브라우저는 HMR 스테일 가능 → ⌘+Shift+R 안내

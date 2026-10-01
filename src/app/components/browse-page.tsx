@@ -27,7 +27,6 @@ import {
   CONDITIONS,
   CONDITION_DISPLAY,
   CONDUCTOR_OPTS,
-  CONNECTION_TYPES,
   COUNTRY_OPTS,
   CROSS_LISTING,
   Counts,
@@ -297,7 +296,6 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       driverConfig: countBy(categoryListings, (l) => l.driverConfig),
       enclosure: countBy(categoryListings, (l) => l.enclosure),
       speakerImpedance: countBy(categoryListings, (l) => l.speakerImpedance),
-      connection: countBy(categoryListings, (l) => l.connection),
       wooferSize: countBy(categoryListings, (l) => l.wooferSize),
       driveType: countBy(categoryListings, (l) => l.driveType),
       tonearm: countBy(categoryListings, (l) => l.tonearm),
@@ -427,7 +425,6 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'driverConfig', speakerOnly: true },
       { key: 'enclosure', speakerOnly: true },
       { key: 'speakerImpedance', speakerOnly: true },
-      { key: 'connection', speakerOnly: true },
       { key: 'wooferSize', speakerOnly: true },
       { key: 'driveType', turntableOnly: true },
       { key: 'tonearm', prefix: '톤암', turntableOnly: true },
@@ -731,7 +728,6 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {isSpeaker && (
                 <>
                   <FilterSection label="세부 카테고리" options={SPEAKER_DETAILS} selected={filters.speakerDetail} onToggle={toggleField('speakerDetail')} counts={counts.speakerDetail} />
-                  <FilterSection label="연결 방식" options={CONNECTION_TYPES} selected={filters.connection} onToggle={toggleField('connection')} counts={counts.connection} />
                   <FilterSection label="드라이버 구성" options={DRIVER_CONFIGS} selected={filters.driverConfig} onToggle={toggleField('driverConfig')} counts={counts.driverConfig} defaultOpen={false} />
                   <FilterSection label="우퍼 크기" options={WOOFER_SIZES} selected={filters.wooferSize} onToggle={toggleField('wooferSize')} counts={counts.wooferSize} defaultOpen={false} />
                   <FilterSection label="인클로저 타입" options={ENCLOSURE_TYPES} selected={filters.enclosure} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
