@@ -59,7 +59,8 @@ export function parsePowerW(raw: unknown): number | null {
 function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
   // 기술 사양 네임스페이스(specs.tech) — 판매 폼이 스펙을 저장하는 곳. 옛 flat 키는 읽지 않음(2026-09-30 재시드 완료).
-  // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance).
+  // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance)
+  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로).
   // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수를 쓰므로 변환·정규화 없음.
   // 나머지 앰프/스피커/턴테이블 스펙 필드는 다음 커밋에서 전환.
   const tech: Record<string, unknown> =
@@ -119,10 +120,10 @@ function mapRow(row: ListingRow): Listing {
     power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 파싱. 미입력·해당없음 = null (범위 필터에서 제외)
     headphoneImpedance: s.headphoneImpedance ?? 0,
     impedances: techArr('impedance'), // 지원 임피던스: tech.impedance — 필터 IMPEDANCE_OPTS(=폼 AMP_OHM_OPTS, '6Ω' 포함)와 같은 값
-    phono: label('phono', s.phono),
-    toneControl: yn(s.toneControl),
-    remote: yn(s.remote),
-    voltage: label('voltage', s.voltage),
+    phono: techStr('phono'),             // 포노 입력: MM / MC / MM/MC / 없음 (= 폼 AMP_PHONO_OPTS)
+    toneControl: techStr('toneControl'), // 톤 컨트롤: 있음 / 없음 (= YES_NO_OPTS)
+    remote: techStr('remote'),           // 리모컨: 있음 / 없음
+    voltage: techStr('voltage'),         // 전원: 100V / 120V / 220V / 프리볼트 (= AMP_VOLTAGE_OPTS)
     // 스피커
     speakerDetail: label('speakerDetail', s.speakerDetail),
     driverConfig: label('driverConfig', s.driverConfig),
