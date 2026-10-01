@@ -17,7 +17,7 @@ import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, Che
 import type { Listing } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY } from '@/app/data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
 
 export function ListingDetail({ id }: { id?: string }) {
@@ -543,23 +543,16 @@ export function ListingDetail({ id }: { id?: string }) {
               const specs = listing?.techSpecs ?? {};
               const schema = (SPEC_FIELDS_BY_CATEGORY[topCategoryOf(listing?.category ?? '')] ?? SPEC_FIELDS) as readonly {
                 key: string; label: string;
-                input?: { kind: string; options?: (string | { value: string; label: string })[] };
+                input?: { kind: string; options?: SelectOption[] };
                 showWhen?: (s: Record<string, string | string[]>) => boolean;
               }[];
-              // 표시값: 배열→"a, b" 나열 / select·multi(영문키 저장, 예 스피커 passive·턴테이블 회전수)는 옵션 label로 한글 변환 / 그 외 문자열은 그대로
-              const optLabel = (
-                f: { input?: { kind: string; options?: (string | { value: string; label: string })[] } },
-                v: string,
-              ): string => {
-                const opt = f.input?.options?.find((o) => (typeof o === 'string' ? o : o.value) === v);
-                return opt ? (typeof opt === 'string' ? opt : opt.label) : v;
-              };
+              // 표시값: 배열→"a, b" 나열 / select·multi(영문키 저장, 예 스피커 passive·턴테이블 회전수)는 optLabel(category-specs.ts)로 옵션 label(한글) 변환 / 그 외 문자열은 그대로
               const fmt = (
-                f: { input?: { kind: string; options?: (string | { value: string; label: string })[] } },
+                f: { input?: { kind: string; options?: SelectOption[] } },
                 v: string | string[],
               ): string => {
-                if (Array.isArray(v)) return v.map((x) => optLabel(f, x)).join(', ');
-                if (f.input?.kind === 'select') return optLabel(f, v);
+                if (Array.isArray(v)) return v.map((x) => optLabel(f.input?.options, x)).join(', ');
+                if (f.input?.kind === 'select') return optLabel(f.input.options, v);
                 return v;
               };
               const rows = schema.filter((f) => {

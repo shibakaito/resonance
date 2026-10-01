@@ -17,6 +17,14 @@
 // select 옵션: 문자열(저장값=표시 동일, 예 앰프 '트랜지스터') 또는
 //   { value(저장·영문키), label(표시·한글) } — 스피커는 labels.ts와 맞추려 영문키 저장+한글 표시.
 export type SelectOption = string | { value: string; label: string };
+// 옵션 배열 → 표시 문자열 목록 (문자열 옵션은 그대로, {value,label}은 label). 필터 옵션 상수를 폼 옵션에서 뽑을 때 사용.
+export const optLabels = (opts: SelectOption[]): string[] => opts.map((o) => (typeof o === 'string' ? o : o.label));
+// 저장값 → 표시 문자열 (문자열 옵션이면 그대로, {value,label}이면 label 조회). 옵션에 없는 값은 그대로 돌려줌.
+//   mapRow(필터용 Listing 값)와 상세 페이지 기술 사양 표시가 같이 씀.
+export const optLabel = (opts: SelectOption[] | undefined, v: string): string => {
+  const o = opts?.find((x) => (typeof x === 'string' ? x : x.value) === v);
+  return o === undefined ? v : typeof o === 'string' ? o : o.label;
+};
 
 // ── 입력 방식 ──
 export type SpecInput =

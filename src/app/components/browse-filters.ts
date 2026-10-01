@@ -8,8 +8,9 @@
 //   - emptyFilters/cloneFilters/countFilters 등 헬퍼
 // 화면 컴포넌트들은 이 파일에서 필요한 것을 import 해서 사용합니다.
 // ============================================================================
-// 앰프 필터 옵션은 판매 폼 상수(category-specs.ts)를 그대로 씀 — 폼이 저장하는 값 = 필터가 고르는 값 (단일 출처, 정규화 없음)
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS } from '@/app/data/category-specs';
+// 앰프·턴테이블 필터 옵션은 판매 폼 상수(category-specs.ts)에서 가져옴 — 단일 출처, 정규화 없음.
+//   문자열 옵션(앰프)은 그대로, {value,label} 옵션(턴테이블 영문키)은 optLabels 로 표시 문자열만 — mapRow 가 같은 옵션표의 optLabel 로 Listing 값을 만듦
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabels, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
 export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
@@ -41,13 +42,13 @@ export const ENCLOSURE_TYPES = ['밀폐형', '베이스 리플렉스', '혼 로�
 export const SPEAKER_IMPEDANCE = ['4Ω', '6Ω', '8Ω', '16Ω'];
 export const CONNECTION_TYPES = ['유선', '블루투스', '네트워크'];
 export const WOOFER_SIZES = ['4인치 이하', '5인치', '6.5인치', '7~8인치', '10인치', '12인치', '15인치 이상'];
-// 턴테이블 전용 필터 옵션
-export const DRIVE_TYPES = ['벨트 드라이브', '다이렉트 드라이브', '아이들러 드라이브'];
-export const TONEARM_OPTS = ['포함', '미포함', '교체됨'];
-export const CARTRIDGE_OPTS = ['포함', '미포함'];
-export const SPEED_OPTS = ['33⅓ RPM', '45 RPM', '78 RPM'];
-export const AUTO_OPTS = ['풀 오토', '세미 오토', '매뉴얼'];
-export const DUSTCOVER_OPTS = ['있음', '없음', '손상 있음'];
+// 턴테이블 전용 필터 옵션 = 폼 옵션의 표시 문자열(optLabels) — 폼은 영문키 저장, mapRow 가 optLabel 로 같은 한글로 바꿔 비교
+export const DRIVE_TYPES = optLabels(TT_DRIVE_OPTS);        // 벨트 / 다이렉트 / 아이들러 드라이브
+export const TONEARM_OPTS = optLabels(TT_TONEARM_OPTS);     // 포함 / 미포함 / 교체됨
+export const CARTRIDGE_OPTS = optLabels(TT_CARTRIDGE_OPTS); // 포함 / 미포함
+export const SPEED_OPTS = optLabels(TT_SPEED_OPTS);         // 33⅓ RPM / 45 RPM / 78 RPM
+export const AUTO_OPTS = optLabels(TT_AUTO_OPTS);           // 풀 오토 / 세미 오토 / 매뉴얼
+export const DUSTCOVER_OPTS = optLabels(TT_DUSTCOVER_OPTS); // 있음 / 없음 / 손상 있음
 
 // 소스기기 카테고리: 모달에서만 그룹별로 표시
 export const SOURCE_GROUPS: { title: string; items: string[] }[] = [

@@ -9,6 +9,7 @@ import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { label, keyFor } from './labels';
+import { optLabel, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -74,9 +75,10 @@ function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
   // 기술 사양 네임스페이스(specs.tech) — 판매 폼이 스펙을 저장하는 곳. 옛 flat 키는 읽지 않음(2026-09-30 재시드 완료).
   // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance)
-  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로) · hpImpedance(hpImpedanceRange 파싱).
-  // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수를 쓰므로 변환·정규화 없음.
-  // 나머지 앰프/스피커/턴테이블 스펙 필드는 다음 커밋에서 전환.
+  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로) · hpImpedance(hpImpedanceRange 파싱)
+  //   · 턴테이블 driveType · tonearm · cartridge · speeds · autoMode · dustCover (영문키 저장 → optLabel 로 폼 옵션의 한글 label).
+  // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수(optLabels)를 쓰므로 정규화 없음 — optLabel 은 폼 옵션표 조회일 뿐.
+  // 스피커 스펙 필드는 다음 커밋에서 전환.
   const tech: Record<string, unknown> =
     s.tech && typeof s.tech === 'object' && !Array.isArray(s.tech) ? (s.tech as Record<string, unknown>) : {};
   const yn = (v: unknown) => label('yes_no', v as string);
@@ -147,13 +149,13 @@ function mapRow(row: ListingRow): Listing {
     wooferSize: label('wooferSize', s.wooferSize),
     sensitivity: s.sensitivity ?? 0,
     recPower: s.recPower ?? 0,
-    // 턴테이블
-    driveType: label('driveType', s.driveType),
-    tonearm: label('tonearm', s.tonearm),
-    cartridge: label('cartridge', s.cartridge),
-    speeds: Array.isArray(s.speeds) ? s.speeds.map((x: string) => label('speeds', x)) : [],
-    autoMode: label('autoMode', s.autoMode),
-    dustCover: label('dustCover', s.dustCover),
+    // 턴테이블 — tech 직결. 폼이 영문키(labelOpts)로 저장 → optLabel 로 폼 옵션의 한글 label (= 필터 옵션 optLabels(같은 상수))
+    driveType: optLabel(TT_DRIVE_OPTS, techStr('driveType')),          // belt_drive → 벨트 드라이브
+    tonearm: optLabel(TT_TONEARM_OPTS, techStr('tonearm')),            // 올인원은 폼에서 숨김 → '' (톤암 필터에서 제외)
+    cartridge: optLabel(TT_CARTRIDGE_OPTS, techStr('cartridge')),
+    speeds: techArr('speeds').map((x) => optLabel(TT_SPEED_OPTS, x)), // ['33','45'] → ['33⅓ RPM','45 RPM']
+    autoMode: optLabel(TT_AUTO_OPTS, techStr('autoMode')),
+    dustCover: optLabel(TT_DUSTCOVER_OPTS, techStr('dustCover')),
     // 전원 장치
     ratedCapacity: s.ratedCapacity ?? 0,
     // 케이블
