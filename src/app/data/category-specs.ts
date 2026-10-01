@@ -274,7 +274,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
 ];
 
 // ── 스피커 옵션 상수 ──
-// select 6종: labels.ts에서 파생(저장=영문키, 표시=한글). 필터 키(speakerDetail 등)와 이름 일치.
+// select 5종: labels.ts에서 파생(저장=영문키, 표시=한글). 필터 키(speakerDetail 등)와 이름 일치.
 export const SPEAKER_DETAIL_OPTS = labelOpts('speakerDetail');                                  // passive/active
 export const SPEAKER_DRIVER_OPTS = labelOpts('driverConfig');                                   // full_range/coaxial/2way/3way/4way_plus
 export const SPEAKER_ENCLOSURE_OPTS = labelOpts('enclosure').map((o) => o.label);                // 검색 드롭다운용 한글 문자열 목록 (labels.ts에서 추출)
@@ -284,7 +284,7 @@ export const SPEAKER_ENCLOSURE_ALIASES: Record<string, string> = Object.fromEntr
 );
 export const SPEAKER_CONNECTION_OPTS = labelOpts('connection');                                 // wired/bluetooth/network
 export const SPEAKER_WOOFER_OPTS = labelOpts('wooferSize');                                      // under_4in/5in/6_5in/7_8in/10in/12in/15in_plus
-export const SPEAKER_IMPEDANCE_OPTS = labelOpts('impedance', ['4ohm', '6ohm', '8ohm', '16ohm']); // 2Ω 제외, 단일 문자열
+export const SPEAKER_OHM_OPTS = AMP_OHM_OPTS.filter((o) => o !== '2Ω');                         // 임피던스 select — 앰프 옴 목록에서 2Ω 제외, '8Ω' 문자열 저장(앰프와 같은 표기)
 // 액티브 스피커 전용 select 옵션 (labels.ts에 없어 한글 그대로 저장)
 export const SPK_AMP_CONFIG_OPTS = ['싱글앰프', '바이앰프', '트라이앰프', '멀티앰프'];
 export const SPK_CROSSOVER_TYPE_OPTS = ['패시브 크로스오버', '액티브 크로스오버', 'DSP 크로스오버'];
@@ -355,7 +355,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
 
   // ── 패시브 블록 (기존 순서 유지) ──
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isPassive },
-  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'text', unit: 'Ω' }, showWhen: isPassive },
+  { key: 'speakerImpedance', label: '임피던스', input: { kind: 'select', options: SPEAKER_OHM_OPTS }, showWhen: isPassive }, // '8Ω' 저장 = 필터 옵션 SPEAKER_IMPEDANCE
   { key: 'sensitivity', label: '감도', input: { kind: 'text', unit: 'dB' }, showWhen: isPassive },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: passiveNoSub }, // 서브우퍼는 Hz 한 칸(꼬리)으로 대체
   { key: 'recPower', label: '권장 앰프 출력', input: { kind: 'text', unit: 'W' }, showWhen: isPassive },
