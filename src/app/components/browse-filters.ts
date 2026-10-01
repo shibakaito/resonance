@@ -152,7 +152,7 @@ export type Listing = {
   ampType: string;
   ampDetail: string;
   ampMethod: string;
-  power: number; // 정격 출력 (W)
+  power: number | null; // 정격 출력 (W, 8Ω 기준). 미입력·해당없음 = null
   headphoneImpedance: number; // 헤드폰 앰프 지원 임피던스 (Ω)
   impedances: string[]; // 지원 임피던스
   phono: string;
@@ -383,6 +383,16 @@ export function countFilters(f: Filters): number {
   return n;
 }
 
+// 숫자 범위 필터 공통 규칙 — "미입력 = null" 은 범위가 걸렸을 때 제외, 범위가 없으면 통과.
+//   0 은 실제 값(예: 0W)이 아니라 미입력이었기 때문에 null 로 구분. 감도·권장 출력 등 다른 숫자 필드도 같은 규칙으로 이 헬퍼 사용.
+export function inRange(v: number | null | undefined, min: number | null, max: number | null): boolean {
+  if (min == null && max == null) return true;
+  if (v == null) return false;
+  if (min != null && v < min) return false;
+  if (max != null && v > max) return false;
+  return true;
+}
+
 // 매물 목록에 필터 적용 (정렬 제외)
 export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpeaker: boolean, isTurntable: boolean, isPowerDevice: boolean, isCable: boolean): Listing[] {
   let r = list;
@@ -406,8 +416,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.ampType.size > 0) r = r.filter((l) => f.ampType.has(l.ampType));
     if (f.ampDetail.size > 0) r = r.filter((l) => f.ampDetail.has(l.ampDetail));
     if (f.ampMethod.size > 0) r = r.filter((l) => f.ampMethod.has(l.ampMethod));
-    if (f.powerMin != null) r = r.filter((l) => l.power >= f.powerMin!);
-    if (f.powerMax != null) r = r.filter((l) => l.power <= f.powerMax!);
+    if (f.powerMin != null || f.powerMax != null) r = r.filter((l) => inRange(l.power, f.powerMin, f.powerMax)); // 미입력(null) 제외
     if (f.headphoneImpMin != null) r = r.filter((l) => l.headphoneImpedance >= f.headphoneImpMin!);
     if (f.headphoneImpMax != null) r = r.filter((l) => l.headphoneImpedance <= f.headphoneImpMax!);
     if (f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));

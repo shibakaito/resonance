@@ -39,10 +39,10 @@ const cat = (slug: string | null | undefined) => categoryFromSlug(slug ?? undefi
 // specs.tech.powerRated 는 판매 폼의 앰프 출력 빌더(src/lib/spec-builders.ts 의 buildPower)가 만든
 // 조립 문자열입니다:  "<숫자>W[ @ <숫자>Ω][ (비고)]" 항목들을 ", " 로 이어 붙인 형태.
 //   예) "100W @ 8Ω, 150W @ 4Ω"  /  "60W @ 8Ω (양채널 구동)"  /  "75W"  /  "해당없음"
-// 규칙: 8Ω 기준값 우선 → 없으면 첫 번째 항목의 W → 비었거나 숫자 없음("해당없음") → 0.
+// 규칙: 8Ω 기준값 우선 → 없으면 첫 번째 항목의 W → 비었거나 숫자 없음("해당없음")·파싱 불가 → null(미입력).
 // ⚠️ 빌더의 조립 포맷을 바꾸면 이 파서도 같이 고칠 것 (정격 출력 범위 필터가 이 값을 씁니다).
-export function parsePowerW(raw: unknown): number {
-  if (typeof raw !== 'string' || !raw.trim()) return 0;
+export function parsePowerW(raw: unknown): number | null {
+  if (typeof raw !== 'string' || !raw.trim()) return null;
   // 항목 = 맨 앞 "<숫자>W" (+ 선택 " @ <숫자>Ω"). 비고 괄호 안의 숫자는 맨 앞이 아니라 무시됩니다.
   const ITEM = /^\s*(\d+(?:\.\d+)?)\s*W(?:\s*@\s*(\d+(?:\.\d+)?)\s*[\u03A9\u2126])?/i;
   let first: number | null = null;
@@ -53,7 +53,7 @@ export function parsePowerW(raw: unknown): number {
     if (m[2] !== undefined && Number(m[2]) === 8) return w; // 8Ω 기준값 우선
     if (first === null) first = w;
   }
-  return first ?? 0;
+  return first ?? null;
 }
 
 function mapRow(row: ListingRow): Listing {
@@ -116,7 +116,7 @@ function mapRow(row: ListingRow): Listing {
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
     ampDetail: techStr('channel'), // 세부 카테고리(채널): tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
     ampMethod: techStr('device'),  // 증폭 방식: tech.device — 필터 AMP_METHODS(=폼 AMP_DEVICE_OPTS)와 같은 값
-    power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 조립 문자열 파싱 (flat s.power 는 더 안 읽음)
+    power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 파싱. 미입력·해당없음 = null (범위 필터에서 제외)
     headphoneImpedance: s.headphoneImpedance ?? 0,
     impedances: techArr('impedance'), // 지원 임피던스: tech.impedance — 필터 IMPEDANCE_OPTS(=폼 AMP_OHM_OPTS, '6Ω' 포함)와 같은 값
     phono: label('phono', s.phono),
