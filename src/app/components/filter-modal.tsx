@@ -160,7 +160,8 @@ export function MinMaxRow({
   setMin,
   setMax,
   thousands = false,
-  minOnly = false
+  minOnly = false,
+  minPlaceholder = '최소'
 }: {
   minVal: string;
   maxVal: string;
@@ -168,6 +169,7 @@ export function MinMaxRow({
   setMax: (s: string) => void;
   thousands?: boolean;
   minOnly?: boolean;
+  minPlaceholder?: string;
 }) {
   const display = (s: string) =>
     thousands && s !== '' ? Number(s).toLocaleString('ko-KR') : s;
@@ -183,7 +185,7 @@ export function MinMaxRow({
         min={0}
         value={display(minVal)}
         onChange={handle(setMin)}
-        placeholder="최소"
+        placeholder={minPlaceholder}
         className="flex-1 w-0 px-3 py-2 text-sm focus:outline-none"
       />
       {!minOnly && (
@@ -256,6 +258,7 @@ export function FilterModal({
   const [yearMaxInput, setYearMaxInput] = useState(str(filters.yearMax));
   const [powerMinInput, setPowerMinInput] = useState(str(filters.powerMin));
   const [powerMaxInput, setPowerMaxInput] = useState(str(filters.powerMax));
+  const [hpImpInput, setHpImpInput] = useState(str(filters.headphoneImp)); // 헤드폰 앰프: 내 헤드폰 임피던스(Ω)
   const [sensMinInput, setSensMinInput] = useState(str(filters.sensitivityMin));
   const [sensMaxInput, setSensMaxInput] = useState(str(filters.sensitivityMax));
   const [recMinInput, setRecMinInput] = useState(str(filters.recPowerMin));
@@ -292,6 +295,8 @@ export function FilterModal({
   const draftIsPowerDevice =
     isAccessory && [...draftSubCategories].some((s) => POWER_DEVICE_ITEMS.includes(s));
   const draftIsCable = isCable;
+  // 헤드폰 앰프 단독 선택 시: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 (사이드바와 동일)
+  const draftIsHeadphoneAmp = isAmp && draftSubCategories.size === 1 && draftSubCategories.has('헤드폰 앰프');
 
   // 현재 모달에서 설정한 값으로 미리 필터링한 결과 수
   const previewCount = useMemo(() => {
@@ -305,6 +310,7 @@ export function FilterModal({
       yearMax: num(yearMaxInput),
       powerMin: num(powerMinInput),
       powerMax: num(powerMaxInput),
+      headphoneImp: num(hpImpInput),
       sensitivityMin: num(sensMinInput),
       sensitivityMax: num(sensMaxInput),
       recPowerMin: num(recMinInput),
@@ -315,7 +321,7 @@ export function FilterModal({
       cableLengthMax: num(lenMaxInput)
     };
     return applyFilters(base, effective, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable).length;
-  }, [draft, draftSubCategories, priceMinInput, priceMaxInput, yearMinInput, yearMaxInput, powerMinInput, powerMaxInput, sensMinInput, sensMaxInput, recMinInput, recMaxInput, capMinInput, capMaxInput, lenMinInput, lenMaxInput, listings, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable]);
+  }, [draft, draftSubCategories, priceMinInput, priceMaxInput, yearMinInput, yearMaxInput, powerMinInput, powerMaxInput, hpImpInput, sensMinInput, sensMaxInput, recMinInput, recMaxInput, capMinInput, capMaxInput, lenMinInput, lenMaxInput, listings, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable]);
 
   const handleReset = () => {
     setDraft(emptyFilters());
@@ -326,6 +332,7 @@ export function FilterModal({
     setYearMaxInput('');
     setPowerMinInput('');
     setPowerMaxInput('');
+    setHpImpInput('');
     setSensMinInput('');
     setSensMaxInput('');
     setRecMinInput('');
@@ -346,6 +353,7 @@ export function FilterModal({
         yearMax: num(yearMaxInput),
         powerMin: num(powerMinInput),
         powerMax: num(powerMaxInput),
+        headphoneImp: num(hpImpInput),
         sensitivityMin: num(sensMinInput),
         sensitivityMax: num(sensMaxInput),
         recPowerMin: num(recMinInput),
@@ -718,14 +726,20 @@ export function FilterModal({
 
           {isAmp && (
             <>
-              <Section title="정격 출력 (W)" defaultOpen>
-                <MinMaxRow
-                  minVal={powerMinInput}
-                  maxVal={powerMaxInput}
-                  setMin={setPowerMinInput}
-                  setMax={setPowerMaxInput}
-                />
-              </Section>
+              {draftIsHeadphoneAmp ? (
+                <Section title="내 헤드폰 임피던스 (Ω)" defaultOpen>
+                  <MinMaxRow minVal={hpImpInput} maxVal="" setMin={setHpImpInput} setMax={() => {}} minOnly minPlaceholder="예: 32" />
+                </Section>
+              ) : (
+                <Section title="정격 출력 (W)" defaultOpen>
+                  <MinMaxRow
+                    minVal={powerMinInput}
+                    maxVal={powerMaxInput}
+                    setMin={setPowerMinInput}
+                    setMax={setPowerMaxInput}
+                  />
+                </Section>
+              )}
               <Section title="지원 임피던스">
                 <CheckGroup
                   options={IMPEDANCE_OPTS}

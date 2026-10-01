@@ -56,11 +56,25 @@ export function parsePowerW(raw: unknown): number | null {
   return first ?? null;
 }
 
+// ── 범위 파서 (같은 단위 전용) ─────────────────────────────────────────────────
+// specs.tech 의 range 필드는 spec-builders.ts 의 buildFreq 가 만든 "하한단위~상한단위" 문자열.
+//   예) hpImpedanceRange "16Ω~600Ω" / 한쪽만 입력 "16Ω~" · "~600Ω"
+// 숫자만 꺼내고 단위는 버림 → 하한·상한 단위가 같은 필드 전용 (Hz~kHz 인 주파수 응답엔 쓰지 말 것).
+// 결과: { min, max } — 빈 쪽은 null(그쪽 제한 없음). 둘 다 없으면 null(미입력 → 범위 필터에서 제외).
+// ⚠️ buildFreq 포맷을 바꾸면 이 파서도 같이 고칠 것 (헤드폰 임피던스 필터가 이 값을 씀).
+export function parseSameUnitRange(raw: unknown): { min: number | null; max: number | null } | null {
+  if (typeof raw !== 'string' || !raw.includes('~')) return null;
+  const [lo, hi] = raw.split('~');
+  const num = (part: string) => { const m = part.match(/\d+(?:\.\d+)?/); return m ? Number(m[0]) : null; };
+  const min = num(lo), max = num(hi);
+  return min == null && max == null ? null : { min, max };
+}
+
 function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
   // 기술 사양 네임스페이스(specs.tech) — 판매 폼이 스펙을 저장하는 곳. 옛 flat 키는 읽지 않음(2026-09-30 재시드 완료).
   // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance)
-  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로).
+  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로) · hpImpedance(hpImpedanceRange 파싱).
   // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수를 쓰므로 변환·정규화 없음.
   // 나머지 앰프/스피커/턴테이블 스펙 필드는 다음 커밋에서 전환.
   const tech: Record<string, unknown> =
@@ -118,7 +132,7 @@ function mapRow(row: ListingRow): Listing {
     ampDetail: techStr('channel'), // 세부 카테고리(채널): tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
     ampMethod: techStr('device'),  // 증폭 방식: tech.device — 필터 AMP_METHODS(=폼 AMP_DEVICE_OPTS)와 같은 값
     power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 파싱. 미입력·해당없음 = null (범위 필터에서 제외)
-    headphoneImpedance: s.headphoneImpedance ?? 0,
+    hpImpedance: parseSameUnitRange(tech.hpImpedanceRange), // 헤드폰 앰프 권장 헤드폰 임피던스 "16Ω~600Ω" → { min: 16, max: 600 }
     impedances: techArr('impedance'), // 지원 임피던스: tech.impedance — 필터 IMPEDANCE_OPTS(=폼 AMP_OHM_OPTS, '6Ω' 포함)와 같은 값
     phono: techStr('phono'),             // 포노 입력: MM / MC / MM/MC / 없음 (= 폼 AMP_PHONO_OPTS)
     toneControl: techStr('toneControl'), // 톤 컨트롤: 있음 / 없음 (= YES_NO_OPTS)

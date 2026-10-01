@@ -156,7 +156,9 @@ export function RangeSection({
   step,
   onApply,
   defaultOpen = true,
-  noComma = false
+  noComma = false,
+  single = false,
+  singlePlaceholder = '값'
 }: {
   label: string;
   unit?: string;
@@ -166,6 +168,8 @@ export function RangeSection({
   onApply: (min: number | null, max: number | null) => void;
   defaultOpen?: boolean;
   noComma?: boolean;
+  single?: boolean;           // true면 입력 한 칸(값 하나) — onApply(값, null)
+  singlePlaceholder?: string; // 한 칸일 때 입력 안내 문구
 }) {
   const [open, setOpen] = useState(defaultOpen);
   const [minInput, setMinInput] = useState(min != null ? String(min) : '');
@@ -220,22 +224,24 @@ export function RangeSection({
                 setMinInput(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)
               }
               onKeyDown={(e) => e.key === 'Enter' && apply()}
-              placeholder="최소"
+              placeholder={single ? singlePlaceholder : '최소'}
               className="w-0 flex-1 px-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
             />
-            <input
-              type={isInt ? 'text' : 'number'}
-              inputMode={isInt ? 'numeric' : 'decimal'}
-              min={0}
-              step={step}
-              value={fmt(maxInput)}
-              onChange={(e) =>
-                setMaxInput(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)
-              }
-              onKeyDown={(e) => e.key === 'Enter' && apply()}
-              placeholder="최대"
-              className="w-0 flex-1 px-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
-            />
+            {!single && (
+              <input
+                type={isInt ? 'text' : 'number'}
+                inputMode={isInt ? 'numeric' : 'decimal'}
+                min={0}
+                step={step}
+                value={fmt(maxInput)}
+                onChange={(e) =>
+                  setMaxInput(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)
+                }
+                onKeyDown={(e) => e.key === 'Enter' && apply()}
+                placeholder="최대"
+                className="w-0 flex-1 px-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
+              />
+            )}
           </div>
           <button
             onClick={apply}

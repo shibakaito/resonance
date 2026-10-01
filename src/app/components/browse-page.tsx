@@ -257,7 +257,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   const isPreampOnly =
     isAmp && subCategories.size === 1 && subCategories.has('프리앰프');
 
-  // 헤드폰 앰프 단독 선택 시 정격 출력 대신 지원 임피던스(Ω) 범위 필터 표시
+  // 헤드폰 앰프 단독 선택 시 정격 출력 대신 "내 헤드폰 임피던스(Ω)" 한 칸 필터 표시
   const isHeadphoneAmp =
     isAmp && subCategories.size === 1 && subCategories.has('헤드폰 앰프');
 
@@ -497,12 +497,11 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           label: `정격 출력: ${powerLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, powerMin: null, powerMax: null }))
         });
-      const hpImpLabel = rangeChipLabel(filters.headphoneImpMin, filters.headphoneImpMax, 'Ω');
-      if (hpImpLabel)
+      if (filters.headphoneImp != null)
         activeChips.push({
           key: 'headphoneImp',
-          label: `지원 임피던스: ${hpImpLabel}`,
-          remove: () => setFilters((prev) => ({ ...prev, headphoneImpMin: null, headphoneImpMax: null }))
+          label: `내 헤드폰 임피던스: ${filters.headphoneImp}Ω`,
+          remove: () => setFilters((prev) => ({ ...prev, headphoneImp: null }))
         });
     }
     if (isPowerDevice) {
@@ -688,9 +687,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                     <FilterSection label="세부 카테고리" options={AMP_DETAILS} selected={filters.ampDetail} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
                   )}
                   <FilterSection label="증폭 방식" options={AMP_METHODS} selected={filters.ampMethod} onToggle={toggleField('ampMethod')} counts={counts.ampMethod} />
-                  {/* 헤드폰 앰프: 정격 출력 대신 지원 임피던스(Ω) 범위 */}
+                  {/* 헤드폰 앰프: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 — 매물 권장 범위(하한 ≤ N ≤ 상한)에 들면 표시 */}
                   {isHeadphoneAmp ? (
-                    <RangeSection label="지원 임피던스" unit="Ω" min={filters.headphoneImpMin} max={filters.headphoneImpMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, headphoneImpMin: m, headphoneImpMax: x }))} />
+                    <RangeSection label="내 헤드폰 임피던스" unit="Ω" single singlePlaceholder="예: 32" min={filters.headphoneImp} max={null} onApply={(n) => setFilters((prev) => ({ ...prev, headphoneImp: n }))} />
                   ) : (
                     !isPreampOnly && (
                       <RangeSection label="정격 출력 (W·8Ω)" min={filters.powerMin} max={filters.powerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, powerMin: m, powerMax: x }))} />

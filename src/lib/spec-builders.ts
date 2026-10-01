@@ -20,6 +20,7 @@ export type DriverRow = { type: string; structure: string; material: string; ban
 //    (정격 출력 범위 필터가 저장된 문자열을 그 파서로 숫자화합니다).
 export const buildPower = (pairs: { w: string; ohm: string; note?: string }[]) =>
   pairs.filter((p) => p.w.trim()).map((p) => `${p.w.trim()}W${p.ohm ? ` @ ${p.ohm}` : ''}${p.note && p.note.trim() ? ` (${p.note.trim()})` : ''}`).join(', ');
+// ⚠️ 이 "하한단위~상한단위" 포맷을 바꾸면 src/lib/listings.ts 의 parseSameUnitRange 도 같이 (헤드폰 임피던스 필터가 파싱)
 export const buildFreq = (lo: string, hi: string, loUnit = 'Hz', hiUnit = 'kHz') => {
   const l = lo.trim(), h = hi.trim();
   if (!l && !h) return '';

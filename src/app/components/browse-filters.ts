@@ -154,7 +154,7 @@ export type Listing = {
   ampDetail: string;
   ampMethod: string;
   power: number | null; // 정격 출력 (W, 8Ω 기준). 미입력·해당없음 = null
-  headphoneImpedance: number; // 헤드폰 앰프 지원 임피던스 (Ω)
+  hpImpedance: { min: number | null; max: number | null } | null; // 헤드폰 앰프 권장 헤드폰 임피던스 범위(Ω). 빈 쪽 = 제한 없음, 둘 다 없으면 null
   impedances: string[]; // 지원 임피던스
   phono: string;
   toneControl: string;
@@ -218,9 +218,8 @@ export type Filters = {
   ampMethod: Set<string>;
   powerMin: number | null;
   powerMax: number | null;
-  // 헤드폰 앰프 전용: 지원 임피던스 범위 (Ω)
-  headphoneImpMin: number | null;
-  headphoneImpMax: number | null;
+  // 헤드폰 앰프 전용: 내 헤드폰 임피던스 N (Ω) — 매물 권장 범위 하한 ≤ N ≤ 상한이면 통과
+  headphoneImp: number | null;
   impedance: Set<string>;
   phono: Set<string>;
   toneControl: Set<string>;
@@ -274,8 +273,7 @@ export const emptyFilters = (): Filters => ({
   ampMethod: new Set(),
   powerMin: null,
   powerMax: null,
-  headphoneImpMin: null,
-  headphoneImpMax: null,
+  headphoneImp: null,
   impedance: new Set(),
   phono: new Set(),
   toneControl: new Set(),
@@ -326,8 +324,7 @@ export function cloneFilters(f: Filters): Filters {
     ampMethod: new Set(f.ampMethod),
     powerMin: f.powerMin,
     powerMax: f.powerMax,
-    headphoneImpMin: f.headphoneImpMin,
-    headphoneImpMax: f.headphoneImpMax,
+    headphoneImp: f.headphoneImp,
     impedance: new Set(f.impedance),
     phono: new Set(f.phono),
     toneControl: new Set(f.toneControl),
@@ -376,7 +373,7 @@ export function countFilters(f: Filters): number {
   if (f.priceMin != null || f.priceMax != null) n += 1;
   if (f.yearMin != null || f.yearMax != null) n += 1;
   if (f.powerMin != null || f.powerMax != null) n += 1;
-  if (f.headphoneImpMin != null || f.headphoneImpMax != null) n += 1;
+  if (f.headphoneImp != null) n += 1;
   if (f.sensitivityMin != null || f.sensitivityMax != null) n += 1;
   if (f.recPowerMin != null || f.recPowerMax != null) n += 1;
   if (f.ratedCapacityMin != null || f.ratedCapacityMax != null) n += 1;
@@ -418,8 +415,8 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.ampDetail.size > 0) r = r.filter((l) => f.ampDetail.has(l.ampDetail));
     if (f.ampMethod.size > 0) r = r.filter((l) => f.ampMethod.has(l.ampMethod));
     if (f.powerMin != null || f.powerMax != null) r = r.filter((l) => inRange(l.power, f.powerMin, f.powerMax)); // 미입력(null) 제외
-    if (f.headphoneImpMin != null) r = r.filter((l) => l.headphoneImpedance >= f.headphoneImpMin!);
-    if (f.headphoneImpMax != null) r = r.filter((l) => l.headphoneImpedance <= f.headphoneImpMax!);
+    // 내 헤드폰 임피던스 N: 매물 범위가 N을 포함하면 통과 (빈 쪽 = 제한 없음, 범위 미입력 매물은 제외 — inRange 의 값·경계 역할만 바뀜)
+    if (f.headphoneImp != null) r = r.filter((l) => l.hpImpedance != null && inRange(f.headphoneImp, l.hpImpedance.min, l.hpImpedance.max));
     if (f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
     if (f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl));
