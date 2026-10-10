@@ -2,6 +2,7 @@
 ## 작업 규칙
 - 사용자는 비개발자. 파악(수정 X)→제안→구현 순서, 한 번에 하나, 단계별 커밋, push는 사용자 확인 후
 - 사용자 철학: 선택지를 주되 강제 안 함. 필드 다 제공·대부분 선택·필수 최소(브랜드/모델/카테고리/상태/가격). 의미 없는 필드는 showWhen으로 숨김
+- 보고는 '📋 보고' 블록 15줄 이내로 마무리 — 결과·바뀐 것·결정 필요한 것만. 과정 서술 X
 ## 구조
 - 루트 app/ = 진짜 라우터, src/app = 컴포넌트. 업로드 /sell/upload
 - 스키마 중심: src/app/data/category-specs.ts (AMP/SPEAKER/SOURCE_SPEC_FIELDS) + src/lib/labels.ts (영문키→한글)
