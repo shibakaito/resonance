@@ -1,5 +1,5 @@
 -- ============================================================================
--- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT)
+-- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT + keepalive 크론)
 -- ----------------------------------------------------------------------------
 -- 실행 순서:  ① supabase/listings.sql  →  ② 이 파일
 -- 사용법:    Supabase 대시보드 → SQL Editor 에 전체를 붙여넣고 RUN.
@@ -7,6 +7,7 @@
 --
 -- ⚠️ 현재 상태(2026-09-30): kaito Project엔 이미 전부 적용돼 있음
 --            (정책명 listings_select_all / listings_insert_temp, Storage 정책 2개).
+--            섹션 5(keepalive 테이블 + pg_cron)는 2026-10-10 대시보드에서 적용됨.
 --            → 새 프로젝트 재생성 시에만 실행. 지금 프로젝트에는 돌리지 말 것.
 --
 -- 왜 필요한가:
@@ -115,6 +116,45 @@ grant select, insert, update, delete on table public.listings to service_role;
 grant usage, select on all sequences in schema public to anon, authenticated, service_role;
 
 -- ----------------------------------------------------------------------------
+-- 5) keepalive 테이블 + pg_cron 스케줄 — Free 플랜 일시정지 방지(주 장치)
+--    DB 안에서 매시 7분마다 keepalive 행 1개를 갱신(쓰기)합니다.
+-- ----------------------------------------------------------------------------
+-- 왜: 2026-10-09 Supabase에서 "활동 부족, 곧 일시정지" 경고 메일을 받음.
+--   그때까지 장치는 Vercel Cron 이 하루 1번 /api/keepalive(listings 1건 읽기)를 부르는 것뿐이었음.
+--   Vercel Cron 은 보조로 그대로 두고, 매시간 쓰기를 주 장치로 추가.
+-- 주의:
+--   · 프로젝트가 이미 일시정지되면 pg_cron 도 같이 멈춥니다 → 그때는 대시보드 Resume 뿐.
+--   · pg_cron 확장을 끄면(drop extension) 등록된 작업이 전부 지워집니다.
+--   · '7 * * * *' 는 UTC 기준이지만 한국과 시차가 정확히 9시간이라 한국 시간으로도 매시 7분.
+
+-- pg_cron 확장 — Supabase 문서 권장 스키마 pg_catalog (대시보드 Integrations → Cron 에서 켜도 같음)
+create extension if not exists pg_cron with schema pg_catalog;
+grant usage on schema cron to postgres;
+grant all privileges on all tables in schema cron to postgres;
+
+-- 기록용 테이블 — 행은 id = 1 하나만 계속 갱신. pinged_at = 마지막 실행 시각, pings = 누적 횟수
+create table if not exists public.keepalive (
+  id        int         primary key,
+  pinged_at timestamptz not null default now(),
+  pings     int         not null default 0
+);
+
+-- RLS 켜고 정책은 두지 않음 → 앱 키(anon/authenticated)로는 이 테이블을 읽거나 쓸 수 없음.
+-- pg_cron 은 postgres 역할로 실행돼 RLS 영향이 없고, 섹션 4 같은 Data API GRANT 도 필요 없음.
+alter table public.keepalive enable row level security;
+
+-- 첫 행 (이미 있으면 그대로 둠)
+insert into public.keepalive (id) values (1) on conflict (id) do nothing;
+
+-- 매시간 갱신 작업. 같은 이름으로 다시 실행하면 새 작업을 만들지 않고 기존 작업을 고칩니다 (재실행 안전).
+select cron.schedule(
+  'keepalive_hourly',
+  '7 * * * *',
+  $$insert into public.keepalive (id) values (1)
+    on conflict (id) do update set pinged_at = now(), pings = keepalive.pings + 1$$
+);
+
+-- ----------------------------------------------------------------------------
 -- (확인용, 선택) 적용 결과 보기 — 읽기만 하는 조회라 실행해도 변경 없음
 -- ----------------------------------------------------------------------------
 -- select policyname, cmd from pg_policies where schemaname = 'public'  and tablename = 'listings';
@@ -122,3 +162,6 @@ grant usage, select on all sequences in schema public to anon, authenticated, se
 -- select id, public, file_size_limit, allowed_mime_types from storage.buckets where id = 'listings';
 -- select grantee, privilege_type from information_schema.role_table_grants
 --   where table_schema = 'public' and table_name = 'listings' order by grantee, privilege_type;
+-- select * from public.keepalive;                       -- pings 가 매시간 1씩 늘면 정상
+-- select jobid, jobname, schedule, active from cron.job;
+-- select status, return_message, start_time from cron.job_run_details order by start_time desc limit 5;
