@@ -2010,7 +2010,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 // 분리 대상이 아니면 지금처럼 전부 한 번에
                 if (!coreKeys) return fields.map(renderSpecField);
                 // 분리 대상: 타입(auto)과 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
-                const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory }));
+                // 화면에 실제로 그려지는 칸만 셈 (renderSpecField 의 숨김 규칙과 같게: showWhen, 사운드바 형식 칸)
+                const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) && !(f.key === 'speakerDetail' && subcategory === '사운드바');
                 const isCore = (f: CategorySpecField) => f.input.kind === 'auto' || coreKeys.includes(f.key);
                 const isAlways = (f: CategorySpecField) => ALWAYS_SPEC_KEYS.includes(f.key); // 크기, 무게: 핵심 맨 아래에 늘 표시
                 const core = fields.filter((f) => isCore(f) && !isAlways(f));

@@ -522,8 +522,9 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
 
 // 핵심/상세 사양 분리 — 여기 적힌 하위 카테고리만 폼이 "핵심 사양"(항상 표시)과 "상세 사양"(접힘)으로 나눔.
 //   값 = 핵심으로 둘 필드 key. 타입(auto)은 늘 맨 위 그대로. 목록에 없는 key는 상세로. 저장 키(specs.tech)는 바뀌지 않음.
-//   적용 안 된 하위 카테고리(헤드폰 앰프, 스피커, 소스기기 등)는 지금처럼 전부 한 번에 표시.
+//   적용 안 된 하위 카테고리(공통 꼬리 5칸뿐인 소스기기 12종 등)와 케이블(폴백)은 지금처럼 전부 한 번에 표시.
 const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'remote', 'voltage'];
+const SPEAKER_CORE = ['speakerDetail', 'driverComposition', 'enclosure', 'speakerImpedance', 'sensitivity', 'recPower', 'voltage'];
 // 접기가 켜진 하위 카테고리(CORE_SPEC_KEYS)에서 늘 보이는 칸 — 핵심 칸 맨 아래(전원 다음), 그 밑에 '상세 사양' 버튼. 상세 개수에서 빠짐
 export const ALWAYS_SPEC_KEYS = ['dimensions', 'weight'];
 export const CORE_SPEC_KEYS: Record<string, string[]> = {
@@ -533,6 +534,21 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   '네트워크 앰프': AMP_CORE_7,
   리시버: AMP_CORE_7,
   포노앰프: ['device', 'cartridgeSupport', 'mcGain', 'voltage'],
+  'MC 스텝업 헤드앰프': ['device', 'mcHeadGain', 'voltage'],
+  'MC 스텝업 트랜스': ['sutRatio'],
+  '헤드폰 앰프': ['device', 'hpOutputs', 'hpImpedanceRange', 'hpForm', 'voltage'],
+  'AV 리시버': ['avrChannels', 'powerRated', 'hdmiIn', 'videoPassthrough', 'arcSupport', 'audioFormats', 'remote', 'voltage'],
+  // 스피커 4종 — 감도, 권장 앰프 출력은 패시브만, 전원은 액티브만(기존 showWhen 그대로)
+  '북쉘프 스피커': SPEAKER_CORE,
+  '플로어 스탠딩 스피커': SPEAKER_CORE,
+  '톨보이 스피커': SPEAKER_CORE,
+  '센터 스피커': SPEAKER_CORE,
+  사운드바: ['channelConfig', 'arcSupport', 'subIncluded', 'surroundType'],
+  // 서브우퍼 — 인클로저는 패시브, 액티브 둘 다 / 앰프 출력, 전원은 액티브만(기존 showWhen)
+  서브우퍼: ['speakerDetail', 'driverComposition', 'enclosure', 'ampPower', 'freqResponse', 'voltage'],
+  // 턴테이블 — 톤암은 기존 규칙대로 형식이 하이파이, DJ일 때만
+  턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
+  '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear', 'maintenance'],
 };
 
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.
