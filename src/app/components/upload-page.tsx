@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -2011,12 +2011,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 if (!coreKeys) return fields.map(renderSpecField);
                 // 분리 대상: 타입(auto)과 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
                 const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory }));
-                const core = fields.filter((f) => f.input.kind === 'auto' || coreKeys.includes(f.key));
-                const detail = fields.filter((f) => !(f.input.kind === 'auto' || coreKeys.includes(f.key)));
+                const isCore = (f: CategorySpecField) => f.input.kind === 'auto' || coreKeys.includes(f.key);
+                const isAlways = (f: CategorySpecField) => ALWAYS_SPEC_KEYS.includes(f.key); // 크기, 무게: 핵심 맨 아래에 늘 표시
+                const core = fields.filter((f) => isCore(f) && !isAlways(f));
+                const always = fields.filter(isAlways);
+                const detail = fields.filter((f) => !isCore(f) && !isAlways(f));
                 const detailCount = detail.filter(visible).length;
                 return (
                   <>
                     {core.map(renderSpecField)}
+                    {always.map(renderSpecField)}
                     {detailCount > 0 && (
                       <div className="pt-2">
                         <button

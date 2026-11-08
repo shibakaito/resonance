@@ -524,6 +524,8 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
 //   값 = 핵심으로 둘 필드 key. 타입(auto)은 늘 맨 위 그대로. 목록에 없는 key는 상세로. 저장 키(specs.tech)는 바뀌지 않음.
 //   적용 안 된 하위 카테고리(헤드폰 앰프, 스피커, 소스기기 등)는 지금처럼 전부 한 번에 표시.
 const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'remote', 'voltage'];
+// 접기가 켜진 하위 카테고리(CORE_SPEC_KEYS)에서 늘 보이는 칸 — 핵심 칸 맨 아래(전원 다음), 그 밑에 '상세 사양' 버튼. 상세 개수에서 빠짐
+export const ALWAYS_SPEC_KEYS = ['dimensions', 'weight'];
 export const CORE_SPEC_KEYS: Record<string, string[]> = {
   프리앰프: ['channel', 'device', 'phono', 'remote', 'voltage'],
   파워앰프: AMP_CORE_7,
