@@ -672,8 +672,8 @@ export function searchBrands(query: string, limit = 10): Brand[] {
 export type CategoryLeaf = string | { name: string; hidden?: boolean };
 export type CategorySubNode = CategoryLeaf | { group: string; items: CategoryLeaf[] };
 export const CATEGORY_TREE: { top: string; hidden?: boolean; subs: CategorySubNode[] }[] = [
-  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', { group: '포노 스테이지', items: ['포노앰프', { name: 'MC 스텝업 헤드앰프', hidden: true }, { name: 'MC 스텝업 트랜스', hidden: true }] }, { name: '헤드폰 앰프', hidden: true }, { name: '네트워크 앰프', hidden: true }, '리시버', { name: 'AV 리시버', hidden: true }] },
-  { top: '스피커', subs: ['북쉘프 스피커', '플로어 스탠딩 스피커', { name: '톨보이 스피커', hidden: true }, { name: '센터 스피커', hidden: true }, { name: '사운드바', hidden: true }, '서브우퍼'] },
+  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', { group: '포노 스테이지', items: [{ name: '포노앰프', hidden: true }, { name: 'MC 스텝업 헤드앰프', hidden: true }, { name: 'MC 스텝업 트랜스', hidden: true }] }, { name: '헤드폰 앰프', hidden: true }, { name: '네트워크 앰프', hidden: true }, '리시버', { name: 'AV 리시버', hidden: true }] },
+  { top: '스피커', subs: ['북쉘프 스피커', '플로어 스탠딩 스피커', { name: '톨보이 스피커', hidden: true }, { name: '센터 스피커', hidden: true }, { name: '사운드바', hidden: true }, { name: '서브우퍼', hidden: true }] },
   // '튜너' = 예전 'AM/FM 튜너'(슬러그 am-fm-tuner 그대로). 수신 밴드(FM / AM/FM)는 나중에 튜너 전용 스펙 칸으로
   { top: '소스기기', subs: ['턴테이블', '카세트 데크', { name: '오픈릴 데크', hidden: true }, 'CD 플레이어', { name: 'CD 트랜스포트', hidden: true }, { name: 'SACD 플레이어', hidden: true }, { name: 'DAC', hidden: true }, { name: '네트워크 플레이어', hidden: true }, { name: '블루투스 리시버', hidden: true }, { name: 'FM 튜너', hidden: true }, '튜너', { name: 'LD 플레이어', hidden: true }, { name: 'DVD 플레이어', hidden: true }, { name: '블루레이 플레이어', hidden: true }] },
   { top: '케이블', hidden: true, subs: ['RCA 케이블', 'XLR 케이블', '스피커 케이블', '파워 케이블', '디지털 동축 케이블', '광 케이블', 'USB 케이블', 'AES/EBU 케이블', 'BNC 케이블', 'HDMI 케이블', '포노 케이블', '점퍼 케이블', '헤드폰 케이블', '이어폰 케이블'] },
