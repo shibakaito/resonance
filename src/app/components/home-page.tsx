@@ -2,19 +2,17 @@
 // 상태(useState)·효과(useEffect)·DOM 이벤트를 쓰므로 클라이언트 컴포넌트.
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Search, TrendingUp, Heart, Tag, Truck, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
+// 사전(searchCatalog, searchBrands, POPULAR_BRANDS)은 '내 매물 등록하기' 탭(판매자 쪽)만 씀. 손님 쪽 조건 검색은 매물에서 뽑음
 import {
   POPULAR_BRANDS,
   searchCatalog,
   searchBrands,
-  ALL_BRAND_NAMES,
   BRAND_DIRECTORY,
-  CATALOG,
   TOP_CATEGORIES,
-  CATEGORY_TREE,
-  flattenSubs,
   subcategoriesFor
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
+import { USED_GRADES, USED_ALL } from './browse-filters';
 import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -30,34 +28,6 @@ function getInitials(s: string): string {
 const BRAND_ALIASES_MAP: Record<string, string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
-
-function getModelsForBrand(brand: string): string[] {
-  return Array.from(new Set(CATALOG.filter((c) => c.brand === brand).map((c) => c.model)));
-}
-
-// Map catalog category strings to top-level CATEGORY_TREE entries (loose match).
-function getCategoriesForBrand(brand: string): string[] {
-  const catalogCats = new Set(CATALOG.filter((c) => c.brand === brand).map((c) => c.category));
-  const tops = new Set<string>();
-  for (const cat of catalogCats) {
-    const nCat = norm(cat);
-    for (const entry of CATEGORY_TREE) {
-      const nTop = norm(entry.top);
-      if (
-        nCat.includes(nTop) ||
-        nTop.includes(nCat) ||
-        flattenSubs(entry.subs).some((s) => {
-          const ns = norm(s);
-          return ns === nCat || ns.includes(nCat) || nCat.includes(ns);
-        })
-      ) {
-        tops.add(entry.top);
-        break;
-      }
-    }
-  }
-  return TOP_CATEGORIES.filter((t) => tops.has(t));
-}
 
 function Highlight({ text, query }: { text: string; query: string }) {
   if (!query) return <>{text}</>;
@@ -370,49 +340,42 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
   const isCategorySelected = isReal(category, '전체 카테고리');
   const isBrandSelected = isReal(brand, '전체 브랜드');
+  const isModelSelected = isReal(model, '전체 모델');
+  const isConditionSelected = isReal(condition, '전체');
 
-  const categoryOptions = isBrandSelected ? getCategoriesForBrand(brand) : TOP_CATEGORIES;
-
+  // ── 조건 검색의 목록(브랜드, 카테고리, 모델)과 "검색 결과 N건"은 지금 판매중인 매물(dbListings)에서만 뽑음. 사전(CATALOG)은 안 읽음.
+  //    dbListings 는 fetchListings 결과라 숨긴 카테고리 매물이 이미 빠져 있음(둘러보기와 같은 기준). 추가 요청 없음
+  const inTop = (l: Listing, top: string) => {
+    const subs = subcategoriesFor(top);
+    return l.categories.some((c) => subs.includes(c));
+  };
+  // 상태: '중고'는 중고 등급 전체(둘러보기 필터와 같은 규칙)
+  const matchesCondition = (l: Listing) =>
+    !isConditionSelected || l.condition === condition || (condition === USED_ALL && USED_GRADES.includes(l.condition));
+  // 브랜드 = 매물 브랜드, 매물 많은 순(같으면 이름순)
+  const brandOptions = useMemo(() => {
+    const n = new Map<string, number>();
+    for (const l of dbListings) n.set(l.brand, (n.get(l.brand) ?? 0) + 1);
+    return [...n.keys()].sort((a, b) => n.get(b)! - n.get(a)! || a.localeCompare(b));
+  }, [dbListings]);
+  // 카테고리 = 매물이 있는 대분류만 (브랜드를 고르면 그 브랜드 매물이 있는 대분류만)
+  const categoryOptions = TOP_CATEGORIES.filter((top) =>
+    dbListings.some((l) => (!isBrandSelected || l.brand === brand) && inTop(l, top))
+  );
+  // 모델 = 고른 브랜드(+카테고리)의 매물 모델
   const brandModels = isBrandSelected
-    ? (() => {
-        let items = CATALOG.filter((c) => c.brand === brand);
-        if (isCategorySelected) {
-          const nTop = norm(category);
-          const subs = subcategoriesFor(category);
-          items = items.filter((c) => {
-            const nCat = norm(c.category);
-            return (
-              nCat.includes(nTop) ||
-              nTop.includes(nCat) ||
-              subs.some((s) => {
-                const ns = norm(s);
-                return ns === nCat || ns.includes(nCat) || nCat.includes(ns);
-              })
-            );
-          });
-        }
-        return Array.from(new Set(items.map((c) => c.model)));
-      })()
+    ? Array.from(
+        new Set(dbListings.filter((l) => l.brand === brand && (!isCategorySelected || inTop(l, category))).map((l) => l.model))
+      ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
     : [];
-
-  const filteredCount = CATALOG.filter((item) => {
-    if (isBrandSelected && item.brand !== brand) return false;
-    if (isCategorySelected) {
-      const nCat = norm(item.category);
-      const nTop = norm(category);
-      const subs = subcategoriesFor(category);
-      const matches =
-        nCat.includes(nTop) ||
-        nTop.includes(nCat) ||
-        subs.some((s) => {
-          const ns = norm(s);
-          return ns === nCat || ns.includes(nCat) || nCat.includes(ns);
-        });
-      if (!matches) return false;
-    }
-    if (isReal(model, '전체 모델') && item.model !== model) return false;
-    return true;
-  }).length;
+  // 검색 결과 N건 = 고른 조건(상태, 브랜드, 카테고리, 모델)에 맞는 실제 매물 수. 아무것도 안 골랐으면 전체 매물 수
+  const filteredCount = dbListings.filter(
+    (l) =>
+      matchesCondition(l) &&
+      (!isBrandSelected || l.brand === brand) &&
+      (!isCategorySelected || inTop(l, category)) &&
+      (!isModelSelected || l.model === model)
+  ).length;
   const [sellQuery, setSellQuery] = useState('');
 
   // === Admin mode — only activated via Ctrl+Shift+A (never on by default) ===
@@ -728,7 +691,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                       setCategory('----');
                       setModel('----');
                     }}
-                    options={ALL_BRAND_NAMES}
+                    options={brandOptions}
                     allLabel="전체 브랜드"
                     matchMode="prefix"
                     getAliases={(name) => BRAND_ALIASES_MAP[name] ?? []}
