@@ -2,19 +2,14 @@
 // "Did you mean?" — 브라우즈 검색 오타 교정 추천
 // ----------------------------------------------------------------------------
 // - string-similarity의 Sørensen-Dice 점수로 사용자 query와 후보 비교
-// - 후보 풀: 브랜드(정식 이름) + 브랜드 한글 별칭 + 카테고리(TOP + 서브)
+// - 후보 풀: 지금 판매중인 매물의 브랜드(정식 이름) + 그 브랜드의 한글 별칭 (사전 브랜드, 카테고리 X)
+//   · 부르는 쪽(browse-page)이 매물 브랜드 목록을 넘김. 비슷한 게 없으면 null → 화면은 안내 문구만
 //   · 별칭이 매칭되도 사용자에겐 정식 이름을 노출 (예: '맥킨토수' → 'McIntosh')
 // - 가드: rating ≥ 0.5, q.length ≥ 3, 길이차 ≤ 5, 동일성(이미 일치하면 추천 X)
 // ============================================================================
 
 import { findBestMatch } from 'string-similarity';
-import {
-  ALL_BRAND_NAMES,
-  BRAND_DIRECTORY,
-  TOP_CATEGORIES,
-  ALL_SUBCATEGORIES,
-  CATEGORY_ALIASES,
-} from '@/app/data/catalog';
+import { BRAND_DIRECTORY } from '@/app/data/catalog';
 
 /** 비교용 텍스트(match)와 사용자에게 보여줄 텍스트(label) 쌍 */
 type Candidate = { match: string; label: string };
@@ -25,27 +20,16 @@ type Candidate = { match: string; label: string };
 // (예: '엠프'가 KEF 별칭 '케프'와 매칭). 정상 검색 별칭 매칭에는 영향 없음.
 const isShortKoreanAlias = (s: string) => /[가-힣]/.test(s) && s.length <= 2;
 
-const CANDIDATES: Candidate[] = [
-  // 브랜드 정식 이름
-  ...ALL_BRAND_NAMES.map((name) => ({ match: name, label: name })),
-  // 브랜드 한글 별칭 — 매칭은 별칭으로, 추천 표시는 정식 이름으로
-  ...BRAND_DIRECTORY.flatMap((b) =>
-    b.aliases
-      .filter((a) => !isShortKoreanAlias(a))
-      .map((alias) => ({ match: alias, label: b.name }))
-  ),
-  // 카테고리 (대분류 + 서브) — 카테고리는 짧아도 의도 있는 매칭이 많아 포함
-  ...TOP_CATEGORIES.map((c) => ({ match: c, label: c })),
-  ...ALL_SUBCATEGORIES.map((c) => ({ match: c, label: c })),
-  // 카테고리 영어 별칭 — 매칭은 별칭으로, 추천 표시는 정식 한글명
-  // 예: 'ampliifer' 오타 → label '앰프'
-  ...Object.entries(CATEGORY_ALIASES).flatMap(([top, aliases]) =>
-    aliases.map((alias) => ({ match: alias, label: top }))
-  ),
-];
+// 브랜드 정식 이름 → 한글 별칭 (매칭용. 추천 표시는 정식 이름)
+const ALIASES_BY_BRAND = new Map(BRAND_DIRECTORY.map((b) => [b.name, b.aliases]));
 
-// findBestMatch에 넘길 비교 문자열 (소문자 정규화)
-const MATCH_STRINGS_LOWER = CANDIDATES.map((c) => c.match.toLowerCase());
+// 후보 풀 = 넘겨받은 매물 브랜드 + 그 브랜드의 별칭
+function candidatesFor(brands: readonly string[]): Candidate[] {
+  return brands.flatMap((name) => [
+    { match: name, label: name },
+    ...(ALIASES_BY_BRAND.get(name) ?? []).filter((a) => !isShortKoreanAlias(a)).map((alias) => ({ match: alias, label: name })),
+  ]);
+}
 
 export type Suggestion = { label: string; rating: number };
 
@@ -89,8 +73,10 @@ function levenshtein(a: string, b: string): number {
  *       · 영문 후보는 자연스럽게 거리가 커서 자동으로 걸러짐
  *   - 공통: 길이차 가드, 동일성 가드 (이미 일치하면 추천 X)
  */
-export function suggest(q: string): Suggestion | null {
+export function suggest(q: string, brands: readonly string[]): Suggestion | null {
   const query = q.trim();
+  const CANDIDATES = candidatesFor(brands);
+  const MATCH_STRINGS_LOWER = CANDIDATES.map((c) => c.match.toLowerCase()); // findBestMatch에 넘길 비교 문자열 (소문자 정규화)
   const isKorean = containsKorean(query);
 
   // ── 한글 분기 ── Levenshtein 편집거리로 가장 가까운 후보 찾기

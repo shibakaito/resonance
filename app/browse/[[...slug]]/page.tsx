@@ -26,6 +26,10 @@ function BrowseInner() {
   const initialSubCategory = categoryFromSlug(slug?.[1]);
   // 검색어(?q) — 홈 메인 검색에서 넘어옴
   const searchQuery = searchParams.get('q') ?? undefined;
+  // 홈 조건 검색(검색 결과 N건 보기)에서 넘어온 조건 — 필터에 체크된 채로 시작
+  const initialCondition = searchParams.get('condition') ?? undefined;
+  const initialBrand = searchParams.get('brand') ?? undefined;
+  const initialModel = searchParams.get('model') ?? undefined;
 
   return (
     <BrowsePage
@@ -34,6 +38,9 @@ function BrowseInner() {
       category={category}
       initialSubCategory={initialSubCategory}
       searchQuery={searchQuery}
+      initialCondition={initialCondition}
+      initialBrand={initialBrand}
+      initialModel={initialModel}
       onSearch={(q) => router.push(`/browse?q=${encodeURIComponent(q)}`)}
     />
   );

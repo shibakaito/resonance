@@ -62,8 +62,10 @@ export function FilterSection({
   }, [maxVisible, query, options]);
 
   const limited = maxVisible != null;
-  const visible = limited ? filtered.slice(0, visibleCount) : filtered;
-  const hasMore = limited && filtered.length > visibleCount;
+  // 접힌 상태에서도 체크된 값은 보이게 — 앞쪽 몇 개 뒤에 이어 붙임 (홈 조건 검색에서 '좋음' 등이 체크된 채로 넘어올 때)
+  const hiddenRest = limited ? filtered.slice(visibleCount) : [];
+  const visible = limited ? [...filtered.slice(0, visibleCount), ...hiddenRest.filter((o) => selected.has(o))] : filtered;
+  const hasMore = limited && hiddenRest.some((o) => !selected.has(o));
   const expanded = limited && visibleCount > (maxVisible ?? 0);
 
   // 한 번에 전부 펼치고, 스크롤은 항상 맨 위에서 시작

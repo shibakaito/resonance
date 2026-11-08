@@ -13,6 +13,10 @@ interface BrowsePageProps {
   initialSubCategory?: string | null;
   searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어
   onSearch?: (query: string) => void; // browse에서 검색어 수정·재검색
+  // 홈 조건 검색에서 넘어온 조건(주소 ?condition, ?brand, ?model) — 필터에 체크된 채로 시작
+  initialCondition?: string;
+  initialBrand?: string;
+  initialModel?: string;
 }
 
 // ── 분리: 필터 로직/데이터/타입은 browse-filters.ts로 이동했습니다 ──
@@ -86,7 +90,7 @@ const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
 
-export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch }: BrowsePageProps) {
+export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialBrand, initialModel }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -229,12 +233,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   }, [allListings, searchQuery]);
 
   // "Did you mean?" 추천 — 검색 결과 0건일 때만 계산 (한영 매칭 후에도 0건이면)
+  // 추천 후보 = 판매중 매물 브랜드만(사전 브랜드 X). 숨긴 카테고리 매물은 fetchListings 에서 이미 빠짐
+  const listingBrands = useMemo(() => Array.from(new Set(allListings.map((l) => l.brand))), [allListings]);
   const suggestion = useMemo(() => {
     const q = (searchQuery ?? '').trim();
     if (!q) return null;
     if (searchedListings.length > 0) return null;
-    return suggest(q);
-  }, [searchQuery, searchedListings.length]);
+    return suggest(q, listingBrands);
+  }, [searchQuery, searchedListings.length, listingBrands]);
 
   // 대분류만 적용된 풀 (카테고리 칩의 개수 집계 기준 — subCategories 미적용)
   const baseCategoryListings = useMemo(() => {
@@ -355,7 +361,17 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     return categorySubs.length > 0 ? [{ title: '카테고리', items: topCategoryOptions }] : [];
   }, [isAmp, isSpeaker, isSource, isAccessory, isTtAccessory, categorySubs, topCategoryOptions]);
 
-  const [filters, setFilters] = useState<Filters>(emptyFilters);
+  // 홈 조건 검색에서 넘어온 조건을 넣은 필터 (없으면 빈 필터)
+  const filtersFromHome = (): Filters => {
+    const f = emptyFilters();
+    if (initialCondition) f.condition.add(initialCondition);
+    if (initialBrand) f.brand.add(initialBrand);
+    if (initialModel) f.model.add(initialModel);
+    return f;
+  };
+  const [filters, setFilters] = useState<Filters>(filtersFromHome);
+  // 주소의 조건이 바뀌면(홈에서 다시 넘어오는 등) 그 조건으로 새로 시작
+  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialBrand, initialModel]);
   const [modalOpen, setModalOpen] = useState(false);
   const [sort, setSort] = useState(SORT_OPTIONS[0]);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -409,6 +425,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   {
     const setFieldKeys: { key: keyof Filters; prefix?: string; ampOnly?: boolean; speakerOnly?: boolean; turntableOnly?: boolean; cableOnly?: boolean }[] = [
       { key: 'brand' },
+      { key: 'model' },
       { key: 'condition' },
       { key: 'ownership' },
       { key: 'country' },
@@ -591,6 +608,10 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 </button>
                 를 찾으세요?
               </p>
+            )}
+            {/* 0건인데 비슷한 판매중 브랜드도 없으면 추천 없이 안내만 */}
+            {!suggestion && !listingsLoading && searchedListings.length === 0 && (
+              <p className="text-base text-gray-700 mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
             )}
             {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
             <form

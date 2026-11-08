@@ -300,7 +300,8 @@ type SellData = {
 
 type HomePageProps = {
   onViewItem: (id: string) => void;
-  onBrowse: (category: string | null) => void;
+  // conds = 홈 조건 검색에서 고른 상태, 브랜드, 모델 (둘러보기 필터로 넘김)
+  onBrowse: (category: string | null, conds?: { condition?: string; brand?: string; model?: string }) => void;
   onSell: (data?: SellData) => void;
   onSearch: (query: string) => void;
 };
@@ -726,7 +727,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
                   <button
                     onClick={() =>
-                      onBrowse(isCategorySelected ? category : null)
+                      onBrowse(isCategorySelected ? category : null, {
+                        condition: isConditionSelected ? condition : undefined,
+                        brand: isBrandSelected ? brand : undefined,
+                        model: isModelSelected ? model : undefined,
+                      })
                     }
                     className="w-full bg-[#000000] text-white font-semibold py-2.5 rounded-lg hover:bg-[#000000] transition mt-4"
                   >

@@ -384,7 +384,7 @@ export function FilterModal({
   };
 
   const setFieldKeys: (keyof Filters)[] = [
-    'brand', 'condition', 'ownership', 'country', 'region',
+    'brand', 'model', 'condition', 'ownership', 'country', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',

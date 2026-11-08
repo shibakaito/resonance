@@ -207,6 +207,7 @@ export function computeCategories(primary: string): string[] {
 // 통합 필터 상태
 export type Filters = {
   brand: Set<string>;
+  model: Set<string>; // 모델 — 사이드바 칸은 없고 홈 조건 검색에서 넘어올 때만 씀(활성 필터 칩으로 보임)
   condition: Set<string>;
   priceMin: number | null;
   priceMax: number | null;
@@ -261,6 +262,7 @@ export type Filters = {
 
 export const emptyFilters = (): Filters => ({
   brand: new Set(),
+  model: new Set(),
   condition: new Set(),
   priceMin: null,
   priceMax: null,
@@ -311,6 +313,7 @@ export const emptyFilters = (): Filters => ({
 export function cloneFilters(f: Filters): Filters {
   return {
     brand: new Set(f.brand),
+    model: new Set(f.model),
     condition: new Set(f.condition),
     priceMin: f.priceMin,
     priceMax: f.priceMax,
@@ -361,7 +364,7 @@ export function cloneFilters(f: Filters): Filters {
 
 export function countFilters(f: Filters): number {
   const setKeys: (keyof Filters)[] = [
-    'brand', 'condition', 'ownership', 'country', 'region',
+    'brand', 'model', 'condition', 'ownership', 'country', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
@@ -394,6 +397,7 @@ export function inRange(v: number | null | undefined, min: number | null, max: n
 export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpeaker: boolean, isTurntable: boolean, isPowerDevice: boolean, isCable: boolean): Listing[] {
   let r = list;
   if (f.brand.size > 0) r = r.filter((l) => f.brand.has(l.brand));
+  if (f.model.size > 0) r = r.filter((l) => f.model.has(l.model));
   if (f.condition.size > 0) {
     const usedAllSelected = f.condition.has(USED_ALL);
     r = r.filter((l) => {
