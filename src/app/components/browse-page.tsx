@@ -719,7 +719,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   )}
                   <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
                   <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />
-                  <FilterSection label="리모컨" options={REMOTE_OPTS} selected={filters.remote} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />
+                  <FilterSection label="리모컨 포함" options={REMOTE_OPTS} selected={filters.remote} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />
                   <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}

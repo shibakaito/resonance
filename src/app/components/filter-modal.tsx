@@ -765,7 +765,7 @@ export function FilterModal({
                   counts={counts.toneControl}
                 />
               </Section>
-              <Section title="리모컨">
+              <Section title="리모컨 포함">
                 <CheckGroup
                   options={REMOTE_OPTS}
                   selected={draft.remote}

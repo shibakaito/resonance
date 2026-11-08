@@ -399,7 +399,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'crossoverRange', label: '크로스오버 조절 범위', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: activeSub }, // 예 40Hz~120Hz (크로스오버 방식 대신, 주파수 응답과 같은 범위 표기)
   { key: 'phaseControl', label: '위상 조절', input: { kind: 'select', options: SPK_PHASE_OPTS }, showWhen: detailSub },
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
-  { key: 'finish', label: '마감/색상', input: { kind: 'text', free: true }, showWhen: detailSet },
+  { key: 'finish', label: '마감(색상)', input: { kind: 'text', free: true }, showWhen: detailSet },
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' }, showWhen: detailSet }, // 3단계: 무게 빌더 — 스피커
@@ -416,7 +416,7 @@ export const TT_PHONO_BUILTIN_OPTS = labelOpts('phonoBuiltIn'); // built_in / no
 export const TT_BLUETOOTH_OPTS = labelOpts('bluetooth');        // none / rx / tx / rx_tx
 export const TT_DUSTCOVER_OPTS = labelOpts('dustCover');        // yes / no / damaged (중고라 '손상 있음' 포함)
 // 출력 단자 — 턴테이블 전용 짧은 목록 (턴테이블은 입력 없는 출력 기기. RCA/XLR/USB 검색 별칭은 TERMINAL_ALIASES 재사용)
-export const TT_OUTPUT_TERMINALS = ['RCA Out', 'XLR', '3.5mm', 'Headphone Out', 'USB'];
+export const TT_OUTPUT_TERMINALS = ['RCA Out', 'XLR Out', '3.5mm', 'Headphone Out', 'USB'];
 // ── 2단계: 하위 유형(ttType) 분기 옵션 ──
 export const TT_TYPE_OPTS = labelOpts('ttType');                  // hifi / all_in_one / dj
 export const TT_PLATTER_OPTS = labelOpts('platterMaterial');      // aluminum_diecast / acrylic / glass / steel / mdf / plastic
@@ -450,7 +450,7 @@ export const CAS_REVERSE_METHOD_OPTS = labelOpts('reverseMethod'); // head_rotat
 // ── 카세트 3단계: 정비/상태 옵션 (외관/작동 상태와 별개 — 카세트 고유 소모품 상태) ──
 export const CAS_HEAD_WEAR_OPTS = labelOpts('headWear');          // good / light_wear / relapped / replaced / heavy_wear
 // 정비 이력 — 모든 카테고리 공통, 업로드 폼 제품 정보(작동 상태 아래) 칸. 저장 자리는 그대로 specs.tech.maintenance (영문키 배열, 직접 입력 글도 가능)
-export const MAINTENANCE_OPTS = labelOpts('maintenance');         // belt / pinch_roller / overhaul / recap / calibration (multi)
+export const MAINTENANCE_OPTS = labelOpts('maintenance');         // recap / belt / tube / edge / overhaul / none (multi, 공통 목록)
 export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / playback_only / broken (결함 고지)
 
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
@@ -521,7 +521,7 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'headWear', label: '헤드 상태', input: { kind: 'select', options: CAS_HEAD_WEAR_OPTS }, showWhen: isCassette },
   { key: 'recFunction', label: '녹음 기능', input: { kind: 'select', options: CAS_REC_FUNCTION_OPTS }, showWhen: isCassette }, // 결함 고지 핵심(재생전용/불가)
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
-  { key: 'finish', label: '마감/색상', input: { kind: 'text', free: true } },
+  { key: 'finish', label: '마감(색상)', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 3단계: 무게 빌더 — 소스기기
