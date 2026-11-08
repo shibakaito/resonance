@@ -143,6 +143,7 @@ export type Listing = {
   appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
   working: string;           // 작동 등급 (한글 라벨, 없으면 '')
   workingDetail: string;     // 작동 자유 입력 (없으면 '')
+  maintenance: string[];     // 정비 이력 (한글 라벨, 직접 입력 글은 그대로, 없으면 []) — specs.tech.maintenance
   location: string;
   ownership: string;
   country: string;

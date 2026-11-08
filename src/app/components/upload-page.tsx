@@ -19,10 +19,11 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
+import { NEW_CONDITION_KEYS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, AMP_DEVICE_SOLID, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -230,11 +231,13 @@ function MultiSelectDropdown({
   selected,
   onChange,
   aliases,
+  disabled = false,
 }: {
   options: (string | { value: string; label: string })[]; // {value,label}=영문키 저장+한글 표시, 문자열=저장·표시 동일
   selected: string[];
   onChange: React.Dispatch<React.SetStateAction<string[]>>;
   aliases?: Record<string, string[]>; // 단자명 → 검색 별칭 목록
+  disabled?: boolean; // 흐리게(입력 불가) — 정비 이력: 상태를 아직 안 골랐을 때
 }) {
   // 옵션 정규화 — selected/저장은 항상 value, 화면 표시는 label
   const opts = options.map((o) => (typeof o === 'string' ? { value: o, label: o } : o));
@@ -331,7 +334,8 @@ function MultiSelectDropdown({
             }
           }}
           placeholder="검색 또는 선택"
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000]"
+          disabled={disabled}
+          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
         />
         <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform pointer-events-none ${open ? 'rotate-180' : ''}`} />
         {open && (
@@ -392,6 +396,23 @@ function MultiSelectDropdown({
         </div>
       )}
     </div>
+  );
+}
+
+// 여러 줄 자유 글 + 글자 수 (기타 사양) — 스키마 textarea 칸과 폴백 칸이 같이 씀
+function SpecTextarea({ value, onChange, maxLength = 500, placeholder = '' }: { value: string; onChange: (v: string) => void; maxLength?: number; placeholder?: string }) {
+  return (
+    <>
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        maxLength={maxLength}
+        rows={4}
+        placeholder={placeholder}
+        className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] resize-y"
+      />
+      <p className="text-xs text-gray-500 mt-1">{value.length}/{maxLength}자</p>
+    </>
   );
 }
 
@@ -854,6 +875,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionAppearanceDetail, setConditionAppearanceDetail] = useState(''); // 자유 입력칸
   const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
   const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
+  const [maintenance, setMaintenance] = useState<string[]>([]);              // 정비 이력 (다중 — 영문키 + 직접 입력 글) → specs.tech.maintenance
+  // 새 제품 상태(새상품, 미개봉, NOS)면 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장도 안 함
+  const usedFieldsHidden = NEW_CONDITION_KEYS.includes(condition);
   // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
   const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string; note?: string }[]>([{ w: '', ohm: '', note: '' }]);
   // range(하한~상한) — key별 보관 (주파수 응답·권장 임피던스 등 range 칸이 여러 개 동시에 떠도 독립)
@@ -926,11 +950,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     try {
       // specs(jsonb)에 저장할 값들 — 비어있는 키는 제외 (DB 깔끔하게)
       const specsToSave: Record<string, string> = {};
-      // 외관/작동 상태
-      if (conditionAppearance) specsToSave.appearance = conditionAppearance;
-      if (conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail;
-      if (conditionWorking) specsToSave.working = conditionWorking;
-      if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
+      // 외관/작동 상태 — 새 제품 상태(새상품, 미개봉, NOS)면 칸이 숨겨지므로 저장 안 함
+      if (!usedFieldsHidden) {
+        if (conditionAppearance) specsToSave.appearance = conditionAppearance;
+        if (conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail;
+        if (conditionWorking) specsToSave.working = conditionWorking;
+        if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
+      }
       // 구성품
       if (components) specsToSave.components = components;
       // 기술 사양 → specs.tech 중첩 객체에 저장 (값/배열 있는 것만, 빈 값·빈 배열 제외).
@@ -1002,6 +1028,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           if (v) tech[f.key] = v;
         }
       }
+      // 정비 이력 — 제품 정보 공통 칸. 저장 자리는 예전 카세트 칸 그대로 specs.tech.maintenance (새 제품 상태면 저장 안 함)
+      if (!usedFieldsHidden && maintenance.length > 0) tech.maintenance = maintenance;
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
       const id = await insertListing({
@@ -1259,13 +1287,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => {
                       const v = e.target.value;
                       setCondition(v);
-                      // 새상품/NOS 등 비-중고로 바뀌면 소유권·외관·작동 값 자동 초기화
+                      // 새상품/NOS 등 비-중고로 바뀌면 소유권, 외관, 작동, 정비 이력 값 자동 초기화
                       if (!v.startsWith('used_')) {
                         setOwnership('');
                         setConditionAppearance('');
                         setConditionAppearanceDetail('');
                         setConditionWorking('');
                         setConditionWorkingDetail('');
+                        setMaintenance([]);
                       }
                     }}
                     className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
@@ -1302,7 +1331,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
 
-              {/* 8. 외관 상태 — 중고 등급(used_*)일 때만 활성화 */}
+              {/* 8. 외관 상태 — 중고 등급(used_*)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김 */}
+              {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>외관 상태</label>
                 <div className="flex gap-2">
@@ -1332,8 +1362,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   />
                 </div>
               </div>
+              )}
 
-              {/* 9. 작동 상태 — 중고 등급(used_*)일 때만 활성화 */}
+              {/* 9. 작동 상태 — 중고 등급(used_*)일 때만 활성화, 새 제품 상태면 숨김 */}
+              {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>작동 상태</label>
                 <div className="flex gap-2">
@@ -1362,6 +1394,21 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   />
                 </div>
               </div>
+              )}
+
+              {/* 10. 정비 이력 — 모든 카테고리 공통(예전엔 카세트 기술 사양 칸). 저장 자리는 그대로 specs.tech.maintenance.
+                  중고 등급(used_*)일 때만 활성화, 새 제품 상태면 숨김. 선택지에 없는 정비는 직접 입력 */}
+              {!usedFieldsHidden && (
+              <div>
+                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>정비 이력</label>
+                <MultiSelectDropdown
+                  options={MAINTENANCE_OPTS}
+                  selected={maintenance}
+                  onChange={setMaintenance}
+                  disabled={!condition.startsWith('used_')}
+                />
+              </div>
+              )}
 
               {/* 상품명 — 브랜드+모델+하위카테고리 자동 반영, 수정·자유입력 가능 (필수) */}
               <div>
@@ -1513,6 +1560,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             </span>
                           )}
                         </div>
+                      </div>
+                    );
+                  }
+                  // ── 여러 줄 자유 글 (기타 사양) — 줄바꿈 그대로 저장 ──
+                  if (f.input.kind === 'textarea') {
+                    return (
+                      <div key={f.key} className="spec-field">
+                        <label>{f.label}</label>
+                        <SpecTextarea value={specs[f.key] || ''} onChange={setSpec} maxLength={f.input.maxLength} placeholder={f.input.placeholder} />
                       </div>
                     );
                   }
@@ -2054,12 +2110,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
                   <div key={f.key} className="spec-field">
                     <label>{f.label}</label>
+                    {f.key === 'otherSpecs' ? (
+                      // 기타 사양 — 스키마 칸(OTHER_SPECS_FIELD)과 같은 여러 줄 자유 글
+                      <SpecTextarea value={specs[f.key] || ''} onChange={(v) => setSpecs({ ...specs, [f.key]: v })} maxLength={OTHER_SPECS_INPUT.maxLength} placeholder={OTHER_SPECS_INPUT.placeholder} />
+                    ) : (
                     <input
                       value={specs[f.key] || ''}
                       onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
                       placeholder=""
                       className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                     />
+                    )}
                   </div>
                 ))}
               </div>

@@ -41,7 +41,8 @@ export type SpecInput =
   | { kind: 'crossover' }                                       // 크로스오버 — 주파수(Hz) 여러 개 반복 입력 + 추가 버튼
   | { kind: 'drivers' }                                         // 드라이버 구성 빌더 (종류/구조/재질/크기/개수 — 패시브·액티브 공용)
   | { kind: 'ampPower' }                                       // 앰프 출력 빌더 (액티브 — 드라이버 종류 + 출력값)
-  | { kind: 'tubeBuilder' };                                    // 진공관 빌더 — 역할/종류/개수 행 배열 (UI는 2단계)
+  | { kind: 'tubeBuilder' }                                     // 진공관 빌더 — 역할/종류/개수 행 배열 (UI는 2단계)
+  | { kind: 'textarea'; maxLength?: number; placeholder?: string }; // 여러 줄 자유 글 (기타 사양) — 줄바꿈 그대로 저장, 필터는 안 읽음
 
 // showWhen: 현재 입력값(specs)에서 이 필드를 보일지 판단. 없으면 항상 표시.
 //   스피커 형식(speakerDetail=passive/active)에 따라 필드를 갈라 보여줄 때 사용.
@@ -203,6 +204,10 @@ export const HP_OHM_OPTS = ['16Ω', '32Ω', '50Ω', '80Ω', '150Ω', '250Ω', '3
 // 헤드폰 앰프 사용 형태
 export const HP_FORM_OPTS = ['데스크톱', '포터블(배터리)', 'USB 동글'];
 
+// ── 기타 사양 — 모든 카테고리 기술 사양 맨 끝 자유 글 한 칸 (접기가 켜진 하위에선 '상세 사양' 맨 끝). 상세 페이지엔 글 그대로, 필터는 안 읽음 ──
+export const OTHER_SPECS_INPUT = { kind: 'textarea', maxLength: 500, placeholder: '위 칸에 없는 사양을 적어 주세요. 예: 소비 전력 120W, 개조나 특주 내역' } as const; // 폴백(케이블 등) 칸도 같이 씀
+export const OTHER_SPECS_FIELD: CategorySpecField = { key: 'otherSpecs', label: '기타 사양', input: OTHER_SPECS_INPUT };
+
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
@@ -273,6 +278,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 무전원
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 1단계: 무게 빌더(값+비고+추가) — 앰프만 먼저
+  OTHER_SPECS_FIELD, // 기타 사양 (맨 끝)
 ];
 
 // ── 스피커 옵션 상수 ──
@@ -397,6 +403,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' }, showWhen: detailSet }, // 3단계: 무게 빌더 — 스피커
+  { ...OTHER_SPECS_FIELD, showWhen: detailSet }, // 기타 사양 (맨 끝, 스피커 꼬리처럼 형식 선택 후)
 ];
 
 // ── 소스기기(턴테이블) 옵션 상수 ──
@@ -440,9 +447,10 @@ export const CAS_WF_STD_OPTS = ['WRMS', 'DIN', 'NAB', 'IEC', 'JIS'];            
 // ── 카세트 2단계: 3축 분기 하위필드 옵션 ──
 export const CAS_DUBBING_SPEED_OPTS = labelOpts('dubbingSpeed');   // realtime / high_speed / both
 export const CAS_REVERSE_METHOD_OPTS = labelOpts('reverseMethod'); // head_rotate / tape_flip(UDAR) / naac
-// ── 카세트 3단계: 정비/상태 옵션 (외관/작동 상태와 별개 — 카세트 고유 소모품·서비스 이력) ──
+// ── 카세트 3단계: 정비/상태 옵션 (외관/작동 상태와 별개 — 카세트 고유 소모품 상태) ──
 export const CAS_HEAD_WEAR_OPTS = labelOpts('headWear');          // good / light_wear / relapped / replaced / heavy_wear
-export const CAS_MAINTENANCE_OPTS = labelOpts('maintenance');     // belt / pinch_roller / overhaul / recap / calibration (multi)
+// 정비 이력 — 모든 카테고리 공통, 업로드 폼 제품 정보(작동 상태 아래) 칸. 저장 자리는 그대로 specs.tech.maintenance (영문키 배열, 직접 입력 글도 가능)
+export const MAINTENANCE_OPTS = labelOpts('maintenance');         // belt / pinch_roller / overhaul / recap / calibration (multi)
 export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / playback_only / broken (결함 고지)
 
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
@@ -509,15 +517,15 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: CAS_OUTPUT_TERMINALS }, showWhen: isCassette },        // 재생 출력 + USB
   { key: 'levelMeter', label: '레벨 미터', input: { kind: 'select', options: CAS_METER_OPTS }, showWhen: isCassette },
   { key: 'pitchControl', label: '피치 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isCassette },
-  // ── 카세트 정비/상태 (3단계 — isCassette 게이트, 외관/작동 상태와 별개 축) ──
+  // ── 카세트 정비/상태 (3단계 — isCassette 게이트, 외관/작동 상태와 별개 축. 정비 이력은 제품 정보 공통 칸으로 옮김) ──
   { key: 'headWear', label: '헤드 상태', input: { kind: 'select', options: CAS_HEAD_WEAR_OPTS }, showWhen: isCassette },
-  { key: 'maintenance', label: '정비 이력', input: { kind: 'multi', options: CAS_MAINTENANCE_OPTS }, showWhen: isCassette },
   { key: 'recFunction', label: '녹음 기능', input: { kind: 'select', options: CAS_REC_FUNCTION_OPTS }, showWhen: isCassette }, // 결함 고지 핵심(재생전용/불가)
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
   { key: 'finish', label: '마감/색상', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 3단계: 무게 빌더 — 소스기기
+  OTHER_SPECS_FIELD, // 기타 사양 (맨 끝)
 ];
 
 // 핵심/상세 사양 분리 — 여기 적힌 하위 카테고리만 폼이 "핵심 사양"(항상 표시)과 "상세 사양"(접힘)으로 나눔.
@@ -548,7 +556,7 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   서브우퍼: ['speakerDetail', 'driverComposition', 'enclosure', 'ampPower', 'freqResponse', 'voltage'],
   // 턴테이블 — 톤암은 기존 규칙대로 형식이 하이파이, DJ일 때만
   턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
-  '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear', 'maintenance'],
+  '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear'], // 정비 이력은 제품 정보 공통 칸으로 옮김
 };
 
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.

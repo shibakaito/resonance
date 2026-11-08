@@ -517,6 +517,14 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                     </>
                   )}
+
+                  {/* 정비 이력 — 업로드 폼 제품 정보의 작동 상태 아래 칸과 같은 자리 */}
+                  {(listing?.maintenance?.length ?? 0) > 0 && (
+                    <>
+                      <div className="font-bold">정비 이력</div>
+                      <div className="break-words">{listing!.maintenance.join(', ')}</div>
+                    </>
+                  )}
                 </div>
 
                 {!specsExpanded && (
@@ -576,7 +584,8 @@ export function ListingDetail({ id }: { id?: string }) {
                       {rows.map((f) => (
                         <Fragment key={f.key}>
                           <div className="font-bold">{f.label}</div>
-                          <div className="break-words">{fmt(f, specs[f.key])}</div>
+                          {/* 기타 사양(여러 줄 자유 글)은 줄바꿈 그대로 */}
+                          <div className={`break-words${f.input?.kind === 'textarea' || f.key === 'otherSpecs' ? ' whitespace-pre-line' : ''}`}>{fmt(f, specs[f.key])}</div>
                         </Fragment>
                       ))}
                     </div>

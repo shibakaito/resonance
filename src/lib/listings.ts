@@ -113,6 +113,8 @@ function mapRow(row: ListingRow): Listing {
     appearanceDetail: typeof s.appearanceDetail === 'string' ? s.appearanceDetail : '',
     working: label('working', typeof s.working === 'string' ? s.working : ''),
     workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
+    // 정비 이력 (제품 정보 공통 칸, 저장 자리는 tech.maintenance) — 영문키는 한글 라벨로, 직접 입력 글은 그대로
+    maintenance: techArr('maintenance').map((x) => label('maintenance', x)),
     location: label('location', row.location),
     ownership: label('ownership', row.ownership),
     // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스)

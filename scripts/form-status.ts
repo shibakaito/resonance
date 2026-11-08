@@ -57,6 +57,7 @@ function describeInput(f: CategorySpecField): { kind: string; unit: string; opts
     case 'drivers': return { kind: '빌더', unit: 'inch/mm', opts: `행마다 종류(${list(DRIVER_TYPES)})·구조·재질(동축은 담당 대역)·크기·개수` };
     case 'ampPower': return { kind: '빌더', unit: 'W', opts: `종류(${list(AMP_POWER_TYPES)})별 출력` };
     case 'tubeBuilder': return { kind: '빌더', unit: '', opts: `행마다 역할(${list(TUBE_ROLE_OPTS)})·종류·개수` };
+    case 'textarea': return { kind: '긴 글', unit: '', opts: `여러 줄 자유 글, 최대 ${inp.maxLength ?? '-'}자, 필터는 안 읽음` };
     default: return { kind: (inp as { kind: string }).kind, unit: '', opts: '' };
   }
 }
@@ -151,11 +152,14 @@ for (const { top, subs: nodes } of CATEGORY_TREE) {
 // ── 공통 항목 (upload-page.tsx 마크업에서) ─────────────────────────────────
 const UP = read('src/app/components/upload-page.tsx');
 const PAGE = UP.slice(UP.indexOf('export function UploadPage'));
+// 새 제품 상태(새상품, 미개봉, NOS)면 숨는 칸 — 폼의 {!usedFieldsHidden && ( 바로 뒤 첫 label (칸마다 따로 감쌈)
+const hiddenWhenNew = new Set<string>();
 const cleanJsx = (s: string) => {
   let t = s;
   for (let i = 0; i < 6; i++) t = t.replace(/\{[^{}]*\}/g, ' '); // JSX 식 {…} (중첩은 바깥까지 반복 제거)
   return t.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 };
+for (const m of PAGE.matchAll(/\{!usedFieldsHidden && \([\s\S]*?<label\b[^>]*>([\s\S]*?)<\/label>/g)) hiddenWhenNew.add(cleanJsx(m[1]));
 type CommonRow = { section: string; label: string; required: boolean; note: string; boundVar?: string };
 const common: CommonRow[] = [];
 {
@@ -173,7 +177,7 @@ const common: CommonRow[] = [];
       continue;
     }
     if (lab !== undefined) {
-      const note = /condition\.startsWith\('used_'\)/.test(labAttr) ? '중고 상태일 때 활성' : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
+      const note = hiddenWhenNew.has(cleanJsx(lab)) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함' : /condition\.startsWith\('used_'\)/.test(labAttr) ? '중고 상태일 때 활성' : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
       common.push({ section, label: cleanJsx(lab), required: /aria-label="필수"/.test(lab), note, boundVar: bound });
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);
@@ -319,7 +323,7 @@ out('> 자동 생성 문서 — 손으로 고치지 말고 `npx --yes tsx script
 out('> 원천: `src/app/data/category-specs.ts`(기술 사양) · `src/app/data/catalog.ts`(카테고리) · `src/app/components/upload-page.tsx`(공통 항목·폼 특수 처리)');
 out();
 out('## 읽는 법');
-out('- **종류**: 선택(드롭다운) · 다중(여러 개 고르기) · yes/no(있음/없음) · 숫자 · 텍스트 · 빌더(행을 추가하는 묶음 입력) · 자동');
+out('- **종류**: 선택(드롭다운) · 다중(여러 개 고르기) · yes/no(있음/없음) · 숫자 · 텍스트 · 긴 글(여러 줄 자유 글) · 빌더(행을 추가하는 묶음 입력) · 자동');
 out('- **보이는 조건**: `항상` 이 아니면 다른 칸 값에 따라 나타남 (예: `형식=패시브일 때만`, `카트리지 선택 후`). 하위 카테고리별 조건은 표마다 이미 반영됨');
 out('- **필수**: 기술 사양 칸은 전부 선택 입력 — 필수는 아래 "공통 항목"에만 있음');
 out('- **상태**: 전용 블록 있음(이 하위에만 나오는 칸이 있음) · 기본 블록(대분류 공통 칸) · 공통 꼬리만(타입 + 마감·전원·크기·무게) · 폴백(카테고리 스키마 없음 → 옛 자유 입력 칸)');
@@ -353,11 +357,11 @@ for (const { top } of CATEGORY_TREE) {
   if (!schema) {
     out(`### ${group.map((s) => s.path).join(' · ')} — 폴백`);
     out();
-    out(`카테고리 스키마가 없어 옛 자유 입력 ${SPEC_FIELDS.length}칸(spec-fields.ts)이 그대로 나옴 — 앰프용 칸(채널·소자·정격 출력…)이 보임. 값은 specs.tech 에 자유 텍스트로 저장.`);
+    out(`카테고리 스키마가 없어 옛 자유 입력 ${SPEC_FIELDS.length}칸(spec-fields.ts)이 그대로 나옴 — 앰프용 칸(채널, 증폭 방식, 정격 출력…)이 보임. 값은 specs.tech 에 자유 텍스트로 저장.`);
     out();
     out('| # | 라벨 | 종류 | 단위 | 선택지 | 보이는 조건 | 필수 |');
     out('|---:|---|---|---|---|---|---|');
-    SPEC_FIELDS.forEach((f, i) => out(`| ${i + 1} | ${f.label} | 텍스트 |  |  | 카테고리 선택 후 | 선택 |`));
+    SPEC_FIELDS.forEach((f, i) => out(`| ${i + 1} | ${f.label} | ${f.key === 'otherSpecs' ? '긴 글' : '텍스트'} |  |  | 카테고리 선택 후 | 선택 |`));
     out();
     continue;
   }

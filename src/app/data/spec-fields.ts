@@ -21,6 +21,7 @@ export const SPEC_FIELDS = [
   { key: 'power', label: '전원 전압' },
   { key: 'dimensions', label: '크기' },
   { key: 'weight', label: '무게' },
+  { key: 'otherSpecs', label: '기타 사양' }, // 기타 사양 — 여러 줄 자유 글(폼은 textarea), 필터는 안 읽음
 ] as const;
 
 export type SpecFieldKey = (typeof SPEC_FIELDS)[number]['key'];

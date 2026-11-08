@@ -50,6 +50,9 @@ export const LABELS: Record<string, LabelMap> = {
   },
 };
 
+// 새 제품 상태 키 — 이 상태면 업로드 폼이 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장하지 않음 (시드도 같은 규칙)
+export const NEW_CONDITION_KEYS = ['new', 'unopened', 'nos'];
+
 // ── specs(jsonb) 안의 선택지용 (key=코드 필드명) ──
 export const SPEC_LABELS: Record<string, LabelMap> = {
   ampDetail: { monoblock: { ko: '모노블록' }, stereo: { ko: '스테레오' }, multichannel: { ko: '멀티채널' } },
