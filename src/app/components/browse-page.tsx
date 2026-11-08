@@ -483,7 +483,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     if (yearLabel)
       activeChips.push({
         key: 'year',
-        label: `출시년도: ${yearLabel}`,
+        label: `출시 연도: ${yearLabel}`,
         remove: () => setFilters((prev) => ({ ...prev, yearMin: null, yearMax: null }))
       });
     if (isAmp) {
@@ -677,11 +677,11 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   maxVisible={g.items.length > 8 ? 8 : undefined}
                 />
               ))}
-              {/* 앰프: 세부 카테고리·증폭 방식·정격 출력은 브랜드 위에 표시 */}
+              {/* 앰프: 채널·증폭 방식·정격 출력은 브랜드 위에 표시 */}
               {isAmp && (
                 <>
                   {!isHeadphoneAmp && (
-                    <FilterSection label="세부 카테고리" options={AMP_DETAILS} selected={filters.ampDetail} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
+                    <FilterSection label="채널" options={AMP_DETAILS} selected={filters.ampDetail} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
                   )}
                   <FilterSection label="증폭 방식" options={AMP_METHODS} selected={filters.ampMethod} onToggle={toggleField('ampMethod')} counts={counts.ampMethod} />
                   {/* 헤드폰 앰프: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 — 매물 권장 범위(하한 ≤ N ≤ 상한)에 들면 표시 */}
@@ -711,7 +711,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 onApply={(m, x) => setFilters((prev) => ({ ...prev, priceMin: m, priceMax: x }))}
               />
 
-              {/* 앰프 전용 (세부 카테고리·증폭 방식·정격 출력은 브랜드 위로 이동) */}
+              {/* 앰프 전용 (채널·증폭 방식·정격 출력은 브랜드 위로 이동) */}
               {isAmp && (
                 <>
                   {!isPreampOnly && !isHeadphoneAmp && (
@@ -720,17 +720,17 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
                   <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />
                   <FilterSection label="리모컨" options={REMOTE_OPTS} selected={filters.remote} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />
-                  <FilterSection label="전원전압" options={VOLTAGE_OPTS} selected={filters.voltage} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
+                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
 
               {/* 스피커 전용 */}
               {isSpeaker && (
                 <>
-                  <FilterSection label="세부 카테고리" options={SPEAKER_DETAILS} selected={filters.speakerDetail} onToggle={toggleField('speakerDetail')} counts={counts.speakerDetail} />
+                  <FilterSection label="형식" options={SPEAKER_DETAILS} selected={filters.speakerDetail} onToggle={toggleField('speakerDetail')} counts={counts.speakerDetail} />
                   <FilterSection label="드라이버 구성" options={DRIVER_CONFIGS} selected={filters.driverConfig} onToggle={toggleField('driverConfig')} counts={counts.driverConfig} defaultOpen={false} />
                   <FilterSection label="우퍼 크기" options={WOOFER_SIZES} selected={filters.wooferSize} onToggle={toggleField('wooferSize')} counts={counts.wooferSize} defaultOpen={false} />
-                  <FilterSection label="인클로저 타입" options={ENCLOSURE_TYPES} selected={filters.enclosure} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
+                  <FilterSection label="인클로저" options={ENCLOSURE_TYPES} selected={filters.enclosure} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
                   <FilterSection label="임피던스" options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
                   <RangeSection label="감도" unit="dB" min={filters.sensitivityMin} max={filters.sensitivityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, sensitivityMin: m, sensitivityMax: x }))} defaultOpen={false} />
                   <RangeSection label="권장 앰프 출력" unit="W" min={filters.recPowerMin} max={filters.recPowerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, recPowerMin: m, recPowerMax: x }))} defaultOpen={false} />
@@ -769,8 +769,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label="구동 방식" options={DRIVE_TYPES} selected={filters.driveType} onToggle={toggleField('driveType')} counts={counts.driveType} />
                   <FilterSection label="톤암" options={TONEARM_OPTS} selected={filters.tonearm} onToggle={toggleField('tonearm')} counts={counts.tonearm} />
                   <FilterSection label="카트리지" options={CARTRIDGE_OPTS} selected={filters.cartridge} onToggle={toggleField('cartridge')} counts={counts.cartridge} />
-                  <FilterSection label="속도" options={SPEED_OPTS} selected={filters.speeds} onToggle={toggleField('speeds')} counts={counts.speeds} defaultOpen={false} />
-                  <FilterSection label="오토 기능" options={AUTO_OPTS} selected={filters.autoMode} onToggle={toggleField('autoMode')} counts={counts.autoMode} defaultOpen={false} />
+                  <FilterSection label="회전수" options={SPEED_OPTS} selected={filters.speeds} onToggle={toggleField('speeds')} counts={counts.speeds} defaultOpen={false} />
+                  <FilterSection label="조작 방식" options={AUTO_OPTS} selected={filters.autoMode} onToggle={toggleField('autoMode')} counts={counts.autoMode} defaultOpen={false} />
                   <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />
                 </>
               )}
@@ -781,7 +781,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               )}
 
               {/* 공통 */}
-              <RangeSection label="출시년도" noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
+              <RangeSection label="출시 연도" noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
               <FilterSection label="소유권" options={OWNERSHIP_OPTS} selected={filters.ownership} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />
               <FilterSection label="제조국" options={COUNTRY_OPTS} selected={filters.country} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
               <FilterSection label="지역" options={LOCATIONS} selected={filters.region} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} />

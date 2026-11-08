@@ -84,8 +84,8 @@ export const SUB_SLUGS: Record<string, string> = {
   // 턴테이블 액세서리
   'MM 카트리지': 'mm-cartridge',
   'MC 카트리지': 'mc-cartridge',
-  '헤드쉘': 'headshell',
-  '헤드쉘 와이어': 'headshell-wire',
+  '헤드셸': 'headshell',
+  '헤드셸 와이어': 'headshell-wire',
   '오버행 게이지': 'overhang-gauge',
   '침압계': 'stylus-force-gauge',
   '카트리지 정렬 게이지': 'cartridge-alignment',

@@ -20,20 +20,20 @@ export const CONDITIONS = ['새상품', '미개봉', 'NOS', ...USED_GRADES];
 export const USED_ALL = '중고';
 export const CONDITION_DISPLAY = ['새상품', '미개봉', 'NOS', USED_ALL, ...USED_GRADES];
 export const LOCATIONS = ['서울', '경기', '부산', '대구', '인천', '광주', '대전', '울산', '강원', '제주'];
-export const OWNERSHIP_OPTS = ['1인 소유', '다중 소유'];
+export const OWNERSHIP_OPTS = ['1인 소유', '2인 이상 소유'];
 export const COUNTRY_OPTS = ['미국', '일본', '영국', '독일', '프랑스', '덴마크', '캐나다', '중국'];
 export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가격 높은순'];
 
 // 앰프 전용 필터 옵션
 export const AMP_TYPES = ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '리시버', 'AV 리시버', '헤드폰 앰프'];
-// 세부 카테고리(채널) = 폼 채널 옵션 2종의 합집합 (파워 등: 모노블럭/스테레오/멀티채널 + 프리앰프: 모노/스테레오/멀티채널), 중복 제거·순서 유지
+// 채널 = 폼 채널 옵션 2종의 합집합 (파워 등: 모노블록/스테레오/멀티채널 + 프리앰프: 모노/스테레오/멀티채널), 중복 제거·순서 유지
 export const AMP_DETAILS = Array.from(new Set([...AMP_CHANNEL_OPTS, ...PREAMP_CHANNEL_OPTS]));
-export const AMP_METHODS = AMP_DEVICE_OPTS;    // 증폭 방식 = 폼 '증폭 방식' 옵션: 진공관 / 트랜지스터 / 하이브리드
+export const AMP_METHODS = AMP_DEVICE_OPTS;    // 증폭 방식 = 폼 '증폭 방식' 옵션: 진공관 / 솔리드 스테이트(TR) / 하이브리드
 export const IMPEDANCE_OPTS = AMP_OHM_OPTS;    // 지원 임피던스 = 폼 옴 옵션: 2Ω / 4Ω / 6Ω / 8Ω / 16Ω
 export const PHONO_OPTS = AMP_PHONO_OPTS;      // 포노 입력 = 폼 옵션: MM / MC / MM/MC / 없음
 export const TONE_OPTS = YES_NO_OPTS;          // 톤 컨트롤 = 있음 / 없음
 export const REMOTE_OPTS = YES_NO_OPTS;        // 리모컨 = 있음 / 없음
-export const VOLTAGE_OPTS = AMP_VOLTAGE_OPTS;  // 전원전압 = 폼 '전원' 옵션
+export const VOLTAGE_OPTS = AMP_VOLTAGE_OPTS;  // 전원 전압 = 폼 '전원 전압' 옵션
 
 // 스피커 전용 필터 옵션 — 폼 옵션 그대로. 드라이버 구성·우퍼 크기는 드라이버 빌더 파생 키(driverWays·wooferMaxInch)의 어휘·구간
 export const SPEAKER_DETAILS = optLabels(SPEAKER_DETAIL_OPTS); // 폼 '형식': 패시브 / 액티브
@@ -45,7 +45,7 @@ export const WOOFER_SIZES = SPEAKER_WOOFER_BUCKETS.map((b) => b.label); // 5인�
 export const DRIVE_TYPES = optLabels(TT_DRIVE_OPTS);        // 벨트 / 다이렉트 / 아이들러 드라이브
 export const TONEARM_OPTS = optLabels(TT_TONEARM_OPTS);     // 포함 / 미포함 / 교체됨
 export const CARTRIDGE_OPTS = optLabels(TT_CARTRIDGE_OPTS); // 포함 / 미포함
-export const SPEED_OPTS = optLabels(TT_SPEED_OPTS);         // 33⅓ RPM / 45 RPM / 78 RPM
+export const SPEED_OPTS = optLabels(TT_SPEED_OPTS);         // 33 1/3 RPM / 45 RPM / 78 RPM
 export const AUTO_OPTS = optLabels(TT_AUTO_OPTS);           // 풀 오토 / 세미 오토 / 매뉴얼
 export const DUSTCOVER_OPTS = optLabels(TT_DUSTCOVER_OPTS); // 있음 / 없음 / 손상 있음
 
@@ -81,7 +81,7 @@ export const POWER_DEVICE_ITEMS = ACCESSORY_GROUPS[0].items;
 // 같은 문자열을 공유 → 어느 페이지에서 선택하든 같은 매물이 필터링됨 (연동)
 export const TT_ACCESSORY_GROUPS: { title: string; items: string[] }[] = [
   { title: 'BY TYPE', items: ['턴테이블'] },
-  { title: '카트리지 + 액세서리', items: ['MM 카트리지', 'MC 카트리지', '헤드쉘', '헤드쉘 와이어', '오버행 게이지', '침압계', '카트리지 정렬 게이지'] },
+  { title: '카트리지 + 액세서리', items: ['MM 카트리지', 'MC 카트리지', '헤드셸', '헤드셸 와이어', '오버행 게이지', '침압계', '카트리지 정렬 게이지'] },
   { title: '포노 스테이지', items: ['MM/MC 포노앰프', 'MC 스텝업 헤드앰프', 'MC 스텝업 트랜스'] },
   { title: '톤암 + 액세서리', items: ['톤암', '톤암 리프터'] },
   { title: '턴테이블 액세서리', items: ['포노 케이블', '턴테이블 벨트', '모터 풀리', '서브 플래터', '인슐레이터', '33/45 어댑터', '턴테이블 매트', '레코드 스테빌라이저', '레코드 클리너', '스타일러스 클리너', '턴테이블 플린스', '더스트 커버'] }
@@ -92,7 +92,7 @@ export const DIRECTIONALITY_OPTS = ['있음', '없음'];
 export const CONDUCTOR_OPTS = [
   '일반 구리',
   'OFC',
-  'OCC / PC-OCC',
+  'OCC/PC-OCC',
   'UP-OCC',
   '은도금 구리',
   '순은',

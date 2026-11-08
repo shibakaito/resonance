@@ -51,7 +51,7 @@ const COUNTRIES = ['미국', '일본', '독일', '영국', '한국', '중국', '
 // 소유권 — 버튼 토글 (영문 키로 저장, labels.ts의 ownership과 동일)
 const OWNERSHIP_OPTIONS = [
   { value: 'single_owner', label: '1인 소유' },
-  { value: 'multiple_owners', label: '다중 소유' },
+  { value: 'multiple_owners', label: '2인 이상 소유' },
 ];
 
 // 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
@@ -1219,9 +1219,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 3. 출시년도 */}
+              {/* 3. 출시 연도 */}
               <div>
-                <label className="block font-semibold mb-1">출시년도</label>
+                <label className="block font-semibold mb-1">출시 연도</label>
                 <input
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
@@ -2438,7 +2438,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {[
                 { value: 'free', label: '무료 배송', desc: '판매자가 배송비를 부담' },
                 { value: 'flat', label: '고정 배송비', desc: '정해진 금액으로 부과' },
-                { value: 'calculated', label: '계산 배송비', desc: '구매자 위치 기준으로 계산' }
+                { value: 'calculated', label: '배송비 별도', desc: '구매자 위치 기준으로 계산' }
               ].map((opt) => (
                 <label
                   key={opt.value}

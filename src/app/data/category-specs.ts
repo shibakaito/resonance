@@ -14,7 +14,7 @@
 //   - terminals  → 문자열 배열 (예: ['RCA','XLR','스피커 출력'])
 // ============================================================================
 
-// select 옵션: 문자열(저장값=표시 동일, 예 앰프 '트랜지스터') 또는
+// select 옵션: 문자열(저장값=표시 동일, 예 앰프 '진공관') 또는
 //   { value(저장·영문키), label(표시·한글) } — 스피커는 labels.ts와 맞추려 영문키 저장+한글 표시.
 export type SelectOption = string | { value: string; label: string };
 // 옵션 배열 → 표시 문자열 목록 (문자열 옵션은 그대로, {value,label}은 label). 필터 옵션 상수를 폼 옵션에서 뽑을 때 사용.
@@ -63,7 +63,7 @@ const activeFull = (s: Record<string, string | string[]>) => isActive(s) && !isS
 // 사운드바 서브우퍼 포함 게이팅 — '미포함'이 아니면(무선/유선) 우퍼 크기·출력 노출
 const subIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.subIncluded === 'string' && s.subIncluded !== '' && s.subIncluded !== '미포함';
 // 사운드바 서라운드 스피커 포함 게이팅 — 선택(유선/무선) 시 출력·크기·무게·개수 노출
-const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.surroundType === 'string' && s.surroundType !== '' && s.surroundType !== '가상 서라운드';
+const surrIncl = (s: Record<string, string | string[]>) => isSoundbar(s) && typeof s.surroundType === 'string' && s.surroundType !== '' && s.surroundType !== '없음(가상)';
 // AV 리시버 전용 게이팅 (앰프 대분류의 하위 카테고리)
 const isAvr = (s: Record<string, string | string[]>) => s.__sub === 'AV 리시버';
 // 헤드폰 앰프 전용 게이팅 (앰프 대분류의 하위 카테고리)
@@ -110,8 +110,8 @@ const labelOpts = (ns: string, only?: string[]): { value: string; label: string 
     .map(([value, m]) => ({ value, label: m.ko ?? value }));
 
 // ── 앰프 옵션 상수 ──
-export const AMP_CHANNEL_OPTS = ['모노블럭', '스테레오', '멀티채널'];
-// 프리앰프 전용 채널 (모노블럭은 파워앰프 용어 → 프리앰프는 '모노')
+export const AMP_CHANNEL_OPTS = ['모노블록', '스테레오', '멀티채널'];
+// 프리앰프 전용 채널 (모노블록은 파워앰프 용어 → 프리앰프는 '모노')
 export const PREAMP_CHANNEL_OPTS = ['모노', '스테레오', '멀티채널'];
 // AV 리시버 채널 수 (X.Y = 메인.서브우퍼 출력)
 export const AVR_CHANNEL_OPTS = ['5.1', '5.2', '7.1', '7.2', '9.2', '11.2', '13.2'];
@@ -123,7 +123,7 @@ export const AVR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 export const AVR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby TrueHD', 'Dolby Digital Plus', 'DTS:X', 'DTS-HD MA', 'DTS Neural:X', 'Auro-3D', 'IMAX Enhanced'];
 export const AVR_ROOMCAL_OPTS = ['없음', 'Audyssey', 'YPAO', 'Dirac Live', 'MCACC', 'AccuEQ'];
 // 증폭 방식 — 솔리드 스테이트 값은 AV 리시버 자동 저장(폼에서 칸 숨김)에도 같이 씀
-export const AMP_DEVICE_SOLID = '트랜지스터';
+export const AMP_DEVICE_SOLID = '솔리드 스테이트(TR)';
 export const AMP_DEVICE_OPTS = ['진공관', AMP_DEVICE_SOLID, '하이브리드'];
 // 진공관 빌더 — 역할별 대표관(이름만, 등가/브랜드/음색 제외). 직접입력은 렌더 컴포넌트가 제공
 export const TUBE_ROLE_OPTS = ['출력관', '프리관', '드라이브관', '정류관'];
@@ -153,7 +153,7 @@ export const AMP_VOLTAGE_OPTS = ['100V', '120V', '220V', '프리볼트'];
 // 입력 단자 — 평면 나열. 포노는 별도 '포노 입력' 칸에서만 받으므로 제외 (중복 방지)
 export const AMP_INPUT_TERMINALS = ['RCA', 'XLR', 'Main In', 'HT Bypass', 'Optical', 'Coaxial', 'USB-A', 'USB-B', 'USB-C', 'LAN', 'HDMI In', 'DIN', 'AES/EBU', 'BNC'];
 // 출력 단자 — 평면 나열
-export const AMP_OUTPUT_TERMINALS = ['스피커 터미널', 'Pre Out', 'Tape/Rec Out', 'Subwoofer Out', 'Headphone Out', 'RCA Out', 'XLR Out', 'Optical Out', 'Coaxial Out', 'AES/EBU Out', 'BNC Out', 'USB-A', 'USB-B', 'USB-C', 'HDMI Out', '70V / 100V 라인 출력'];
+export const AMP_OUTPUT_TERMINALS = ['스피커 터미널', 'Pre Out', 'Tape/Rec Out', 'Subwoofer Out', 'Headphone Out', 'RCA Out', 'XLR Out', 'Optical Out', 'Coaxial Out', 'AES/EBU Out', 'BNC Out', 'USB-A', 'USB-B', 'USB-C', 'HDMI Out', '70V/100V 라인 출력'];
 
 // 단자 검색 별칭 — 별칭으로 검색해도 원래 단자가 매칭되도록 (단자명 → 별칭 목록)
 export const TERMINAL_ALIASES: Record<string, string[]> = {
@@ -177,36 +177,37 @@ export const TERMINAL_ALIASES: Record<string, string[]> = {
   'Subwoofer Out': ['서브아웃', '서브 아웃', 'Sub Out', 'Sub Pre Out', '서브우퍼 출력'],
   'Headphone Out': ['헤드폰아웃', '헤드폰 아웃', 'Headphone Output', 'Phones Out', '헤드폰 출력'],
   'RCA Out': ['알씨에이아웃', 'RCA 아웃', 'RCA 출력', '언밸런스 출력', 'RCA Output'],
+  'Mic In': ['마이크인', '마이크 인', '마이크', '마이크 입력', 'Mic', 'Microphone In'],
   'XLR Out': ['엑스엘알아웃', 'XLR 아웃', 'XLR 출력', '밸런스 출력', 'XLR Output'],
   'Optical Out': ['옵티컬아웃', '옵티컬 아웃', 'Optical 출력', '광출력', 'Toslink Out', '토스링크 출력'],
   'Coaxial Out': ['코액셜아웃', '코액시얼아웃', '동축 출력', 'Coax Out', 'Coaxial Output'],
   'AES/EBU Out': ['에이에스이비유아웃', 'AES EBU 아웃', 'AES/EBU 출력', 'AES 출력', '디지털 XLR 출력'],
   'BNC Out': ['비엔씨아웃', 'BNC 아웃', 'BNC 출력', 'BNC Output'],
-  '70V / 100V 라인 출력': ['70볼트 라인 출력', '100볼트 라인 출력', '하이임피던스 출력', 'PA 라인 출력', '정전압 출력'],
-  // 무선 / 네트워크
+  '70V/100V 라인 출력': ['70볼트 라인 출력', '100볼트 라인 출력', '하이임피던스 출력', 'PA 라인 출력', '정전압 출력'],
+  // 무선/네트워크
   'Bluetooth': ['블루투스', 'BT', '블투'],
   'Wi-Fi': ['와이파이', 'WiFi', 'Wifi', '무선', '무선랜'],
   'AirPlay': ['에어플레이', '에어플레이2', 'AirPlay 2'],
   'Spotify Connect': ['스포티파이', '스포티파이 커넥트', 'Spotify'],
   'TIDAL Connect': ['타이달', '타이달 커넥트', 'Tidal'],
   'Roon Ready': ['룬', '룬 레디', 'Roon'],
-  'DLNA / UPnP': ['디엘엔에이', 'DLNA', 'UPnP', '유피엔피', '디엘엔에이/유피엔피'],
+  'DLNA/UPnP': ['디엘엔에이', 'DLNA', 'UPnP', '유피엔피', '디엘엔에이/유피엔피'],
 };
 
-// 무선 / 네트워크 옵션
-export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect', 'TIDAL Connect', 'Roon Ready', 'DLNA / UPnP'];
+// 무선/네트워크 옵션
+export const AMP_WIRELESS = ['Bluetooth', 'Wi-Fi', 'AirPlay', 'Spotify Connect', 'TIDAL Connect', 'Roon Ready', 'DLNA/UPnP'];
 // 헤드폰 앰프 헤드폰 출력 단자
 export const HP_OUTPUT_TERMINALS = ['6.35mm', '3.5mm', '4.4mm (Pentaconn)', '4-pin XLR', '듀얼 3-pin XLR'];
 // 헤드폰 앰프 부하 임피던스 (출력 매트릭스용)
 export const HP_OHM_OPTS = ['16Ω', '32Ω', '50Ω', '80Ω', '150Ω', '250Ω', '300Ω', '600Ω'];
 // 헤드폰 앰프 사용 형태
-export const HP_FORM_OPTS = ['데스크탑', '포터블(배터리)', 'USB 동글'];
+export const HP_FORM_OPTS = ['데스크톱', '포터블(배터리)', 'USB 동글'];
 
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS }, showWhen: (s) => !isAvr(s) && !isHpAmp(s) && !isPhonoGroup(s) && !isPreamp(s) }, // AVR=채널 수 / 헤드폰·포노 그룹·프리앰프 숨김
-  { key: 'channel', label: '채널', input: { kind: 'select', options: PREAMP_CHANNEL_OPTS }, showWhen: isPreamp }, // 프리앰프 전용: 모노블럭 대신 모노
+  { key: 'channel', label: '채널', input: { kind: 'select', options: PREAMP_CHANNEL_OPTS }, showWhen: isPreamp }, // 프리앰프 전용: 모노블록 대신 모노
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS }, showWhen: (s) => !isMcSut(s) }, // MC 스텝업 트랜스(패시브)는 증폭 방식 없음
   { key: 'tubes', label: '진공관 종류', input: { kind: 'tubeBuilder' }, showWhen: (s) => isTubeAmp(s) && !isMcSut(s) && !isAvr(s) }, // MC 스텝업 트랜스(증폭 방식 없음), AV 리시버(솔리드 스테이트 고정)는 도달 불가라 제외
@@ -266,10 +267,10 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'hpDacChip', label: 'DAC 칩셋', input: { kind: 'text', free: true }, showWhen: isHpAmp }, // 상시 표기(구성형태 게이팅 제거)
   { key: 'hpForm', label: '사용 형태', input: { kind: 'select', options: HP_FORM_OPTS }, showWhen: isHpAmp },
   { key: 'phono', label: '포노 입력', input: { kind: 'select', options: AMP_PHONO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 해당 없음
-  { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: (s) => !isPhonoGroup(s) },
+  { key: 'wireless', label: '무선/네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: (s) => !isPhonoGroup(s) },
   { key: 'toneControl', label: '톤 컨트롤', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
-  { key: 'remote', label: '리모컨', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
-  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 무전원
+  { key: 'remote', label: '리모컨 포함', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: (s) => !isHpAmp(s) && !isPhonoGroup(s) }, // 헤드폰 앰프·포노 그룹엔 드묾
+  { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: (s) => !isMcSut(s) }, // 패시브 SUT는 무전원
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 1단계: 무게 빌더(값+비고+추가) — 앰프만 먼저
 ];
@@ -300,19 +301,19 @@ export const SPEAKER_OHM_OPTS = AMP_OHM_OPTS.filter((o) => o !== '2Ω');        
 // 액티브 스피커 전용 select 옵션 (labels.ts에 없어 한글 그대로 저장)
 export const SPK_AMP_CONFIG_OPTS = ['싱글앰프', '바이앰프', '트라이앰프', '멀티앰프'];
 export const SPK_CROSSOVER_TYPE_OPTS = ['패시브 크로스오버', '액티브 크로스오버', 'DSP 크로스오버'];
-export const SPK_PHASE_OPTS = ['0° / 180° 전환', '0°~180° 연속 조절', '0°~360° 연속 조절']; // 서브우퍼 위상 조절
-export const SUB_FIRING_OPTS = ['전면 발사', '하향 발사', '측면 발사']; // 서브우퍼 드라이버 방사 방향
+export const SPK_PHASE_OPTS = ['0°/180° 전환', '0°~180° 연속 조절', '0°~360° 연속 조절']; // 서브우퍼 위상 조절
+export const SUB_FIRING_OPTS = ['전면 방사', '하향 방사', '측면 방사']; // 서브우퍼 드라이버 방사 방향
 // 사운드바 채널 구성 (단일 드롭다운). X.Y.Z = 메인.우퍼.높이 채널
 export const SOUNDBAR_CHANNEL_OPTS = ['2.0', '2.1', '3.1', '2.1.2', '3.1.2', '5.1', '5.1.2', '5.1.4', '7.1.2', '7.1.4', '9.1.2', '9.1.4', '11.1.4'];
 // 사운드바 지원 오디오 포맷 (다중 선택)
 export const SOUNDBAR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby Digital', 'Dolby Digital Plus', 'Dolby TrueHD', 'DTS', 'DTS:X', 'DTS Virtual:X', 'DTS-HD MA', 'PCM'];
-// 사운드바 서라운드 구현 방식 / ARC·eARC 등급
-export const SOUNDBAR_SURROUND_OPTS = ['가상 서라운드', '유선 서라운드 스피커', '무선 서라운드 스피커']; // 미선택=미포함, 가상은 추가 필드 없음
+// 사운드바 서라운드 스피커 포함 여부 / ARC·eARC 등급
+export const SOUNDBAR_SURROUND_OPTS = ['없음(가상)', '유선 포함', '무선 포함']; // '없음(가상)'은 추가 필드 없음
 export const SOUNDBAR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 // 사운드바 서브우퍼 포함 여부
-export const SOUNDBAR_SUB_OPTS = ['무선 서브우퍼', '유선 서브우퍼']; // 미선택=미포함
-// 사운드바 자동 음장 보정 / 음성 비서
-export const SOUNDBAR_ROOMCAL_OPTS = ['미지원', '자동(내장 마이크)', '앱 측정(스마트폰)'];
+export const SOUNDBAR_SUB_OPTS = ['미포함', '무선 서브우퍼', '유선 서브우퍼']; // '미포함'을 옵션으로 명시(안 적은 것과 구분)
+// 사운드바 룸 보정 / 음성 비서
+export const SOUNDBAR_ROOMCAL_OPTS = ['없음', '자동(내장 마이크)', '앱 측정(스마트폰)'];
 export const SOUNDBAR_VOICE_OPTS = ['Alexa', 'Google Assistant', 'Bixby'];
 
 // ── 드라이버 구성 빌더 데이터 (스피커) ──
@@ -349,17 +350,17 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   // ── 사운드바 전용: 채널 구성 (단일 드롭다운) ──
   { key: 'channelConfig', label: '채널 구성', input: { kind: 'select', options: SOUNDBAR_CHANNEL_OPTS }, showWhen: isSoundbar },
   { key: 'audioFormats', label: '지원 포맷', input: { kind: 'multi', options: SOUNDBAR_AUDIO_FORMATS }, showWhen: isSoundbar },
-  { key: 'surroundType', label: '서라운드 구현', input: { kind: 'select', options: SOUNDBAR_SURROUND_OPTS }, showWhen: isSoundbar },
+  { key: 'surroundType', label: '서라운드 스피커', input: { kind: 'select', options: SOUNDBAR_SURROUND_OPTS }, showWhen: isSoundbar },
   { key: 'surroundPower', label: '서라운드 스피커 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: surrIncl },
   { key: 'surroundDimensions', label: '서라운드 스피커 크기', input: { kind: 'dimensions' }, showWhen: surrIncl },
   { key: 'surroundWeight', label: '서라운드 스피커 무게', input: { kind: 'text', unit: 'kg' }, showWhen: surrIncl },
   { key: 'surroundCount', label: '서라운드 스피커 개수', input: { kind: 'text', unit: '개' }, showWhen: surrIncl },
   { key: 'arcSupport', label: 'ARC/eARC', input: { kind: 'select', options: SOUNDBAR_ARC_OPTS }, showWhen: isSoundbar },
-  { key: 'roomCal', label: '자동 음장 보정', input: { kind: 'select', options: SOUNDBAR_ROOMCAL_OPTS }, showWhen: isSoundbar },
+  { key: 'roomCal', label: '룸 보정', input: { kind: 'select', options: SOUNDBAR_ROOMCAL_OPTS }, showWhen: isSoundbar },
   { key: 'voiceAssistant', label: '음성 비서', input: { kind: 'multi', options: SOUNDBAR_VOICE_OPTS }, showWhen: isSoundbar },
   { key: 'subIncluded', label: '서브우퍼 포함', input: { kind: 'select', options: SOUNDBAR_SUB_OPTS }, showWhen: isSoundbar },
-  { key: 'subSize', label: '유닛 크기', input: { kind: 'text', unit: 'inch' }, showWhen: subIncl },
-  { key: 'subPower', label: '우퍼 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: subIncl },
+  { key: 'subSize', label: '서브우퍼 유닛 크기', input: { kind: 'text', unit: 'inch' }, showWhen: subIncl },
+  { key: 'subPower', label: '서브우퍼 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: subIncl },
   { key: 'subDimensions', label: '서브우퍼 크기', input: { kind: 'dimensions' }, showWhen: subIncl },
   { key: 'subWeight', label: '서브우퍼 무게', input: { kind: 'text', unit: 'kg' }, showWhen: subIncl },
   // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) — 사운드바 제외(파생 키가 스피커 필터에 섞임) ──
@@ -383,7 +384,7 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
-  { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
+  { key: 'wireless', label: '무선/네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: activeNoBar }, // 마감 바로 위 (사운드바 제외)
 
   // ── 서브우퍼 전용: 방사 방향, 주파수 응답(Hz~Hz), 크로스오버 조절 범위(액티브만), 위상 조절 (패시브, 액티브 공통) ──
@@ -392,8 +393,8 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'crossoverRange', label: '크로스오버 조절 범위', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: activeSub }, // 예 40Hz~120Hz (크로스오버 방식 대신, 주파수 응답과 같은 범위 표기)
   { key: 'phaseControl', label: '위상 조절', input: { kind: 'select', options: SPK_PHASE_OPTS }, showWhen: detailSub },
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
-  { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
-  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
+  { key: 'finish', label: '마감/색상', input: { kind: 'text', free: true }, showWhen: detailSet },
+  { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS }, showWhen: isActive }, // 앰프 재사용(한글 저장) — 액티브만(패시브는 전원부 없음)
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' }, showWhen: detailSet },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' }, showWhen: detailSet }, // 3단계: 무게 빌더 — 스피커
 ];
@@ -408,7 +409,7 @@ export const TT_PHONO_BUILTIN_OPTS = labelOpts('phonoBuiltIn'); // built_in / no
 export const TT_BLUETOOTH_OPTS = labelOpts('bluetooth');        // none / rx / tx / rx_tx
 export const TT_DUSTCOVER_OPTS = labelOpts('dustCover');        // yes / no / damaged (중고라 '손상 있음' 포함)
 // 출력 단자 — 턴테이블 전용 짧은 목록 (턴테이블은 입력 없는 출력 기기. RCA/XLR/USB 검색 별칭은 TERMINAL_ALIASES 재사용)
-export const TT_OUTPUT_TERMINALS = ['RCA', 'XLR', '3.5mm', 'Headphone Out', 'USB'];
+export const TT_OUTPUT_TERMINALS = ['RCA Out', 'XLR', '3.5mm', 'Headphone Out', 'USB'];
 // ── 2단계: 하위 유형(ttType) 분기 옵션 ──
 export const TT_TYPE_OPTS = labelOpts('ttType');                  // hifi / all_in_one / dj
 export const TT_PLATTER_OPTS = labelOpts('platterMaterial');      // aluminum_diecast / acrylic / glass / steel / mdf / plastic
@@ -432,8 +433,8 @@ export const CAS_METER_OPTS = labelOpts('levelMeter');            // analog_vu /
 export const CAS_TAPE_TYPE_OPTS = labelOpts('tapeType');          // 녹음 가능 테이프 I/II/IV/FeCr (예전 '지원 테이프(재생)' 칸을 흡수해 FeCr 포함)
 export const CAS_NR_OPTS = labelOpts('noiseReduction');           // Dolby B/C/S/dbx (HX Pro는 NR 아님 → 별도 YES_NO)
 export const CAS_HEAD_MATERIALS = ['퍼멀로이', '센더스트', '페라이트', '아몰퍼스', '크리스탈로이']; // searchSelect freeText (Laser Amorphous 등 직접입력)
-export const CAS_INPUT_TERMINALS = ['RCA', '마이크'];             // 녹음 입력 (TERMINAL_ALIASES 재사용)
-export const CAS_OUTPUT_TERMINALS = ['RCA', '헤드폰', 'USB'];     // 재생 출력 + USB 디지털
+export const CAS_INPUT_TERMINALS = ['RCA', 'Mic In'];             // 녹음 입력 (TERMINAL_ALIASES 재사용)
+export const CAS_OUTPUT_TERMINALS = ['RCA Out', 'Headphone Out', 'USB'];     // 재생 출력 + USB 디지털
 export const CAS_SNR_NR_OPTS = ['NR Off', 'Dolby B', 'Dolby C', 'Dolby S', 'dbx']; // S/N numSelect 조건(선택)
 export const CAS_WF_STD_OPTS = ['WRMS', 'DIN', 'NAB', 'IEC', 'JIS'];               // W&F numSelect 측정규격(선택)
 // ── 카세트 2단계: 3축 분기 하위필드 옵션 ──
@@ -446,7 +447,7 @@ export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / pl
 
 // ── 소스기기 스펙 필드 (2단계: 하위유형 분기까지 — 구성품 세부는 3단계) ──
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
-// 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·휴대형) / DJ=+퍼포먼스(토크·피치·역재생)
+// 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·포터블) / DJ=+퍼포먼스(토크·피치·역재생)
 export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'ttType', label: '형식', input: { kind: 'select', options: TT_TYPE_OPTS }, showWhen: isTurntable }, // ★ 분기 키 (스피커 '형식'과 동일 패턴)
@@ -469,12 +470,12 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'cartType', label: '카트리지 방식', input: { kind: 'select', options: TT_CART_TYPE_OPTS }, showWhen: ttCartIncl },
   { key: 'cartModel', label: '카트리지 모델', input: { kind: 'text', free: true }, showWhen: ttCartIncl }, // 예: Ortofon 2M Red
   { key: 'phonoBuiltIn', label: '포노앰프 내장', input: { kind: 'select', options: TT_PHONO_BUILTIN_OPTS }, showWhen: isTurntable },
-  { key: 'phonoBypass', label: 'Phono/Line 전환', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttPhonoBuilt },
+  { key: 'phonoBypass', label: '포노/라인 전환', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: ttPhonoBuilt },
   // ── 턴테이블: 올인원·포터블 전용 (스피커 출력은 사운드바 totalPower 패턴) ──
   { key: 'speakerConfig', label: '스피커 구성', input: { kind: 'select', options: TT_SPEAKER_CONFIG_OPTS }, showWhen: isTtAllInOne },
   { key: 'speakerPower', label: '스피커 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: ttSpkIncl },
   { key: 'extraFeatures', label: '부가 기능', input: { kind: 'multi', options: TT_EXTRA_FEATURES }, showWhen: isTtAllInOne },
-  { key: 'portable', label: '휴대형(배터리)', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isTtAllInOne },
+  { key: 'portable', label: '포터블(배터리)', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isTtAllInOne },
   // ── 턴테이블: DJ 전용 퍼포먼스 ──
   { key: 'startingTorque', label: '시작 토크', input: { kind: 'text', unit: 'kg·cm' }, showWhen: isTtDj },
   { key: 'pitchRange', label: '피치 조절 폭', input: { kind: 'multi', options: TT_PITCH_RANGE_OPTS }, showWhen: isTtDj },
@@ -513,8 +514,8 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'maintenance', label: '정비 이력', input: { kind: 'multi', options: CAS_MAINTENANCE_OPTS }, showWhen: isCassette },
   { key: 'recFunction', label: '녹음 기능', input: { kind: 'select', options: CAS_REC_FUNCTION_OPTS }, showWhen: isCassette }, // 결함 고지 핵심(재생전용/불가)
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
-  { key: 'finish', label: '마감', input: { kind: 'text', free: true } },
-  { key: 'voltage', label: '전원', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
+  { key: 'finish', label: '마감/색상', input: { kind: 'text', free: true } },
+  { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
   { key: 'dimensions', label: '크기', input: { kind: 'dimensions' } },
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 3단계: 무게 빌더 — 소스기기
 ];

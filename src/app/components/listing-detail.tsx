@@ -470,7 +470,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="font-bold">모델</div>
                   <div className="break-words">{listing?.model ?? ''}</div>
 
-                  <div className="font-bold">출시년도</div>
+                  <div className="font-bold">출시 연도</div>
                   <div className="break-words">{listing?.year ?? ''}</div>
 
                   <div className="font-bold">제조국</div>

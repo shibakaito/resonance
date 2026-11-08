@@ -449,7 +449,7 @@ export function FilterModal({
   if (yearLabel)
     draftChips.push({
       key: 'year',
-      label: `출시년도: ${yearLabel}`,
+      label: `출시 연도: ${yearLabel}`,
       remove: () => {
         setYearMinInput('');
         setYearMaxInput('');
@@ -669,7 +669,7 @@ export function FilterModal({
           )}
           {isAmp && (
             <>
-              <Section title="세부 카테고리" defaultOpen>
+              <Section title="채널" defaultOpen>
                 <CheckGroup
                   options={AMP_DETAILS}
                   selected={draft.ampDetail}
@@ -688,7 +688,7 @@ export function FilterModal({
             </>
           )}
           {isSpeaker && (
-            <Section title="세부 카테고리" defaultOpen>
+            <Section title="형식" defaultOpen>
               <CheckGroup
                 options={SPEAKER_DETAILS}
                 selected={draft.speakerDetail}
@@ -773,7 +773,7 @@ export function FilterModal({
                   counts={counts.remote}
                 />
               </Section>
-              <Section title="전원전압">
+              <Section title="전원 전압">
                 <CheckGroup
                   options={VOLTAGE_OPTS}
                   selected={draft.voltage}
@@ -802,7 +802,7 @@ export function FilterModal({
                   counts={counts.wooferSize}
                 />
               </Section>
-              <Section title="인클로저 타입">
+              <Section title="인클로저">
                 <CheckGroup
                   options={ENCLOSURE_TYPES}
                   selected={draft.enclosure}
@@ -863,7 +863,7 @@ export function FilterModal({
                   counts={counts.cartridge}
                 />
               </Section>
-              <Section title="속도" defaultOpen>
+              <Section title="회전수" defaultOpen>
                 <CheckGroup
                   options={SPEED_OPTS}
                   selected={draft.speeds}
@@ -871,7 +871,7 @@ export function FilterModal({
                   counts={counts.speeds}
                 />
               </Section>
-              <Section title="오토 기능" defaultOpen>
+              <Section title="조작 방식" defaultOpen>
                 <CheckGroup
                   options={AUTO_OPTS}
                   selected={draft.autoMode}
@@ -890,7 +890,7 @@ export function FilterModal({
             </>
           )}
 
-          <Section title="출시년도">
+          <Section title="출시 연도">
             <MinMaxRow
               minVal={yearMinInput}
               maxVal={yearMaxInput}

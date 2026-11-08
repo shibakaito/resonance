@@ -40,7 +40,7 @@ export const LABELS: Record<string, LabelMap> = {
   },
   ownership: {
     single_owner: { ko: '1인 소유' },
-    multiple_owners: { ko: '다중 소유' },
+    multiple_owners: { ko: '2인 이상 소유' },
     unknown: { ko: '알 수 없음' },
   },
   shipping_type: {
@@ -53,7 +53,7 @@ export const LABELS: Record<string, LabelMap> = {
 // ── specs(jsonb) 안의 선택지용 (key=코드 필드명) ──
 export const SPEC_LABELS: Record<string, LabelMap> = {
   ampDetail: { monoblock: { ko: '모노블록' }, stereo: { ko: '스테레오' }, multichannel: { ko: '멀티채널' } },
-  ampMethod: { solid_state: { ko: '트랜지스터' }, tube: { ko: '진공관' }, hybrid: { ko: '하이브리드' } },
+  ampMethod: { solid_state: { ko: '솔리드 스테이트(TR)' }, tube: { ko: '진공관' }, hybrid: { ko: '하이브리드' } },
   phono: { none: { ko: '없음' }, mm: { ko: 'MM' }, mc: { ko: 'MC' }, mm_mc: { ko: 'MM/MC' } },
   voltage: { '100v': { ko: '100V' }, '120v': { ko: '120V' }, '220v': { ko: '220V' }, free_voltage: { ko: '프리볼트' } },
   // 임피던스: 앰프 지원 임피던스 + 스피커 임피던스 공용
@@ -87,14 +87,14 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   dubbingSpeed: { realtime: { ko: '등속' }, high_speed: { ko: '고속(2배)' }, both: { ko: '등속+고속' } },
   reverseMethod: { head_rotate: { ko: '헤드 회전' }, tape_flip: { ko: '테이프 물리 반전(UDAR)' }, naac: { ko: '자동 아지머스(NAAC)' } },
   // ── 카세트 3단계: 정비/상태 ──
-  headWear: { good: { ko: '양호' }, light_wear: { ko: '미세 마모' }, relapped: { ko: '연마(relap)됨' }, replaced: { ko: '교체됨' }, heavy_wear: { ko: '마모 심함' } },
-  maintenance: { belt: { ko: '벨트 교체' }, pinch_roller: { ko: '핀치롤러 교체' }, overhaul: { ko: '오버홀' }, recap: { ko: '리캡' }, calibration: { ko: '캘리브레이션' } },
+  headWear: { good: { ko: '양호' }, light_wear: { ko: '미세 마모' }, relapped: { ko: '연마됨(리랩)' }, replaced: { ko: '교체됨' }, heavy_wear: { ko: '마모 심함' } },
+  maintenance: { belt: { ko: '벨트 교체' }, pinch_roller: { ko: '핀치롤러 교체' }, overhaul: { ko: '오버홀' }, recap: { ko: '리캡(콘덴서 교체)' }, calibration: { ko: '캘리브레이션' } },
   recFunction: { normal: { ko: '정상' }, playback_only: { ko: '재생 전용' }, broken: { ko: '불가' } },
-  conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC / PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
+  conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC/PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
   plating: { gold: { ko: '금도금' }, rhodium: { ko: '로듐 도금' }, silver: { ko: '은도금' }, nickel: { ko: '니켈 도금' }, none: { ko: '무도금' } },
   shield: { shielded: { ko: '실드' }, unshielded: { ko: '무실드' }, double_shielded: { ko: '이중 실드' } },
   pair: { single: { ko: '단선' }, pair: { ko: '페어' }, set: { ko: '세트' } },
-  speeds: { '33': { ko: '33⅓ RPM' }, '45': { ko: '45 RPM' }, '78': { ko: '78 RPM' } },
+  speeds: { '33': { ko: '33 1/3 RPM' }, '45': { ko: '45 RPM' }, '78': { ko: '78 RPM' } },
   // 외관 상태 등급 (참고용, condition과 별개)
   appearance: { mint: { ko: '민트급' }, excellent: { ko: '매우 좋음' }, good: { ko: '좋음' }, fair: { ko: '보통' } },
   // 작동 상태 등급 (참고용, condition과 별개)

@@ -140,7 +140,7 @@ function mapRow(row: ListingRow): Listing {
       : 0,
     // 앰프
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
-    ampDetail: techStr('channel'), // 세부 카테고리(채널): tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
+    ampDetail: techStr('channel'), // 채널: tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
     ampMethod: techStr('device'),  // 증폭 방식: tech.device — 필터 AMP_METHODS(=폼 AMP_DEVICE_OPTS)와 같은 값
     power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 파싱. 미입력·해당없음 = null (범위 필터에서 제외)
     hpImpedance: parseSameUnitRange(tech.hpImpedanceRange), // 헤드폰 앰프 권장 헤드폰 임피던스 "16Ω~600Ω" → { min: 16, max: 600 }
@@ -161,7 +161,7 @@ function mapRow(row: ListingRow): Listing {
     driveType: optLabel(TT_DRIVE_OPTS, techStr('driveType')),          // belt_drive → 벨트 드라이브
     tonearm: optLabel(TT_TONEARM_OPTS, techStr('tonearm')),            // 올인원은 폼에서 숨김 → '' (톤암 필터에서 제외)
     cartridge: optLabel(TT_CARTRIDGE_OPTS, techStr('cartridge')),
-    speeds: techArr('speeds').map((x) => optLabel(TT_SPEED_OPTS, x)), // ['33','45'] → ['33⅓ RPM','45 RPM']
+    speeds: techArr('speeds').map((x) => optLabel(TT_SPEED_OPTS, x)), // ['33','45'] → ['33 1/3 RPM','45 RPM']
     autoMode: optLabel(TT_AUTO_OPTS, techStr('autoMode')),
     dustCover: optLabel(TT_DUSTCOVER_OPTS, techStr('dustCover')),
     // 전원 장치

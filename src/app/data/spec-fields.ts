@@ -7,7 +7,7 @@
 export const SPEC_FIELDS = [
   { key: 'type', label: '타입' },
   { key: 'channel', label: '채널' },
-  { key: 'device', label: '소자' },
+  { key: 'device', label: '증폭 방식' },
   { key: 'powerRated', label: '정격 출력' },
   { key: 'freqResponse', label: '주파수 응답' },
   { key: 'impedance', label: '지원 임피던스' },
@@ -18,7 +18,7 @@ export const SPEC_FIELDS = [
   { key: 'outputs', label: '출력 단자' },
   { key: 'phono', label: '포노 입력' },
   { key: 'toneControl', label: '톤 컨트롤' },
-  { key: 'power', label: '전원' },
+  { key: 'power', label: '전원 전압' },
   { key: 'dimensions', label: '크기' },
   { key: 'weight', label: '무게' },
 ] as const;
