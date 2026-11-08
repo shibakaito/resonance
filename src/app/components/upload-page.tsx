@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -890,6 +890,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 조립 함수(buildPower/buildFreq/buildDims/buildValNotes/buildTubes/buildCrossover/buildAmpPower/buildNumSelect)는
   // src/lib/spec-builders.ts 에서 import (폼·시드 스크립트 공용 — 포맷의 단일 출처)
   const [techExpanded, setTechExpanded] = useState(true); // 기술 사양 섹션 접기/펼치기
+  const [detailExpanded, setDetailExpanded] = useState(false); // 상세 사양(핵심 외 칸) 접기/펼치기 — CORE_SPEC_KEYS에 있는 하위 카테고리만
+  useEffect(() => { setDetailExpanded(false); }, [subcategory]); // 하위 카테고리를 바꾸면 상세 사양은 다시 접힘
   // 기술 사양 (16개 필드를 객체 하나로 관리)
   const [specs, setSpecs] = useState<Record<string, string>>({
     type: '', channel: '', device: '', powerRated: '',
@@ -1396,7 +1398,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="mt-4">
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
               <div className="space-y-4">
-                {SPEC_FIELDS_BY_CATEGORY[category].map((f) => {
+                {(() => {
+                // 필드 하나 그리기 (핵심/상세 어느 쪽이든 같은 모양)
+                const renderSpecField = (f: CategorySpecField) => {
                   // 형식(패시브/액티브)·서브우퍼 등 조건부 필드: 표시 조건 불충족 시 숨김
                   if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) return null;
                   // 사운드바는 액티브 고정 — 형식 칸은 숨김(값은 'active'로 저장됨)
@@ -2000,7 +2004,36 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     );
                   }
                   return null;
-                })}
+                };
+                const fields = SPEC_FIELDS_BY_CATEGORY[category];
+                const coreKeys = CORE_SPEC_KEYS[subcategory];
+                // 분리 대상이 아니면 지금처럼 전부 한 번에
+                if (!coreKeys) return fields.map(renderSpecField);
+                // 분리 대상: 타입(auto)과 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
+                const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory }));
+                const core = fields.filter((f) => f.input.kind === 'auto' || coreKeys.includes(f.key));
+                const detail = fields.filter((f) => !(f.input.kind === 'auto' || coreKeys.includes(f.key)));
+                const detailCount = detail.filter(visible).length;
+                return (
+                  <>
+                    {core.map(renderSpecField)}
+                    {detailCount > 0 && (
+                      <div className="pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setDetailExpanded((v) => !v)}
+                          aria-expanded={detailExpanded}
+                          className="w-full flex items-center justify-between border border-[#e0e0e0] rounded-none px-4 h-[42px] text-sm font-semibold text-[#000000] bg-[#f7f7f7] hover:border-[#000000]"
+                        >
+                          <span>상세 사양 ({detailCount})</span>
+                          <ChevronDown className={`w-4 h-4 text-gray-500 ${detailExpanded ? 'rotate-180' : ''}`} />
+                        </button>
+                        {detailExpanded && <div className="space-y-4 mt-4">{detail.map(renderSpecField)}</div>}
+                      </div>
+                    )}
+                  </>
+                );
+                })()}
               </div>
             ) : (
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력

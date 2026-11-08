@@ -520,6 +520,19 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'weight', label: '무게', input: { kind: 'valueNote', unit: 'kg' } }, // 3단계: 무게 빌더 — 소스기기
 ];
 
+// 핵심/상세 사양 분리 — 여기 적힌 하위 카테고리만 폼이 "핵심 사양"(항상 표시)과 "상세 사양"(접힘)으로 나눔.
+//   값 = 핵심으로 둘 필드 key. 타입(auto)은 늘 맨 위 그대로. 목록에 없는 key는 상세로. 저장 키(specs.tech)는 바뀌지 않음.
+//   적용 안 된 하위 카테고리(헤드폰 앰프, 스피커, 소스기기 등)는 지금처럼 전부 한 번에 표시.
+const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'remote', 'voltage'];
+export const CORE_SPEC_KEYS: Record<string, string[]> = {
+  프리앰프: ['channel', 'device', 'phono', 'remote', 'voltage'],
+  파워앰프: AMP_CORE_7,
+  인티앰프: AMP_CORE_7,
+  '네트워크 앰프': AMP_CORE_7,
+  리시버: AMP_CORE_7,
+  포노앰프: ['device', 'cartridgeSupport', 'mcGain', 'voltage'],
+};
+
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.
 export const SPEC_FIELDS_BY_CATEGORY: Record<string, CategorySpecField[]> = {
   앰프: AMP_SPEC_FIELDS,
