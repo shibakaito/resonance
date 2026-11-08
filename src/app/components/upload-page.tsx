@@ -18,7 +18,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
-import { insertListing } from '@/lib/listings';
+import { insertListing, fetchListings } from '@/lib/listings';
 import { NEW_CONDITION_KEYS, LOCATION_OPTS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
@@ -843,6 +843,21 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [subcategory, setSubcategory] = useState('');
   const [brand, setBrand] = useState(initialData?.brand ?? '');
   const [model, setModel] = useState(initialData?.model ?? '');
+  // 등록 폼 자동완성 = 사전(브랜드 사전, CATALOG 모델) + 기존 매물 값. 둘 다 자유 입력 허용(Typeahead freeText)
+  const [listingBrandModels, setListingBrandModels] = useState<{ brand: string; model: string; categories: string[] }[]>([]);
+  useEffect(() => {
+    let active = true;
+    fetchListings()
+      .then((rows) => { if (active) setListingBrandModels(rows.map((l) => ({ brand: l.brand, model: l.model, categories: l.categories }))); })
+      .catch((err) => console.error('매물 브랜드/모델 불러오기 실패:', err)); // 실패해도 사전 후보만으로 동작
+    return () => { active = false; };
+  }, []);
+  // 사전에 없는 매물 브랜드 (사전 브랜드 뒤에 붙임)
+  const listingOnlyBrands = useMemo(() => {
+    const dict = new Set(ALL_BRAND_NAMES);
+    return Array.from(new Set(listingBrandModels.map((x) => x.brand.trim()).filter((b) => b && !dict.has(b))));
+  }, [listingBrandModels]);
+  const brandOptions = useMemo(() => [...ALL_BRAND_NAMES, ...listingOnlyBrands], [listingOnlyBrands]);
   // 상품명 자동 반영 — 브랜드+모델+하위카테고리로 자동 채움. 사용자가 직접 수정하면(titleEdited) 중단.
   const [titleEdited, setTitleEdited] = useState(Boolean(initialData?.title));
   useEffect(() => {
@@ -1208,19 +1223,21 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     setBrand(v);
                     setModel(''); // 브랜드 바꾸면 모델 초기화
                   }}
-                  options={ALL_BRAND_NAMES}
+                  options={brandOptions}
                   freeText
                   enableKeyboardLayout
                   hideUntilTyping
                   filter={(q, opts) => {
-                    const ranked = searchBrands(q, 50).map((b) => b.name);
+                    const ranked = searchBrands(q, 50).map((b) => b.name); // 사전 브랜드(한글 별칭 포함) 순위
                     const set = new Set(opts);
-                    return ranked.filter((n) => set.has(n));
+                    const nq = q.replace(/[\s&\-/]+/g, '').toLowerCase();
+                    const extra = listingOnlyBrands.filter((n) => nq && n.replace(/[\s&\-/]+/g, '').toLowerCase().includes(nq)); // 사전에 없는 매물 브랜드
+                    return [...ranked.filter((n) => set.has(n)), ...extra];
                   }}
                 />
               </div>
 
-              {/* 2. 모델 — 브랜드 + 카테고리(subcategory)가 둘 다 일치하는 모델만 후보로
+              {/* 2. 모델 — 브랜드 + 카테고리(subcategory)가 둘 다 일치하는 모델만 후보로 (사전 CATALOG 모델 + 기존 매물 모델 합집합)
                   - 브랜드 미선택 → 후보 없음 (직접 입력만 가능)
                   - 카테고리 미선택 → 해당 브랜드의 전체 모델
                   - 카테고리 선택됨 → 해당 브랜드 + 그 카테고리(예: '프리앰프')만 */}
@@ -1235,13 +1252,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   options={
                     brand
                       ? Array.from(
-                          new Set(
-                            CATALOG.filter(
-                              (c) =>
-                                c.brand === brand &&
-                                (!subcategory || c.category === subcategory)
-                            ).map((c) => c.model)
-                          )
+                          new Set([
+                            ...CATALOG.filter((c) => c.brand === brand && (!subcategory || c.category === subcategory)).map((c) => c.model),
+                            ...listingBrandModels.filter((x) => x.brand === brand && (!subcategory || x.categories.includes(subcategory))).map((x) => x.model),
+                          ])
                         )
                       : []
                   }

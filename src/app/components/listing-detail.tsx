@@ -679,10 +679,13 @@ export function ListingDetail({ id }: { id?: string }) {
                         </div>
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
-                      <MapPin className="w-4 h-4" />
-                      <span>대한민국 서울</span>
-                    </div>
+                    {/* 판매자 지역 = 매물의 지역 값(DB location). 비어 있으면 줄째 숨김 */}
+                    {listing?.location && (
+                      <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                        <MapPin className="w-4 h-4" />
+                        <span>대한민국 {listing.location}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
                       <span className="font-semibold">Resonance 가입일 :</span>
                       <span>2018년</span>
