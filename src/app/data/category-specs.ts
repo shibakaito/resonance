@@ -97,8 +97,7 @@ const ttPhonoBuilt = (s: Record<string, string | string[]>) => isTurntable(s) &&
 const ttSpkIncl = (s: Record<string, string | string[]>) => isTtAllInOne(s) && (s.speakerConfig === 'built_in' || s.speakerConfig === 'detachable');
 // 카세트 데크 — 소스기기 하위 게이트 (1단계: 공통 필드. 3축 분기·정비는 2·3단계)
 const isCassette = (s: Record<string, string | string[]>) => s.__sub === '카세트 데크';
-// 카세트 3축 분기 (값 기반 — 턴테이블 isTtHifi 패턴). 트리거 미선택/해당없음이면 하위필드 숨김
-const cas3Head = (s: Record<string, string | string[]>) => isCassette(s) && s.headCount === 'three_head';
+// 카세트 분기 (값 기반 — 턴테이블 isTtHifi 패턴). 트리거 미선택/해당없음이면 하위필드 숨김 (3헤드 분기는 오프테이프 모니터링 칸 삭제로 없어짐)
 const casDouble = (s: Record<string, string | string[]>) => isCassette(s) && s.deckCount === 'double';
 const casAutoRev = (s: Record<string, string | string[]>) => isCassette(s) && (s.autoReverse === 'playback' || s.autoReverse === 'rec_play');
 
@@ -123,7 +122,9 @@ export const AVR_ARC_OPTS = ['미지원', 'ARC', 'eARC'];
 // AV 리시버 지원 오디오 포맷 (다중) / 룸 보정 방식
 export const AVR_AUDIO_FORMATS = ['Dolby Atmos', 'Dolby TrueHD', 'Dolby Digital Plus', 'DTS:X', 'DTS-HD MA', 'DTS Neural:X', 'Auro-3D', 'IMAX Enhanced'];
 export const AVR_ROOMCAL_OPTS = ['없음', 'Audyssey', 'YPAO', 'Dirac Live', 'MCACC', 'AccuEQ'];
-export const AMP_DEVICE_OPTS = ['진공관', '트랜지스터', '하이브리드'];
+// 증폭 방식 — 솔리드 스테이트 값은 AV 리시버 자동 저장(폼에서 칸 숨김)에도 같이 씀
+export const AMP_DEVICE_SOLID = '트랜지스터';
+export const AMP_DEVICE_OPTS = ['진공관', AMP_DEVICE_SOLID, '하이브리드'];
 // 진공관 빌더 — 역할별 대표관(이름만, 등가/브랜드/음색 제외). 직접입력은 렌더 컴포넌트가 제공
 export const TUBE_ROLE_OPTS = ['출력관', '프리관', '드라이브관', '정류관'];
 export const TUBE_POWER_OPTS = ['KT88','KT90','KT120','KT150','KT170','6550','EL34','6CA7','KT77','KT66','6L6GC','5881','EL84','6V6','7591','300B','845','211','2A3','PX25','45'];
@@ -208,7 +209,7 @@ export const AMP_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'channel', label: '채널', input: { kind: 'select', options: PREAMP_CHANNEL_OPTS }, showWhen: isPreamp }, // 프리앰프 전용: 모노블럭 대신 모노
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
   { key: 'device', label: '증폭 방식', input: { kind: 'select', options: AMP_DEVICE_OPTS }, showWhen: (s) => !isMcSut(s) }, // MC 스텝업 트랜스(패시브)는 증폭 방식 없음
-  { key: 'tubes', label: '진공관 종류', input: { kind: 'tubeBuilder' }, showWhen: isTubeAmp },
+  { key: 'tubes', label: '진공관 종류', input: { kind: 'tubeBuilder' }, showWhen: (s) => isTubeAmp(s) && !isMcSut(s) && !isAvr(s) }, // MC 스텝업 트랜스(증폭 방식 없음), AV 리시버(솔리드 스테이트 고정)는 도달 불가라 제외
   // ── 포노앰프 전용: 지원 카트리지 + MM 블록 ──
   { key: 'cartridgeSupport', label: '지원 카트리지', input: { kind: 'select', options: PHONO_CARTRIDGE_OPTS }, showWhen: isPhonoAmp },
   { key: 'mmGain', label: 'MM 게인', input: { kind: 'text', unit: 'dB' }, showWhen: isPhonoMM },
@@ -361,8 +362,8 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'subPower', label: '우퍼 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: subIncl },
   { key: 'subDimensions', label: '서브우퍼 크기', input: { kind: 'dimensions' }, showWhen: subIncl },
   { key: 'subWeight', label: '서브우퍼 무게', input: { kind: 'text', unit: 'kg' }, showWhen: subIncl },
-  // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) ──
-  { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: detailSet },
+  // ── 드라이버 구성 (패시브·액티브 공용: 종류/구조/재질/크기/개수 빌더) — 사운드바 제외(파생 키가 스피커 필터에 섞임) ──
+  { key: 'driverComposition', label: '드라이버 구성', input: { kind: 'drivers' }, showWhen: (s) => detailSet(s) && !isSoundbar(s) },
 
   // ── 패시브 블록 (기존 순서 유지) ──
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: isPassive },
@@ -378,16 +379,17 @@ export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'ampPower', label: '앰프 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: activeSub }, // 서브우퍼: 출력값(W) + RMS/Peak
   { key: 'totalPower', label: '총 출력', input: { kind: 'numSelect', unit: 'W', options: ['RMS', 'Peak'] }, showWhen: isSoundbar }, // 사운드바: 총 출력(W) + RMS/Peak
   { key: 'opClass', label: '동작 클래스', input: { kind: 'select', options: AMP_CLASS_OPTS }, showWhen: activeNoBar }, // 앰프 재사용 (사운드바 제외)
-  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: activeNoBar }, // 사운드바 제외
+  { key: 'crossoverType', label: '크로스오버 방식', input: { kind: 'select', options: SPK_CROSSOVER_TYPE_OPTS }, showWhen: activeFull }, // 서브우퍼(크로스오버 조절 범위로 대체), 사운드바 제외
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'kHz' }, showWhen: activeNoSub }, // 크로스오버 방식 아래 (서브우퍼 제외)
   { key: 'inputs', label: '입력 단자', input: { kind: 'multi', options: AMP_INPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용
   { key: 'outputs', label: '출력 단자', input: { kind: 'multi', options: AMP_OUTPUT_TERMINALS }, showWhen: isActive }, // 앰프 재사용 (입력 단자 아래)
   { key: 'wireless', label: '무선 / 네트워크', input: { kind: 'multi', options: AMP_WIRELESS }, showWhen: isActive }, // 앰프 재사용
   { key: 'enclosure', label: '인클로저', input: { kind: 'searchSelect', options: SPEAKER_ENCLOSURE_OPTS, aliases: SPEAKER_ENCLOSURE_ALIASES, keyboardLayout: true }, showWhen: activeNoBar }, // 마감 바로 위 (사운드바 제외)
 
-  // ── 서브우퍼 전용: 방사 방향 · 주파수 응답(Hz~Hz) · 위상 조절 (패시브·액티브 공통) ──
+  // ── 서브우퍼 전용: 방사 방향, 주파수 응답(Hz~Hz), 크로스오버 조절 범위(액티브만), 위상 조절 (패시브, 액티브 공통) ──
   { key: 'firingDirection', label: '방사 방향', input: { kind: 'select', options: SUB_FIRING_OPTS }, showWhen: detailSub },
   { key: 'freqResponse', label: '주파수 응답', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: detailSub },
+  { key: 'crossoverRange', label: '크로스오버 조절 범위', input: { kind: 'range', lowUnit: 'Hz', highUnit: 'Hz' }, showWhen: activeSub }, // 예 40Hz~120Hz (크로스오버 방식 대신, 주파수 응답과 같은 범위 표기)
   { key: 'phaseControl', label: '위상 조절', input: { kind: 'select', options: SPK_PHASE_OPTS }, showWhen: detailSub },
   // ── 꼬리: 마감(공통) · 전원(액티브만) · 크기 · 무게(공통) ──
   { key: 'finish', label: '마감', input: { kind: 'text', free: true }, showWhen: detailSet },
@@ -420,15 +422,14 @@ export const TT_CART_TYPE_OPTS = ['MM', 'MC', '세라믹'];
 export const TT_SPEAKER_CONFIG_OPTS = labelOpts('speakerConfig'); // built_in / detachable / none
 
 // ── 카세트 데크 옵션 (1단계 공통) — select·multi는 labelOpts(영문키 저장), 단자·헤드재질은 문자열 ──
-export const CAS_HEAD_COUNT_OPTS = labelOpts('headCount');        // two_head / three_head (★축A 트리거)
+export const CAS_HEAD_COUNT_OPTS = labelOpts('headCount');        // two_head / three_head
 export const CAS_DECK_COUNT_OPTS = labelOpts('deckCount');        // single / double (★축D 트리거)
 export const CAS_AUTOREVERSE_OPTS = labelOpts('autoReverse');     // none / playback / rec_play (★축C 트리거)
 export const CAS_CAPSTAN_OPTS = labelOpts('capstan');             // single / dual
 export const CAS_DRIVE_OPTS = labelOpts('transportDrive');        // direct / dc_servo / belt
 export const CAS_BIAS_OPTS = labelOpts('bias');                   // fixed / fine / manual_cal
 export const CAS_METER_OPTS = labelOpts('levelMeter');            // analog_vu / fluorescent / led_peak
-export const CAS_TAPE_TYPE_OPTS = labelOpts('tapeType');          // 재생 지원 I/II/IV/FeCr
-export const CAS_TAPE_TYPE_REC_OPTS = labelOpts('tapeType', ['type_1', 'type_2', 'type_4']); // 녹음 (FeCr 제외)
+export const CAS_TAPE_TYPE_OPTS = labelOpts('tapeType');          // 녹음 가능 테이프 I/II/IV/FeCr (예전 '지원 테이프(재생)' 칸을 흡수해 FeCr 포함)
 export const CAS_NR_OPTS = labelOpts('noiseReduction');           // Dolby B/C/S/dbx (HX Pro는 NR 아님 → 별도 YES_NO)
 export const CAS_HEAD_MATERIALS = ['퍼멀로이', '센더스트', '페라이트', '아몰퍼스', '크리스탈로이']; // searchSelect freeText (Laser Amorphous 등 직접입력)
 export const CAS_INPUT_TERMINALS = ['RCA', '마이크'];             // 녹음 입력 (TERMINAL_ALIASES 재사용)
@@ -485,8 +486,7 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'dustCover', label: '더스트 커버', input: { kind: 'select', options: TT_DUSTCOVER_OPTS }, showWhen: isTurntable },
 
   // ── 카세트 데크 (1단계: 공통 필드 — 3축 트리거 포함, 축 하위필드는 2단계 / 정비는 3단계) ──
-  { key: 'headCount', label: '헤드 수', input: { kind: 'select', options: CAS_HEAD_COUNT_OPTS }, showWhen: isCassette },        // ★ 축A 트리거
-  { key: 'offTapeMonitor', label: '오프테이프 모니터링', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: cas3Head }, // 3헤드만 (녹음 중 실시간 감청)
+  { key: 'headCount', label: '헤드 수', input: { kind: 'select', options: CAS_HEAD_COUNT_OPTS }, showWhen: isCassette },
   { key: 'deckCount', label: '데크 수', input: { kind: 'select', options: CAS_DECK_COUNT_OPTS }, showWhen: isCassette },        // ★ 축D 트리거
   { key: 'dubbingSpeed', label: '더빙 속도', input: { kind: 'select', options: CAS_DUBBING_SPEED_OPTS }, showWhen: casDouble },  // 더블만
   { key: 'parallelRec', label: '병렬 동시 녹음', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: casDouble },         // 더블만
@@ -496,8 +496,7 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'headMaterial', label: '헤드 재질', input: { kind: 'searchSelect', options: CAS_HEAD_MATERIALS }, showWhen: isCassette },
   { key: 'capstan', label: '캡스턴', input: { kind: 'select', options: CAS_CAPSTAN_OPTS }, showWhen: isCassette },
   { key: 'transportDrive', label: '구동 방식', input: { kind: 'select', options: CAS_DRIVE_OPTS }, showWhen: isCassette },
-  { key: 'tapeTypePlay', label: '지원 테이프(재생)', input: { kind: 'multi', options: CAS_TAPE_TYPE_OPTS }, showWhen: isCassette },
-  { key: 'tapeTypeRec', label: '녹음 가능 테이프', input: { kind: 'multi', options: CAS_TAPE_TYPE_REC_OPTS }, showWhen: isCassette },
+  { key: 'tapeTypeRec', label: '녹음 가능 테이프', input: { kind: 'multi', options: CAS_TAPE_TYPE_OPTS }, showWhen: isCassette }, // '지원 테이프(재생)' 칸을 흡수
   { key: 'noiseReduction', label: '노이즈 리덕션', input: { kind: 'multi', options: CAS_NR_OPTS }, showWhen: isCassette },
   { key: 'hxPro', label: 'Dolby HX Pro', input: { kind: 'select', options: YES_NO_OPTS }, showWhen: isCassette },              // NR 아님(녹음 바이어스)이라 별도
   { key: 'bias', label: '바이어스 조정', input: { kind: 'select', options: CAS_BIAS_OPTS }, showWhen: isCassette },

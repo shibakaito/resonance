@@ -12,7 +12,7 @@
 // ============================================================================
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { SPEC_FIELDS_BY_CATEGORY, optLabels, optLabel, AMP_OHM_OPTS, DRIVER_TYPES, TUBE_ROLE_OPTS, YES_NO_OPTS, type CategorySpecField, type SelectOption } from '@/app/data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, optLabels, optLabel, AMP_OHM_OPTS, AMP_DEVICE_SOLID, DRIVER_TYPES, TUBE_ROLE_OPTS, YES_NO_OPTS, type CategorySpecField, type SelectOption } from '@/app/data/category-specs';
 import { CATEGORY_TREE, flattenSubs } from '@/app/data/catalog';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { AMP_POWER_TYPES } from '@/lib/spec-builders';
@@ -29,6 +29,7 @@ const optValues = (opts: SelectOption[]) => opts.map((o) => (typeof o === 'strin
 // 폼(upload-page.tsx)이 스키마 밖에서 하는 처리 — 현황표가 실제 화면과 같도록 반영
 const FORM_OVERRIDES: Record<string, { fixed?: Record<string, string>; hide?: string[]; note?: string; rowNotes?: Record<string, string> }> = {
   사운드바: { fixed: { speakerDetail: 'active' }, hide: ['speakerDetail'], note: '형식은 액티브로 자동 설정되고 형식 칸은 숨김' },
+  'AV 리시버': { fixed: { device: AMP_DEVICE_SOLID }, hide: ['device'], note: `증폭 방식은 ${AMP_DEVICE_SOLID}로 자동 설정되고 증폭 방식 칸은 숨김` },
   서브우퍼: { rowNotes: { driverComposition: '서브우퍼는 종류가 우퍼·패시브 라디에이터만' } },
 };
 

@@ -22,7 +22,7 @@ import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, AMP_DEVICE_SOLID, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -901,11 +901,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     toneControl: '', power: '', dimensions: '', weight: '',
   });
   // 사운드바는 액티브 고정 — 선택 시 형식(speakerDetail)을 자동 'active'로 (형식 칸은 렌더에서 숨김)
+  // AV 리시버는 솔리드 스테이트 고정 — 선택 시 증폭 방식(device)을 자동 AMP_DEVICE_SOLID로 (증폭 방식 칸은 렌더에서 숨김)
   useEffect(() => {
     if (subcategory === '사운드바') {
       setSpecs((s) => (s.speakerDetail === 'active' ? s : { ...s, speakerDetail: 'active' }));
     }
+    if (subcategory === 'AV 리시버') {
+      setSpecs((s) => (s.device === AMP_DEVICE_SOLID ? s : { ...s, device: AMP_DEVICE_SOLID }));
+    }
   }, [subcategory]);
+  // 위 자동 설정 칸 — 값은 저장되지만 칸은 그리지 않음 (renderSpecField 와 상세 사양 개수가 같이 씀)
+  const isAutoFixedField = (key: string) =>
+    (key === 'speakerDetail' && subcategory === '사운드바') || (key === 'device' && subcategory === 'AV 리시버');
 
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
@@ -1404,8 +1411,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 const renderSpecField = (f: CategorySpecField) => {
                   // 형식(패시브/액티브)·서브우퍼 등 조건부 필드: 표시 조건 불충족 시 숨김
                   if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) return null;
-                  // 사운드바는 액티브 고정 — 형식 칸은 숨김(값은 'active'로 저장됨)
-                  if (f.key === 'speakerDetail' && subcategory === '사운드바') return null;
+                  // 사운드바 형식(액티브), AV 리시버 증폭 방식(솔리드 스테이트)은 자동 설정 — 칸은 숨김(값은 저장됨)
+                  if (isAutoFixedField(f.key)) return null;
                   const setSpec = (v: string) => setSpecs({ ...specs, [f.key]: v });
                   // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
                   if (f.input.kind === 'auto') {
@@ -2011,8 +2018,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 // 분리 대상이 아니면 지금처럼 전부 한 번에
                 if (!coreKeys) return fields.map(renderSpecField);
                 // 분리 대상: 타입(auto)과 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
-                // 화면에 실제로 그려지는 칸만 셈 (renderSpecField 의 숨김 규칙과 같게: showWhen, 사운드바 형식 칸)
-                const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) && !(f.key === 'speakerDetail' && subcategory === '사운드바');
+                // 화면에 실제로 그려지는 칸만 셈 (renderSpecField 의 숨김 규칙과 같게: showWhen, 자동 설정 칸)
+                const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) && !isAutoFixedField(f.key);
                 const isCore = (f: CategorySpecField) => f.input.kind === 'auto' || coreKeys.includes(f.key);
                 const isAlways = (f: CategorySpecField) => ALWAYS_SPEC_KEYS.includes(f.key); // 크기, 무게: 핵심 맨 아래에 늘 표시
                 const core = fields.filter((f) => isCore(f) && !isAlways(f));
