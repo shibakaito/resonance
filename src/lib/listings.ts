@@ -227,6 +227,7 @@ export type ListingInput = {
   shippingType: 'free' | 'flat' | 'calculated' | ''; // 빈 문자열 = 미선택
   shippingCost: string;
   localPickup: boolean;
+  location?: string;      // 지역 영문 키 (labels.ts LOCATION_OPTS, 예: 'seoul'). 빈 문자열·없음 = 미선택
   specs?: Record<string, unknown>; // jsonb로 저장될 카테고리별 상세 스펙 (외관/작동 등)
 };
 
@@ -266,6 +267,7 @@ export function toListingRow(form: ListingInput) {
     shipping_type: form.shippingType,
     shipping_cost: toMoney(form.shippingCost),
     local_pickup: form.localPickup,
+    location: form.location || null,                        // 지역 키 (빈 값이면 null)
     specs: form.specs ?? {},                                // 카테고리별 상세 스펙 (외관/작동 등)
   };
 }

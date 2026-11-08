@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
-import { NEW_CONDITION_KEYS } from '@/lib/labels';
+import { NEW_CONDITION_KEYS, LOCATION_OPTS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
@@ -865,6 +865,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [shippingType, setShippingType] = useState<'free' | 'flat' | 'calculated' | ''>('');
   const [shippingCost, setShippingCost] = useState('');
   const [localPickup, setLocalPickup] = useState(false);
+  const [location, setLocation] = useState(''); // 지역 영문 키 (선택 사항, 빈 값 = 미선택) → DB location
   const [activeStep, setActiveStep] = useState('info');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -1035,7 +1036,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year, finish, country,
         handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice,
-        acceptOffers, shippingType, shippingCost, localPickup,
+        acceptOffers, shippingType, shippingCost, localPickup, location,
         specs: specsToSave,
       });
       router.push(`/listing/${id}`); // 저장된 매물 상세로 이동
@@ -2547,6 +2548,25 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               />
               <span className="font-semibold">직거래 가능</span>
             </label>
+            {/* 지역 — 시/도 17개, 선택 사항. DB location 컬럼에 영문 키로 저장. 둘러보기 지역 필터와 같은 목록(labels.ts LOCATION_OPTS) */}
+            <div className="mt-4">
+              <label className="block font-semibold mb-1">지역</label>
+              <div className="relative max-w-xs">
+                <select
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                    location ? '' : 'text-gray-400'
+                  }`}
+                >
+                  <option value="">선택하세요</option>
+                  {LOCATION_OPTS.map((o) => (
+                    <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                  ))}
+                </select>
+                <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+              </div>
+            </div>
           </section>
 
           <div className="bg-white border border-[#e0e0e0] rounded-none p-6">

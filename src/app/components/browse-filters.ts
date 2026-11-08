@@ -10,6 +10,7 @@
 // ============================================================================
 // 앰프·스피커·턴테이블 필터 옵션은 판매 폼 상수(category-specs.ts)에서 가져옴 — 단일 출처, 정규화 없음.
 //   문자열 옵션(앰프·인클로저·임피던스)은 그대로, {value,label} 옵션(스피커 형식·턴테이블 영문키)은 optLabels 로 표시 문자열만 — mapRow 가 같은 옵션표의 optLabel 로 Listing 값을 만듦
+import { LOCATION_OPTS } from '@/lib/labels';
 import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabels, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
@@ -19,7 +20,7 @@ export const CONDITIONS = ['새상품', '미개봉', 'NOS', ...USED_GRADES];
 // 사이드바용 표시 옵션 — '중고'는 UI 단축키 (선택 시 모든 중고 등급 매물 매칭)
 export const USED_ALL = '중고';
 export const CONDITION_DISPLAY = ['새상품', '미개봉', 'NOS', USED_ALL, ...USED_GRADES];
-export const LOCATIONS = ['서울', '경기', '부산', '대구', '인천', '광주', '대전', '울산', '강원', '제주'];
+export const LOCATIONS = LOCATION_OPTS.map((o) => o.label); // 지역 = 폼 '지역' 선택지와 같은 시/도 17개 (labels.ts LOCATION_OPTS) — mapRow 가 label('location')로 같은 한글을 만듦
 export const OWNERSHIP_OPTS = ['1인 소유', '2인 이상 소유'];
 export const COUNTRY_OPTS = ['미국', '일본', '영국', '독일', '프랑스', '덴마크', '캐나다', '중국'];
 export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가격 높은순'];

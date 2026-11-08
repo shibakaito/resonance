@@ -28,10 +28,13 @@ export const LABELS: Record<string, LabelMap> = {
     used_needs_service: { ko: '점검 필요' },
     used_not_working: { ko: '작동 불가' },
   },
+  // 지역 = 시/도 17개 (이 순서가 폼 선택지, 둘러보기 지역 필터 순서). DB location 컬럼엔 영문 키 저장
   location: {
-    seoul: { ko: '서울' }, gyeonggi: { ko: '경기' }, busan: { ko: '부산' }, daegu: { ko: '대구' },
-    incheon: { ko: '인천' }, gwangju: { ko: '광주' }, daejeon: { ko: '대전' }, ulsan: { ko: '울산' },
-    gangwon: { ko: '강원' }, jeju: { ko: '제주' },
+    seoul: { ko: '서울' }, busan: { ko: '부산' }, daegu: { ko: '대구' }, incheon: { ko: '인천' },
+    gwangju: { ko: '광주' }, daejeon: { ko: '대전' }, ulsan: { ko: '울산' }, sejong: { ko: '세종' },
+    gyeonggi: { ko: '경기' }, gangwon: { ko: '강원' }, chungbuk: { ko: '충북' }, chungnam: { ko: '충남' },
+    jeonbuk: { ko: '전북' }, jeonnam: { ko: '전남' }, gyeongbuk: { ko: '경북' }, gyeongnam: { ko: '경남' },
+    jeju: { ko: '제주' },
   },
   country: {
     us: { ko: '미국' }, jp: { ko: '일본' }, uk: { ko: '영국' }, de: { ko: '독일' },
@@ -49,6 +52,9 @@ export const LABELS: Record<string, LabelMap> = {
     calculated: { ko: '배송비 별도' },
   },
 };
+
+// 지역 선택지 (단일 출처) — 업로드 폼 배송 섹션 '지역' 칸과 둘러보기 지역 필터(browse-filters LOCATIONS)가 같이 씀
+export const LOCATION_OPTS = Object.entries(LABELS.location).map(([value, m]) => ({ value, label: m.ko ?? value }));
 
 // 새 제품 상태 키 — 이 상태면 업로드 폼이 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장하지 않음 (시드도 같은 규칙)
 export const NEW_CONDITION_KEYS = ['new', 'unopened', 'nos'];
