@@ -13,7 +13,7 @@
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { SPEC_FIELDS_BY_CATEGORY, optLabels, optLabel, AMP_OHM_OPTS, DRIVER_TYPES, TUBE_ROLE_OPTS, YES_NO_OPTS, type CategorySpecField, type SelectOption } from '@/app/data/category-specs';
-import { CATEGORY_TREE } from '@/app/data/catalog';
+import { CATEGORY_TREE, flattenSubs } from '@/app/data/catalog';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { AMP_POWER_TYPES } from '@/lib/spec-builders';
 import { LABELS, SPEC_LABELS } from '@/lib/labels';
@@ -128,7 +128,8 @@ function condText(triggers: string[], all: Assign[], vis: boolean[], selects: Ma
 type SubInfo = { top: string; leaf: string; path: string; status: string; rows: Row[]; note?: string; fallback: boolean };
 const subs: SubInfo[] = [];
 for (const { top, subs: nodes } of CATEGORY_TREE) {
-  const leaves = nodes.flatMap((n) => (typeof n === 'string' ? [{ leaf: n, path: n }] : n.items.map((it) => ({ leaf: it, path: `${n.group} > ${it}` }))));
+  // 숨김 표식 칸도 폼 현황에는 모두 포함 (켜면 바로 쓰는 스키마라서)
+  const leaves = nodes.flatMap((n) => (typeof n !== 'string' && 'group' in n ? flattenSubs(n.items).map((it) => ({ leaf: it, path: `${n.group} > ${it}` })) : flattenSubs([n]).map((it) => ({ leaf: it, path: it }))));
   const fields = SPEC_FIELDS_BY_CATEGORY[top];
   if (!fields) {
     for (const l of leaves) subs.push({ top, ...l, status: '폴백', rows: [], fallback: true });

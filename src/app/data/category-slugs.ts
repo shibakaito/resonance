@@ -62,7 +62,7 @@ export const SUB_SLUGS: Record<string, string> = {
   '네트워크 플레이어': 'network-player',
   '블루투스 리시버': 'bluetooth-receiver',
   'FM 튜너': 'fm-tuner',
-  'AM/FM 튜너': 'am-fm-tuner',
+  '튜너': 'am-fm-tuner', // 예전 이름 'AM/FM 튜너' — 화면 이름만 바꾸고 슬러그는 그대로
   'LD 플레이어': 'ld-player',
   'DVD 플레이어': 'dvd-player',
   '블루레이 플레이어': 'blu-ray-player',

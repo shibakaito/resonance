@@ -307,7 +307,7 @@ const onListingImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
   img.src = NO_IMAGE;
 };
 
-const CATEGORY_TABS = ['앰프', '스피커', '소스기기', '케이블'];
+const CATEGORY_TABS = TOP_CATEGORIES; // 보이는 대분류만 (CATEGORY_TREE 숨김 표식)
 
 const TRENDING = [
   '빈티지 맥킨토시 파워 앰프',

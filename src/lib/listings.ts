@@ -8,6 +8,7 @@ import { supabase } from './supabase';
 import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
+import { isCategoryVisible } from '@/app/data/catalog';
 import { label, keyFor } from './labels';
 import { optLabel, wooferBucket, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
@@ -185,7 +186,8 @@ export async function fetchListings(): Promise<Listing[]> {
     .eq('status', 'active')
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return (data ?? []).map((row) => mapRow(row as ListingRow));
+  // 숨긴 카테고리(CATEGORY_TREE 숨김 표식) 매물은 목록·개수에서 제외. 상세(fetchListingById)는 그대로 열림
+  return (data ?? []).map((row) => mapRow(row as ListingRow)).filter((l) => l.categories.every(isCategoryVisible));
 }
 
 // id로 매물 1건을 가져옴 (상세 페이지용). 없으면 null.

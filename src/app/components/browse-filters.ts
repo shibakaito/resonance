@@ -53,7 +53,7 @@ export const DUSTCOVER_OPTS = optLabels(TT_DUSTCOVER_OPTS); // 있음 / 없음 /
 export const SOURCE_GROUPS: { title: string; items: string[] }[] = [
   { title: '아날로그', items: ['턴테이블', '카세트 데크', '오픈릴 데크'] },
   { title: '디지털', items: ['CD 플레이어', 'CD 트랜스포트', 'SACD 플레이어', 'DAC', '네트워크 플레이어', '블루투스 리시버'] },
-  { title: '튜너', items: ['FM 튜너', 'AM/FM 튜너'] },
+  { title: '튜너', items: ['FM 튜너', '튜너'] },
   { title: 'AV', items: ['LD 플레이어', 'DVD 플레이어', '블루레이 플레이어'] }
 ];
 

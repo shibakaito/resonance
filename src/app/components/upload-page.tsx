@@ -17,7 +17,7 @@ import {
   Youtube,
   HelpCircle
 } from 'lucide-react';
-import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
+import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing } from '@/lib/listings';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
@@ -32,15 +32,16 @@ const CATEGORIES = TOP_CATEGORIES;
  * - subs가 있으면 각 sub마다 풀패스 1줄
  * - subs가 없으면 top만 (leaf는 빈 문자열)
  * - 사용자가 입력으로 검색·선택할 때 사용
+ * - 숨김 표식(CATEGORY_TREE hidden) 붙은 대분류·잎은 빠짐
  */
-const CATEGORY_PATHS: { path: string; top: string; leaf: string }[] = CATEGORY_TREE.flatMap(
+const CATEGORY_PATHS: { path: string; top: string; leaf: string }[] = CATEGORY_TREE.filter((c) => !c.hidden).flatMap(
   ({ top, subs }) =>
     subs.length === 0
       ? [{ path: top, top, leaf: '' }]
       : subs.flatMap((s) =>
-          typeof s === 'string'
-            ? [{ path: `${top} > ${s}`, top, leaf: s }]
-            : s.items.map((it) => ({ path: `${top} > ${s.group} > ${it}`, top, leaf: it })) // 그룹: 3단계 경로
+          typeof s !== 'string' && 'group' in s
+            ? flattenSubs(s.items).filter(isCategoryVisible).map((it) => ({ path: `${top} > ${s.group} > ${it}`, top, leaf: it })) // 그룹: 3단계 경로
+            : flattenSubs([s]).filter(isCategoryVisible).map((it) => ({ path: `${top} > ${it}`, top, leaf: it }))
         )
 );
 const CATEGORY_PATH_STRINGS = CATEGORY_PATHS.map((p) => p.path);

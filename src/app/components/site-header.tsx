@@ -10,11 +10,11 @@
 import { useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { subcategoriesFor } from '../data/catalog';
+import { subcategoriesFor, TOP_CATEGORIES } from '../data/catalog';
 import { categorySlug } from '../data/category-slugs';
 
 // 메가 메뉴 대분류 + 우측 이미지/설명 (예전 App.tsx와 동일)
-const MEGA_CATS = ['앰프', '스피커', '소스기기', '케이블'] as const;
+const MEGA_CATS = TOP_CATEGORIES; // 보이는 대분류만 (CATEGORY_TREE 숨김 표식)
 const MEGA_IMAGES: Record<string, string> = {
   '앰프': '/images/2c6f7c1fc6fb6.jpg',
   '스피커': '/images/bw-speakers-hero-new.jpg',

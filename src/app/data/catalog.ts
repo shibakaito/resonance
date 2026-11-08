@@ -665,14 +665,34 @@ export function searchBrands(query: string, limit = 10): Brand[] {
 //   top  = 대분류 (앰프, 스피커, 소스기기, 케이블)
 //   subs = 그 대분류에 속한 하위 카테고리 목록
 // ⚠️ 여기를 수정하면 메뉴·필터·URL이 함께 바뀌므로 신중하게! (HANDOVER §13 참고)
-// 하위 노드: 문자열(잎=실제 카테고리) 또는 그룹({group, items}) — 그룹은 3단계(대분류 > 그룹 > 잎) 표시용.
-export type CategorySubNode = string | { group: string; items: string[] };
-export const CATEGORY_TREE: { top: string; subs: CategorySubNode[] }[] = [
-  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', { group: '포노 스테이지', items: ['포노앰프', 'MC 스텝업 헤드앰프', 'MC 스텝업 트랜스'] }, '헤드폰 앰프', '네트워크 앰프', '리시버', 'AV 리시버'] },
-  { top: '스피커', subs: ['북쉘프 스피커', '플로어 스탠딩 스피커', '톨보이 스피커', '센터 스피커', '사운드바', '서브우퍼'] },
-  { top: '소스기기', subs: ['턴테이블', '카세트 데크', '오픈릴 데크', 'CD 플레이어', 'CD 트랜스포트', 'SACD 플레이어', 'DAC', '네트워크 플레이어', '블루투스 리시버', 'FM 튜너', 'AM/FM 튜너', 'LD 플레이어', 'DVD 플레이어', '블루레이 플레이어'] },
-  { top: '케이블', subs: ['RCA 케이블', 'XLR 케이블', '스피커 케이블', '파워 케이블', '디지털 동축 케이블', '광 케이블', 'USB 케이블', 'AES/EBU 케이블', 'BNC 케이블', 'HDMI 케이블', '포노 케이블', '점퍼 케이블', '헤드폰 케이블', '이어폰 케이블'] },
+// 하위 노드: 잎(실제 카테고리) 또는 그룹({group, items}) — 그룹은 3단계(대분류 > 그룹 > 잎) 표시용.
+// ★베타 노출 = 숨김 표식(hidden: true)★ — 지우지 않고 표식만 달아 메뉴·등록 폼·둘러보기 목록에서 뺌.
+//   잎 숨김: { name: '헤드폰 앰프', hidden: true }   대분류 통째 숨김: { top: '케이블', hidden: true, ... }
+//   켜기 = 표식 제거 (hidden: true 를 지우거나 문자열로 되돌림). 주소(slug)와 DB 매물은 그대로라 켜면 다시 보임.
+export type CategoryLeaf = string | { name: string; hidden?: boolean };
+export type CategorySubNode = CategoryLeaf | { group: string; items: CategoryLeaf[] };
+export const CATEGORY_TREE: { top: string; hidden?: boolean; subs: CategorySubNode[] }[] = [
+  { top: '앰프', subs: ['프리앰프', '파워앰프', '인티앰프', { group: '포노 스테이지', items: ['포노앰프', { name: 'MC 스텝업 헤드앰프', hidden: true }, { name: 'MC 스텝업 트랜스', hidden: true }] }, { name: '헤드폰 앰프', hidden: true }, { name: '네트워크 앰프', hidden: true }, '리시버', { name: 'AV 리시버', hidden: true }] },
+  { top: '스피커', subs: ['북쉘프 스피커', '플로어 스탠딩 스피커', { name: '톨보이 스피커', hidden: true }, { name: '센터 스피커', hidden: true }, { name: '사운드바', hidden: true }, '서브우퍼'] },
+  // '튜너' = 예전 'AM/FM 튜너'(슬러그 am-fm-tuner 그대로). 수신 밴드(FM / AM/FM)는 나중에 튜너 전용 스펙 칸으로
+  { top: '소스기기', subs: ['턴테이블', '카세트 데크', { name: '오픈릴 데크', hidden: true }, 'CD 플레이어', { name: 'CD 트랜스포트', hidden: true }, { name: 'SACD 플레이어', hidden: true }, { name: 'DAC', hidden: true }, { name: '네트워크 플레이어', hidden: true }, { name: '블루투스 리시버', hidden: true }, { name: 'FM 튜너', hidden: true }, '튜너', { name: 'LD 플레이어', hidden: true }, { name: 'DVD 플레이어', hidden: true }, { name: '블루레이 플레이어', hidden: true }] },
+  { top: '케이블', hidden: true, subs: ['RCA 케이블', 'XLR 케이블', '스피커 케이블', '파워 케이블', '디지털 동축 케이블', '광 케이블', 'USB 케이블', 'AES/EBU 케이블', 'BNC 케이블', 'HDMI 케이블', '포노 케이블', '점퍼 케이블', '헤드폰 케이블', '이어폰 케이블'] },
 ];
+
+// 잎 → 이름 / 숨김 여부
+const leafName = (l: CategoryLeaf): string => (typeof l === 'string' ? l : l.name);
+const leafHidden = (l: CategoryLeaf): boolean => typeof l !== 'string' && !!l.hidden;
+const leavesOf = (subs: CategorySubNode[]): CategoryLeaf[] =>
+  subs.flatMap((s) => (typeof s !== 'string' && 'group' in s ? s.items : [s]));
+
+// 숨긴 카테고리 이름 모음 (숨긴 잎 + 숨긴 대분류와 그 아래 잎 전부). 트리에 없는 이름은 보이는 것으로 침.
+export const HIDDEN_CATEGORIES: Set<string> = new Set(
+  CATEGORY_TREE.flatMap((c) => [
+    ...(c.hidden ? [c.top] : []),
+    ...leavesOf(c.subs).filter((l) => c.hidden || leafHidden(l)).map(leafName),
+  ])
+);
+export const isCategoryVisible = (name: string): boolean => !HIDDEN_CATEGORIES.has(name);
 
 // 대분류 영어 별칭 — 영어로 검색해도 카테고리가 잡히도록.
 //   예: 'amp' → '앰프' 매물 전체, 'speaker' → '스피커' 매물 전체
@@ -684,21 +704,22 @@ export const CATEGORY_ALIASES: Record<string, string[]> = {
   '케이블':   ['cable', 'cables'],
 };
 
-// 대분류 이름만 모은 목록: ['앰프', '스피커', '소스기기', '케이블']
-export const TOP_CATEGORIES = CATEGORY_TREE.map((c) => c.top);
+// 대분류 이름만 모은 목록 (보이는 것만): ['앰프', '스피커', '소스기기']
+export const TOP_CATEGORIES = CATEGORY_TREE.filter((c) => !c.hidden).map((c) => c.top);
 // 모든 하위 카테고리를 하나의 평평한 배열로 합친 목록.
 //   flatMap = map(각 항목 변환) + flat(중첩 배열을 한 단계 펼치기)을 합친 것.
-// 하위 노드 배열 → 잎(실제 카테고리) 문자열 배열. 그룹은 items로 펼침. (메뉴/필터/검색은 잎 기준)
-export const flattenSubs = (subs: CategorySubNode[]): string[] =>
-  subs.flatMap((s) => (typeof s === 'string' ? [s] : s.items));
-export const ALL_SUBCATEGORIES = CATEGORY_TREE.flatMap((c) => flattenSubs(c.subs));
+// 하위 노드 배열 → 잎(실제 카테고리) 문자열 배열. 그룹은 items로 펼침. 숨긴 잎도 포함(슬러그·상세 페이지용)
+export const flattenSubs = (subs: CategorySubNode[]): string[] => leavesOf(subs).map(leafName);
+// 보이는 하위 카테고리 전체 (검색·추천용)
+export const ALL_SUBCATEGORIES = CATEGORY_TREE.flatMap((c) => flattenSubs(c.subs)).filter(isCategoryVisible);
 
-// 헬퍼 함수: 특정 대분류(top)에 속한 하위 카테고리 목록을 반환. 없으면 빈 배열.
+// 헬퍼 함수: 특정 대분류(top)에 속한 하위 카테고리 목록(보이는 것만)을 반환. 없으면 빈 배열.
+//   메뉴·둘러보기 사이드바·홈 추천이 모두 이 함수를 씀 → 숨김 표식이 한 번에 적용됨
 //   find(...) = 조건에 맞는 첫 항목을 찾음 (없으면 undefined)
 //   ?.subs    = 찾은 게 있으면 subs를 꺼냄 (없으면 undefined) — '옵셔널 체이닝'
 //   ?? []     = 앞이 undefined면 빈 배열로 대체 — '널 병합'
 export function subcategoriesFor(top: string): string[] {
-  return flattenSubs(CATEGORY_TREE.find((c) => c.top === top)?.subs ?? []);
+  return flattenSubs(CATEGORY_TREE.find((c) => c.top === top)?.subs ?? []).filter(isCategoryVisible);
 }
 
 // 하위 카테고리(또는 대분류) 한글명 → 대분류 한글명.

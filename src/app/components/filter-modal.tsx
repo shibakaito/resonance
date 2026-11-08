@@ -540,7 +540,9 @@ export function FilterModal({
             </Section>
           )}
           {isSource &&
-            SOURCE_GROUPS.map((g) => (
+            SOURCE_GROUPS.map((g) => ({ ...g, items: g.items.filter((it) => categoryOptions.includes(it)) })) // 숨김 표식 칸 제외 (categoryOptions = 보이는 하위 카테고리)
+              .filter((g) => g.items.length > 0)
+              .map((g) => (
               <Section key={g.title} title={g.title} defaultOpen>
                 <CheckGroup
                   options={g.items}

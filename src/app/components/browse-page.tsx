@@ -1,7 +1,7 @@
 'use client';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
-import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES } from '../data/catalog';
+import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES, isCategoryVisible } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
 import { terminalsPrioritized } from '../data/cable-terminals';
@@ -238,7 +238,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
 
   // 대분류만 적용된 풀 (카테고리 칩의 개수 집계 기준 — subCategories 미적용)
   const baseCategoryListings = useMemo(() => {
-    if (categorySubs.length === 0) return searchedListings;
+    if (categorySubs.length === 0) return category && !isCategoryVisible(category) ? [] : searchedListings; // 숨긴 대분류 주소로 직접 오면 0건
     return searchedListings.filter((l) => l.categories.some((c) => categorySubs.includes(c)));
   }, [searchedListings, categorySubs]);
 
