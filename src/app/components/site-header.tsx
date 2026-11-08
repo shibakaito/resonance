@@ -21,11 +21,10 @@ const MEGA_IMAGES: Record<string, string> = {
   '소스기기': '/images/f4362b6cdce17.jpg',
   '케이블': '/images/d4ba8a07c2a69.jpg',
 };
-const MEGA_DESC: Record<string, string> = {
-  '앰프': '프리·파워·인티앰프부터 포노 스테이지, 헤드폰 앰프, 리시버까지 신호 증폭 기기 매물.',
-  '스피커': '북쉘프, 플로어 스탠딩, 톨보이, 센터, 사운드바, 서브우퍼 등 다양한 스피커 매물.',
-  '소스기기': '턴테이블, CD·SACD 플레이어, DAC, 네트워크 플레이어, 튜너 등 소스 컴포넌트.',
-  '케이블': 'RCA·XLR 인터커넥트, 스피커·파워 케이블, 디지털·USB·HDMI 케이블 등.',
+// 대분류 설명 = 보이는 하위 카테고리 이름을 CATEGORY_TREE에서 읽어 만듦 (숨김 표식 반영, 켜면 자동으로 늘어남)
+const megaDesc = (cat: string): string => {
+  const subs = subcategoriesFor(cat);
+  return subs.length > 0 ? `${subs.join(', ')} 매물.` : '';
 };
 
 export function SiteHeader() {
@@ -176,7 +175,7 @@ export function SiteHeader() {
                               </div>
                               <div className="mt-3">
                                 <p className="text-xs text-gray-500 leading-relaxed group-hover:text-[#000000] transition-colors">
-                                  {MEGA_DESC[hoverCat] ?? ''}
+                                  {megaDesc(hoverCat)}
                                 </p>
                               </div>
                             </button>

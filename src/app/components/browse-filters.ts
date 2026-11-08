@@ -57,9 +57,10 @@ export const SOURCE_GROUPS: { title: string; items: string[] }[] = [
   { title: 'AV', items: ['LD 플레이어', 'DVD 플레이어', '블루레이 플레이어'] }
 ];
 
-// 앰프 카테고리 그룹 (메가 메뉴용)
+// 앰프 카테고리 그룹 (둘러보기 사이드바용). 항목은 트리 잎 이름 — 포노 스테이지 묶음은 잎(포노앰프·MC 2종)으로 풀어 같은 줄에 둠
+//   숨김 표식 칸은 사이드바에서 빠지고, 보이는 항목이 0개인 묶음은 제목째 빠짐(browse-page sidebarCategoryGroups)
 export const AMP_GROUPS: { title: string; items: string[] }[] = [
-  { title: 'BY TYPE', items: ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '헤드폰 앰프', '네트워크 앰프', '리시버', 'AV 리시버'] }
+  { title: 'BY TYPE', items: ['프리앰프', '파워앰프', '인티앰프', '포노앰프', 'MC 스텝업 헤드앰프', 'MC 스텝업 트랜스', '헤드폰 앰프', '네트워크 앰프', '리시버', 'AV 리시버'] }
 ];
 
 // 스피커 카테고리 그룹 (메가 메뉴용)
