@@ -12,6 +12,7 @@
 //   · kind별 분기 buildTechLikeForm 은 upload-page.tsx handleSubmit 의 분기와 거울 관계 ⚠️ 바꾸면 같이
 //   · 지역(location)은 행마다 labels.ts LABELS.location 키. 정비 이력(maintenance), 외관/작동(extras)은 폼처럼 새 제품 상태면 저장 안 함
 //   · 통화(currency)는 LABELS.currency 키(없으면 krw), 가격은 그 통화 단위. 구성품(components)은 자유 글 한 칸(폼과 같음, specs.components = 글)
+//   · 상세 모드 'custom' 하위 카테고리(보이는 카테고리 10개)는 핵심 칸, 크기, 무게만 values 에, 나머지는 customSpecs 2~3줄 (숨는 칸 값은 validateSeed 가 잡음)
 //   · 연식 대략(yearApprox)은 FEATURE_FLAGS.yearApprox 가 켜져 있고 연도가 있을 때만 저장 (지금은 꺼져 있어 시드 행에도 없음)
 //   · description 은 "[테스트] " 접두 → 정리는 SQL 한 줄: delete from listings where description like '[테스트]%'
 //   · 키·URL 값은 절대 출력하지 않음
@@ -35,7 +36,7 @@ type Draft = {
   drivers?: DriverRow[];
   ampPower?: AmpPowerRow[];
   tubes?: TubeRow[];
-  customSpecs?: CustomSpecRow[];                   // 자유 추가 사양 [제목][내용] — 상세 모드 'custom' 하위 카테고리(프리앰프)만
+  customSpecs?: CustomSpecRow[];                   // 자유 추가 사양 [제목][내용] — 상세 모드 'custom' 하위 카테고리(DETAIL_MODE_BY_SUB)만
 };
 type Seed = {
   category: '앰프' | '스피커' | '소스기기';
@@ -68,26 +69,26 @@ const SEEDS: Seed[] = [
   // ── 앰프 ──
   { category: '앰프', sub: '인티앰프', brand: 'Accuphase', model: 'E-380', year: '2019', condition: 'used_excellent', price: 4200000, country: '일본', ownership: 'single_owner', location: 'kr_seoul', components: '정품 박스, 리모컨',
     description: '정품 박스·리모컨 포함. 실사용 1년 미만, 잔기스 없음.', extras: { appearance: 'excellent', working: 'working' }, imageSlot: 0,
-    draft: { values: { channel: 'stereo', device: 'solid_state', opClass: 'Class AB', thd: '0.05', snr: '105', damping: '400', phono: 'none', toneControl: 'yes', remote: 'yes', voltage: '220V' },
-      powerPairs: [P('120', '8Ω'), P('170', '4Ω'), P('240', '2Ω')], ranges: { freqResponse: { low: '20', high: '20' } },
-      multi: { impedance: ['2Ω', '4Ω', '8Ω'], inputs: ['RCA', 'XLR', 'Main In'], outputs: ['speaker_terminal', 'Pre Out', 'Headphone Out'] },
+    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'none', voltage: '220V' }, // 상세 모드 'custom': 정해진 상세 칸 대신 자유 추가 사양
+      powerPairs: [P('120', '8Ω'), P('170', '4Ω'), P('240', '2Ω')], multi: { impedance: ['2Ω', '4Ω', '8Ω'] },
+      customSpecs: [{ title: '동작 클래스', value: 'Class AB' }, { title: 'THD / S/N', value: '0.05% / 105dB' }, { title: '입출력 단자', value: '입력 RCA, XLR, Main In / 출력 스피커 단자, Pre Out, Headphone Out' }],
       dims: { dimensions: [D('465', '422', '181')] }, valNotes: { weight: [KG('24.6')] } } },
   { category: '앰프', sub: '인티앰프', brand: 'Luxman', model: 'L-509X', year: '2018', condition: 'used_good', price: 680000, currency: 'jpy', country: '일본', ownership: 'multiple_owners', location: 'jp_tokyo',
     description: '일본 내수(100V) — 승압 트랜스 필요. 상판에 옅은 기스 1곳.',
-    draft: { values: { channel: 'stereo', device: 'solid_state', opClass: 'Class AB', thd: '0.007', snr: '107', damping: '370', phono: 'MM/MC', toneControl: 'yes', remote: 'yes', voltage: '100V' },
-      powerPairs: [P('120', '8Ω'), P('240', '4Ω')], ranges: { freqResponse: { low: '20', high: '100' } },
-      multi: { impedance: ['4Ω', '8Ω'], inputs: ['RCA', 'XLR', 'Main In'], outputs: ['speaker_terminal', 'Pre Out', 'Tape/Rec Out', 'Headphone Out'] },
+    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'MM/MC', voltage: '100V' },
+      powerPairs: [P('120', '8Ω'), P('240', '4Ω')], multi: { impedance: ['4Ω', '8Ω'] },
+      customSpecs: [{ title: '동작 클래스', value: 'Class AB' }, { title: '댐핑 팩터', value: '370' }, { title: '톤 컨트롤', value: '있음' }],
       dims: { dimensions: [D('440', '454', '193')] }, valNotes: { weight: [KG('29.4')] } } },
   { category: '앰프', sub: '프리앰프', brand: 'Accuphase', model: 'C-2850', year: '2015', condition: 'used_excellent', price: 7800000, country: '일본', ownership: 'single_owner', location: 'kr_daegu', components: '정품 박스, 리모컨',
     description: '풀밸런스 프리앰프. 리모컨·정품 박스 포함.',
-    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'none', voltage: '220V' }, // 프리앰프 = 상세 모드 'custom': 정해진 상세 칸 대신 자유 추가 사양
+    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'none', voltage: '220V' }, // 상세 모드 'custom': 정해진 상세 칸 대신 자유 추가 사양
       customSpecs: [{ title: '주파수 응답', value: '3Hz~200kHz' }, { title: 'THD / S/N', value: '0.005% / 118dB' }, { title: '입출력 단자', value: '입력 RCA, XLR / 출력 RCA, XLR' }],
       dims: { dimensions: [D('465', '412', '156')] }, valNotes: { weight: [KG('24.3')] } } },
   { category: '앰프', sub: '파워앰프', brand: 'Pass Labs', model: 'X250.8', year: '2016', condition: 'used_good', price: 9500000, country: '미국', ownership: 'single_owner', location: 'kr_incheon',
     description: '120V 사양(변압기 사용 중). 무게 45kg — 직거래 권장.',
-    draft: { values: { channel: 'stereo', device: 'solid_state', opClass: 'Class AB', thd: '0.1', snr: '100', damping: '150', phono: 'none', toneControl: 'no', remote: 'no', voltage: '120V' },
-      powerPairs: [P('250', '8Ω'), P('500', '4Ω')], ranges: { freqResponse: { low: '1.5', high: '100' } },
-      multi: { impedance: ['4Ω', '8Ω'], inputs: ['RCA', 'XLR'], outputs: ['speaker_terminal'] },
+    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'none', voltage: '120V' },
+      powerPairs: [P('250', '8Ω'), P('500', '4Ω')], multi: { impedance: ['4Ω', '8Ω'] },
+      customSpecs: [{ title: '동작 클래스', value: 'Class AB' }, { title: '주파수 응답', value: '1.5Hz~100kHz' }],
       dims: { dimensions: [D('483', '546', '244')] }, valNotes: { weight: [KG('45.4')] } } },
   { category: '앰프', sub: '포노앰프', brand: 'Musical Fidelity', model: 'MX-VYNL', year: '2017', condition: 'used_excellent', price: 950000, country: '영국', ownership: 'single_owner', location: 'kr_jeju',
     description: 'MM/MC 겸용 풀밸런스 포노앰프. 어댑터 포함.',
@@ -103,22 +104,22 @@ const SEEDS: Seed[] = [
       dims: { dimensions: [D('224', '306', '44')] }, valNotes: { weight: [KG('2.25')] } } },
   { category: '앰프', sub: '파워앰프', brand: 'McIntosh', model: 'MC275', year: '2012', condition: 'used_excellent', price: 8500000, country: '미국', ownership: 'multiple_owners', location: 'kr_gwangju', maintenance: ['tube'],
     description: '6세대 진공관 파워앰프. 출력관 KT88 교체 1년 경과, 바이어스 점검 완료.', imageSlot: 1,
-    draft: { values: { channel: 'stereo', device: 'tube', opClass: 'Class AB', thd: '0.5', snr: '100', damping: '22', phono: 'none', toneControl: 'no', remote: 'no', voltage: '120V', otherSpecs: '출력 탭 4Ω, 8Ω, 16Ω\n모노 연결 가능(150W)' },
-      tubes: [{ role: '출력관', type: 'KT88', qty: '4' }, { role: '프리관', type: '12AX7', qty: '3' }, { role: '프리관', type: '12AT7', qty: '4' }],
-      powerPairs: [P('75', '8Ω'), P('75', '4Ω'), P('75', '16Ω')], ranges: { freqResponse: { low: '20', high: '20' } },
-      multi: { impedance: ['4Ω', '8Ω', '16Ω'], inputs: ['RCA', 'XLR'], outputs: ['speaker_terminal'] },
+    draft: { values: { channel: 'stereo', device: 'tube', phono: 'none', voltage: '120V' },
+      powerPairs: [P('75', '8Ω'), P('75', '4Ω'), P('75', '16Ω')], multi: { impedance: ['4Ω', '8Ω', '16Ω'] },
+      customSpecs: [{ title: '진공관', value: 'KT88 4개, 12AX7 3개, 12AT7 4개' }, { title: '출력 탭', value: '4Ω, 8Ω, 16Ω' }, { title: '모노 연결', value: '가능(150W)' }],
       dims: { dimensions: [D('432', '305', '216')] }, valNotes: { weight: [KG('30.4')] } } },
   // ── 스피커 ──
   { category: '스피커', sub: '북쉘프 스피커', brand: 'KEF', model: 'LS50 Meta', year: '2020', condition: 'used_excellent', price: 1350000, country: '영국', ownership: 'single_owner', location: 'kr_daejeon', finish: '카본 블랙', components: '정품 박스, 그릴 2개',
     description: '페어. 정품 박스·그릴 포함. 스탠드 별매.', imageSlot: 2,
-    draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '85', recPower: '100', finish: '카본 블랙', otherSpecs: 'MAT(메타머티리얼 흡음 기술) 적용 12세대 Uni-Q' },
-      drivers: [DR('동축', 'Uni-Q', '', '5.25', '1', '우퍼 + 트위터')], ranges: { freqResponse: { low: '79', high: '28' } }, crossover: [{ value: '2200', unit: 'Hz' }],
+    draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '85', recPower: '100' },
+      drivers: [DR('동축', 'Uni-Q', '', '5.25', '1', '우퍼 + 트위터')],
+      customSpecs: [{ title: '주파수 응답', value: '79Hz~28kHz' }, { title: '크로스오버', value: '2.2kHz' }],
       dims: { dimensions: [D('200', '278', '302')] }, valNotes: { weight: [KG('7.8')] } } },
   { category: '스피커', sub: '플로어 스탠딩 스피커', brand: 'Focal', model: 'Aria 936', year: '2016', condition: 'used_good', price: 3200000, country: '프랑스', ownership: 'single_owner', location: 'kr_ulsan', finish: '월넛',
     description: '페어. 하단 스파이크·베이스 포함. 직거래만.',
-    draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '92', recPower: '300', finish: '월넛' },
+    draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '92', recPower: '300' },
       drivers: [DR('우퍼', '콘 타입', '복합 소재', '6.5', '3'), DR('미드레인지', '콘 타입', '복합 소재', '6.5', '1'), DR('트위터', '돔 타입', '알루미늄', '1', '1')],
-      ranges: { freqResponse: { low: '39', high: '28' } }, crossover: [{ value: '260', unit: 'Hz' }, { value: '2800', unit: 'Hz' }],
+      customSpecs: [{ title: '주파수 응답', value: '39Hz~28kHz' }, { title: '크로스오버', value: '260Hz / 2.8kHz' }],
       dims: { dimensions: [D('294', '371', '1150')] }, valNotes: { weight: [KG('31')] } } },
   { category: '스피커', sub: '톨보이 스피커', brand: 'DALI', model: 'Oberon 7', year: '2019', condition: 'used_excellent', price: 1100000, country: '덴마크', ownership: 'single_owner', location: 'kr_gyeonggi', finish: '라이트 오크',
     description: '페어. 그릴 포함, 사용감 적음.',
@@ -128,10 +129,10 @@ const SEEDS: Seed[] = [
       dims: { dimensions: [D('200', '340', '1015')] }, valNotes: { weight: [KG('15.6')] } } },
   { category: '스피커', sub: '북쉘프 스피커', brand: 'Genelec', model: '8040B', year: '2021', condition: 'used_excellent', price: 2100000, country: '', ownership: 'single_owner', location: 'kr_sejong', finish: '다크 그레이', components: '전원 케이블 2개',
     description: '액티브 모니터 페어. 전원 케이블 2개 포함.',
-    draft: { values: { speakerDetail: 'active', ampConfig: 'bi_amp', opClass: 'Class AB', crossoverType: 'active', enclosure: 'bass_reflex', finish: '다크 그레이', voltage: 'free_volt' },
+    draft: { values: { speakerDetail: 'active', enclosure: 'bass_reflex', voltage: 'free_volt' },
       drivers: [DR('우퍼', '콘 타입', '폴리프로필렌', '6.5', '1'), DR('트위터', '돔 타입', '알루미늄', '0.75', '1')],
-      ampPower: [{ type: '우퍼', power: '90W' }, { type: '트위터', power: '90W' }], ranges: { freqResponse: { low: '41', high: '21' } },
-      multi: { inputs: ['XLR'] }, dims: { dimensions: [D('237', '223', '350')] }, valNotes: { weight: [KG('8.6')] } } },
+      customSpecs: [{ title: '앰프 출력', value: '우퍼 90W / 트위터 90W (바이앰프)' }, { title: '주파수 응답', value: '41Hz~21kHz' }, { title: '입력 단자', value: 'XLR' }],
+      dims: { dimensions: [D('237', '223', '350')] }, valNotes: { weight: [KG('8.6')] } } },
   { category: '스피커', sub: '서브우퍼', brand: 'SVS', model: 'SB-2000 Pro', year: '2020', condition: 'used_excellent', price: 1050000, country: '미국', ownership: 'single_owner', location: 'kr_busan', finish: '블랙 애쉬',
     description: '밀폐형 12인치 서브우퍼. 앱 DSP 조절 가능.',
     draft: { values: { speakerDetail: 'active', ampPower: '550', ampPowerType: 'RMS', opClass: 'Class D', enclosure: 'sealed', firingDirection: 'front', phaseControl: 'variable_0_180', finish: '블랙 애쉬', voltage: 'free_volt' },
@@ -145,48 +146,53 @@ const SEEDS: Seed[] = [
   // ── 소스기기: 턴테이블 ──
   { category: '소스기기', sub: '턴테이블', brand: 'Rega', model: 'Planar 3', year: '2016', condition: 'used_excellent', price: 780000, country: '영국', ownership: 'single_owner', location: 'kr_gyeonggi', maintenance: ['belt'], finish: '글로스 블랙',
     description: 'Elys 2 카트리지 장착. 벨트 교체 6개월 경과.', imageSlot: 3,
-    draft: { values: { ttType: 'hifi', driveType: 'belt_drive', motorType: '24V 저소음 싱크로너스', autoMode: 'manual', wowFlutter: '0.1% 이하', platterMaterial: 'glass', tonearmShape: 'straight', tonearm: 'included',
-        headshellRemovable: 'no', trackingForceAdj: 'yes', antiSkating: 'yes', cartridge: 'included', cartType: 'MM', cartModel: 'Rega Elys 2', phonoBuiltIn: 'none', bluetooth: 'none', groundTerminal: 'yes', dustCover: 'yes', finish: '글로스 블랙', voltage: '220V' },
-      multi: { speeds: ['33', '45'], outputs: ['RCA Out'] }, dims: { dimensions: [D('447', '360', '117')] }, valNotes: { weight: [KG('6')] } } },
+    draft: { values: { ttType: 'hifi', driveType: 'belt_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'included', phonoBuiltIn: 'none', voltage: '220V' },
+      multi: { speeds: ['33', '45'] },
+      customSpecs: [{ title: '카트리지 모델', value: 'Rega Elys 2 (MM)' }, { title: '모터', value: '24V 저소음 싱크로너스' }, { title: '플래터 재질', value: '유리' }],
+      dims: { dimensions: [D('447', '360', '117')] }, valNotes: { weight: [KG('6')] } } },
   { category: '소스기기', sub: '턴테이블', brand: 'Technics', model: 'SL-1200GR', year: '2017', condition: 'used_excellent', price: 1650000, country: '일본', ownership: 'single_owner', location: 'kr_gangwon', finish: '실버', components: '정품 박스, 헤드셸',
     description: '카트리지 미포함(헤드셸만). 정품 박스 보관.',
-    draft: { values: { ttType: 'hifi', driveType: 'direct_drive', motorType: '코어리스 다이렉트 드라이브', autoMode: 'manual', wowFlutter: '0.025% WRMS', snr: '78', platterMaterial: 'aluminum_diecast', tonearmShape: 's_shape', tonearm: 'included',
-        headshellRemovable: 'yes', trackingForceAdj: 'yes', antiSkating: 'yes', cartridge: 'not_included', phonoBuiltIn: 'none', bluetooth: 'none', groundTerminal: 'yes', dustCover: 'yes', finish: '실버', voltage: '220V' },
-      multi: { speeds: ['33', '45', '78'], outputs: ['RCA Out'] }, dims: { dimensions: [D('453', '372', '173')] }, valNotes: { weight: [KG('11.2')] } } },
+    draft: { values: { ttType: 'hifi', driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
+      multi: { speeds: ['33', '45', '78'] },
+      customSpecs: [{ title: '와우 앤 플러터', value: '0.025% WRMS' }, { title: '헤드셸 교체', value: '가능' }],
+      dims: { dimensions: [D('453', '372', '173')] }, valNotes: { weight: [KG('11.2')] } } },
   { category: '소스기기', sub: '턴테이블', brand: 'Sony', model: 'PS-LX310BT', year: '2019', condition: 'used_good', price: 180000, country: '일본', ownership: 'single_owner', location: 'kr_chungbuk', finish: '블랙',
     description: '블루투스 송신 지원 올인원 턴테이블. 포노앰프 내장.',
-    draft: { values: { ttType: 'all_in_one', driveType: 'belt_drive', autoMode: 'full_auto', cartridge: 'included', cartType: 'MM', cartModel: 'Sony 교체형 MM', phonoBuiltIn: 'built_in', phonoBypass: 'yes', speakerConfig: 'none', portable: 'no', bluetooth: 'tx', dustCover: 'yes', finish: '블랙', voltage: '220V' },
-      multi: { speeds: ['33', '45'], outputs: ['RCA Out', 'USB'] }, dims: { dimensions: [D('430', '367', '108')] }, valNotes: { weight: [KG('3.5')] } } },
+    draft: { values: { ttType: 'all_in_one', driveType: 'belt_drive', autoMode: 'full_auto', cartridge: 'included', phonoBuiltIn: 'built_in', voltage: '220V' },
+      multi: { speeds: ['33', '45'] },
+      customSpecs: [{ title: '블루투스', value: '송신' }, { title: '출력 단자', value: 'RCA Out, USB' }],
+      dims: { dimensions: [D('430', '367', '108')] }, valNotes: { weight: [KG('3.5')] } } },
   { category: '소스기기', sub: '턴테이블', brand: 'Pioneer', model: 'PLX-1000', year: '2015', condition: 'used_good', price: 620000, country: '일본', ownership: 'multiple_owners', location: 'kr_chungnam', finish: '블랙',
     description: 'DJ용 하이토크 DD. 더스트 커버 모서리 균열 있음.',
-    draft: { values: { ttType: 'dj', driveType: 'direct_drive', motorType: '하이토크 다이렉트 드라이브', autoMode: 'manual', wowFlutter: '0.1% WRMS 이하', snr: '70', platterMaterial: 'aluminum_diecast', tonearmShape: 's_shape', tonearm: 'included',
-        headshellRemovable: 'yes', trackingForceAdj: 'yes', antiSkating: 'yes', cartridge: 'not_included', phonoBuiltIn: 'none', startingTorque: '4.5', reversePlay: 'no', bluetooth: 'none', groundTerminal: 'yes', dustCover: 'damaged', finish: '블랙', voltage: '220V' },
-      multi: { speeds: ['33', '45'], pitchRange: ['±8%', '±16%', '±50%'], outputs: ['RCA Out'] }, dims: { dimensions: [D('453', '353', '159')] }, valNotes: { weight: [KG('13.1')] } } },
+    draft: { values: { ttType: 'dj', driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
+      multi: { speeds: ['33', '45'] },
+      customSpecs: [{ title: '피치 조절 폭', value: '±8%, ±16%, ±50%' }, { title: '시작 토크', value: '4.5kg·cm' }, { title: '더스트 커버', value: '모서리 균열 있음' }],
+      dims: { dimensions: [D('453', '353', '159')] }, valNotes: { weight: [KG('13.1')] } } },
   // ── 소스기기: 카세트 데크 ──
   { category: '소스기기', sub: '카세트 데크', brand: 'Nakamichi', model: 'CR-2', year: '1988', condition: 'used_good', price: 650000, country: '일본', ownership: 'unknown', location: 'kr_jeonbuk', maintenance: ['belt'], finish: '블랙',
     description: '2헤드 듀얼 캡스턴. 벨트 교체 완료.',
-    draft: { values: { headCount: 'two_head', deckCount: 'single', autoReverse: 'none', headMaterial: 'crystalloy', capstan: 'dual', transportDrive: 'dc_servo', hxPro: 'no', bias: 'fine', snr: '66', snrType: 'Dolby C', wowFlutter: '0.035', wowFlutterType: 'WRMS', thd: '0.8',
-        levelMeter: 'fluorescent', pitchControl: 'no', headWear: 'good', recFunction: 'normal', finish: '블랙', voltage: '100V' },
-      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'], inputs: ['RCA'], outputs: ['RCA Out', 'Headphone Out'] },
-      ranges: { freqResponse: { low: '20', high: '20' } }, dims: { dimensions: [D('430', '300', '110')] }, valNotes: { weight: [KG('6.5')] } } },
+    draft: { values: { headCount: 'two_head', autoReverse: 'none', capstan: 'dual', headWear: 'good' },
+      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'] },
+      customSpecs: [{ title: '헤드 재질', value: '크리스탈로이' }, { title: '와우 앤 플러터', value: '0.035% WRMS' }, { title: '전원 전압', value: '100V' }],
+      dims: { dimensions: [D('430', '300', '110')] }, valNotes: { weight: [KG('6.5')] } } },
   { category: '소스기기', sub: '카세트 데크', brand: 'Nakamichi', model: 'ZX-7', year: '1981', condition: 'used_excellent', price: 1900000, country: '일본', ownership: 'multiple_owners', location: 'kr_jeonnam', maintenance: ['overhaul'], finish: '블랙',
     description: '3헤드 수동 캘리브레이션. 핀치롤러 교체·캘리브레이션 완료.',
-    draft: { values: { headCount: 'three_head', deckCount: 'single', autoReverse: 'none', headMaterial: 'crystalloy', capstan: 'dual', transportDrive: 'direct', hxPro: 'no', bias: 'manual_cal', snr: '68', snrType: 'Dolby B', wowFlutter: '0.027', wowFlutterType: 'WRMS', thd: '0.8',
-        levelMeter: 'fluorescent', pitchControl: 'yes', headWear: 'light_wear', recFunction: 'normal', finish: '블랙', voltage: '100V', otherSpecs: '아지머스 수동 조정 노브\n녹음 캘리브레이션용 테스트 톤 내장' },
-      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b'], inputs: ['RCA', 'Mic In'], outputs: ['RCA Out', 'Headphone Out'] },
-      ranges: { freqResponse: { low: '20', high: '20' } }, dims: { dimensions: [D('450', '300', '135')] }, valNotes: { weight: [KG('10.8')] } } },
+    draft: { values: { headCount: 'three_head', autoReverse: 'none', capstan: 'dual', headWear: 'light_wear' },
+      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b'] },
+      customSpecs: [{ title: '바이어스 조정', value: '수동 캘리브레이션(테스트 톤 내장)' }, { title: '아지머스', value: '수동 조정 노브' }, { title: '전원 전압', value: '100V' }],
+      dims: { dimensions: [D('450', '300', '135')] }, valNotes: { weight: [KG('10.8')] } } },
   { category: '소스기기', sub: '카세트 데크', brand: 'Akai', model: 'GX-R75', year: '1986', condition: 'used_fair', price: 280000, country: '일본', ownership: 'unknown', location: 'kr_gyeongbuk', finish: '블랙',
     description: '오토리버스(녹음+재생). 전면 패널 스크래치, 도어 작동 원활.', extras: { appearance: 'fair', working: 'needs_inspection' },
-    draft: { values: { headCount: 'two_head', deckCount: 'single', autoReverse: 'rec_play', reverseMethod: 'head_rotate', headMaterial: 'ferrite', capstan: 'dual', transportDrive: 'dc_servo', hxPro: 'yes', bias: 'fixed', snr: '58', snrType: 'NR Off', wowFlutter: '0.05', wowFlutterType: 'WRMS', thd: '1',
-        levelMeter: 'fluorescent', pitchControl: 'no', headWear: 'good', recFunction: 'normal', finish: '블랙', voltage: '120V' },
-      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'], inputs: ['RCA'], outputs: ['RCA Out', 'Headphone Out'] },
-      ranges: { freqResponse: { low: '20', high: '19' } }, dims: { dimensions: [D('440', '290', '115')] }, valNotes: { weight: [KG('5.9')] } } },
+    draft: { values: { headCount: 'two_head', autoReverse: 'rec_play', capstan: 'dual', headWear: 'good' },
+      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'] },
+      customSpecs: [{ title: '리버스 방식', value: '헤드 회전' }, { title: 'Dolby HX Pro', value: '있음' }],
+      dims: { dimensions: [D('440', '290', '115')] }, valNotes: { weight: [KG('5.9')] } } },
   { category: '소스기기', sub: '카세트 데크', brand: 'Sony', model: 'TC-WE475', year: '1998', condition: 'used_good', price: 150000, country: '일본', ownership: 'single_owner', location: 'kr_gyeongnam', finish: '실버',
     description: '더블 데크(고속 더빙·릴레이 재생). 리모컨 미포함.',
-    draft: { values: { headCount: 'two_head', deckCount: 'double', dubbingSpeed: 'both', parallelRec: 'no', continuousPlay: 'yes', autoReverse: 'rec_play', reverseMethod: 'head_rotate', headMaterial: 'permalloy', capstan: 'single', transportDrive: 'belt', hxPro: 'yes', bias: 'fixed', snr: '59', snrType: 'Dolby B', wowFlutter: '0.08', wowFlutterType: 'WRMS', thd: '1',
-        levelMeter: 'led_peak', pitchControl: 'yes', headWear: 'good', recFunction: 'normal', finish: '실버', voltage: '220V' },
-      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'], inputs: ['RCA'], outputs: ['RCA Out', 'Headphone Out'] },
-      ranges: { freqResponse: { low: '30', high: '17' } }, dims: { dimensions: [D('430', '290', '125')] }, valNotes: { weight: [KG('4.2')] } } },
+    draft: { values: { headCount: 'two_head', autoReverse: 'rec_play', capstan: 'single', headWear: 'good' },
+      multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'] },
+      customSpecs: [{ title: '데크 수', value: '더블(고속 더빙, 릴레이 재생)' }, { title: '레벨 미터', value: 'LED 피크' }],
+      dims: { dimensions: [D('430', '290', '125')] }, valNotes: { weight: [KG('4.2')] } } },
 ];
 
 // ── .env.local 로더 (dotenv 의존 없이) — 값은 출력하지 않음 ──
@@ -207,7 +213,7 @@ function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: s
   const gate: Record<string, string | string[]> = { ...values, __sub: sub };
   for (const f of fields) {
     if (f.showWhen && !f.showWhen(gate)) continue;           // 폼: 화면에 안 보이는 필드는 저장하지 않음
-    if (S.hiddenByDetailMode(sub, f)) continue;              // 폼: 상세 모드 'custom'(프리앰프)이면 정해진 상세 칸은 저장 안 함
+    if (S.hiddenByDetailMode(sub, f)) continue;              // 폼: 상세 모드 'custom'(DETAIL_MODE_BY_SUB)이면 정해진 상세 칸은 저장 안 함
     const inp = f.input;
     let v: string | string[] = '';
     if (inp.kind === 'auto') v = (sub || category).trim();
