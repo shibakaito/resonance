@@ -20,6 +20,16 @@
 }
 
 @theme {
+  /* 팔레트 잠금 (2026-11-10) — Tailwind 기본 색, 모서리, 그림자, 글자 크기, 굵기를 비우고 아래 우리 토큰만 둠.
+     기본 팔레트 클래스(gray-500, bg-white 등)는 이제 아무 스타일도 안 만들어짐 */
+  --color-*: initial;
+  --radius-*: initial;
+  --shadow-*: initial;
+  --inset-shadow-*: initial;
+  --drop-shadow-*: initial;
+  --text-*: initial;
+  --font-weight-*: initial;
+
   /* 색 6 — 클래스는 bg-bg, bg-surface, border-line, text-fg, text-muted, text-danger 식 */
   --color-bg: #ffffff;       /* 바탕 (= white) */
   --color-surface: #f7f7f7;  /* 옅은 면 */
@@ -50,26 +60,7 @@
   --font-weight-medium: 500;
   --font-weight-bold: 700;
 
-  /* 모서리 전부 0 */
-  --radius: 0;
-  --radius-xs: 0;
-  --radius-sm: 0;
-  --radius-md: 0;
-  --radius-lg: 0;
-  --radius-xl: 0;
-  --radius-2xl: 0;
-  --radius-3xl: 0;
-  --radius-4xl: 0;
-
-  /* 그림자 전부 없음 */
-  --shadow: 0 0 #0000;
-  --shadow-2xs: 0 0 #0000;
-  --shadow-xs: 0 0 #0000;
-  --shadow-sm: 0 0 #0000;
-  --shadow-md: 0 0 #0000;
-  --shadow-lg: 0 0 #0000;
-  --shadow-xl: 0 0 #0000;
-  --shadow-2xl: 0 0 #0000;
+  /* 모서리, 그림자 토큰은 없음 (위에서 비움) — rounded-*, shadow-* 클래스가 남아 있어도 각지고 그림자 없음 */
 }
 
 /* 테마 변수로 안 잡히는 것까지 각지고 그림자 없게 — rounded-full 같은 정적 값, shadow-[…] 임의값 (페이지 코드는 그대로) */
