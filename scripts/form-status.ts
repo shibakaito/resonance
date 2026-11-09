@@ -184,13 +184,16 @@ const common: CommonRow[] = [];
       const t = cleanJsx(chk);
       common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: false, note: '체크박스' });
     } else if (h3 !== undefined && /aria-label="필수"/.test(h3)) {
-      common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: bound });
+      common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: /사진/.test(cleanJsx(h3)) ? 'images' : bound }); // 사진 칸은 input value 가 없어 images 로
     }
   }
 }
 const SUBMIT = UP.slice(UP.indexOf('const handleSubmit'), UP.indexOf('setSubmitting(true)'));
 const submitMsgs = [...SUBMIT.matchAll(/setSubmitError\('([^']+)'\)/g)].map((m) => m[1]);
-const submitVars = new Set([...SUBMIT.matchAll(/!\s*([A-Za-z_]\w*)/g)].map((m) => m[1]));
+const submitVars = new Set([
+  ...[...SUBMIT.matchAll(/!\s*([A-Za-z_]\w*)/g)].map((m) => m[1]),
+  ...[...SUBMIT.matchAll(/([A-Za-z_]\w*)\.length === 0/g)].map((m) => m[1]), // 예: images.length === 0 (사진 1장 필수)
+]);
 const sections = [...PAGE.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => cleanJsx(m[1]));
 
 // ── 미완·보류 계산 ───────────────────────────────────────────────────────────
@@ -252,7 +255,7 @@ const nsUse = (ns: string) => {
   const flatRe = new RegExp(`\\blabel\\(\\s*['"]${ns}['"]\\s*,\\s*s\\.`, 'g'); // mapRow 의 옛 flat 키 읽기
   let total = 0, flat = 0;
   for (const [p, src] of SRC) {
-    if (p === 'src/lib/labels.ts') continue;
+    // labels.ts 안의 파생 목록(LOCATION_OPTS 등)도 사용처로 셈 — 표 정의 줄(ns: {…})은 패턴에 안 걸림
     const body = stripForUse(src);
     total += (body.match(re) ?? []).length;
     flat += (body.match(flatRe) ?? []).length;
@@ -271,7 +274,7 @@ for (const [table, map] of [['LABELS', LABELS], ['SPEC_LABELS', SPEC_LABELS]] as
 // (4) 원천 없는·죽은 필터 — mapRow 가 폼이 저장하지 않는 flat 키를 읽는 Listing 필드
 const LISTINGS = read('src/lib/listings.ts');
 const MAPROW = LISTINGS.slice(LISTINGS.indexOf('function mapRow'), LISTINGS.indexOf('export async function fetchListings'));
-const formTopKeys = new Set(['tech', ...[...UP.matchAll(/specsToSave\.(\w+) =/g)].map((m) => m[1])]); // 폼이 specs 최상위에 쓰는 키
+const formTopKeys = new Set(['tech', ...[...UP.matchAll(/specsToSave(?: as [^)]+\))?\.(\w+) =/g)].map((m) => m[1])]); // 폼이 specs 최상위에 쓰는 키 ((specsToSave as …).키 = 꼴 포함)
 const BROWSE = read('src/app/components/browse-page.tsx');
 const TOPS = new Set(CATEGORY_TREE.map((c) => c.top));
 const gateDefs = new Map([...BROWSE.matchAll(/const (is\w+) =\s*([^;]+);/g)].map((m) => [m[1], m[2]]));

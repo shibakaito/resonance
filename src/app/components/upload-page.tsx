@@ -68,14 +68,8 @@ const CONDITIONS = [
   { value: 'used_not_working', label: '작동 불가' }
 ];
 
-const PHOTO_EXAMPLES = [
-  { label: '프론트', img: '/images/Front.png' },
-  { label: '레프트 사이드', img: '/images/Left Side.png' },
-  { label: '라이트 사이드', img: '/images/Right Side.png' },
-  { label: '탑', img: '/images/Top.png' },
-  { label: '백', img: '/images/Back.png' },
-  { label: '디테일', img: '/images/Detail.png' }
-];
+// 사진 슬롯 안내 — 이 순서로 찍으면 구매자가 판단하기 좋음. 필수는 1장, 5장 이상 권장
+const PHOTO_SLOTS = ['정면', '뒷면 단자', '전원 켠 상태', '결함 근접', '구성품 한 장에'];
 
 const STEPS = [
   { id: 'info', label: '제품 정보' },
@@ -967,6 +961,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!title.trim()) { setSubmitError('상품명을 입력해주세요.'); return; }
     if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
+    if (images.length === 0) { setSubmitError('사진을 1장 이상 올려 주세요.'); return; } // 필수: 브랜드, 모델, 카테고리, 상태, 가격, 사진 1장
     setSubmitting(true);
     try {
       // specs(jsonb)에 저장할 값들 — 비어있는 키는 제외 (DB 깔끔하게)
@@ -1117,7 +1112,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
   const stepCompleted = (id: string) => {
     if (id === 'info') return Boolean(brand && model && category);
-    if (id === 'photos') return images.length > 0 && description.length > 10;
+    if (id === 'photos') return images.length > 0; // 설명은 필수 아님
     if (id === 'price') return Boolean(price);
     if (id === 'shipping') return Boolean(shippingType);
     return false;
@@ -2222,16 +2217,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <p className="text-sm font-semibold text-gray-700">예시</p>
                 <button className="text-xs text-gray-500 hover:text-gray-700">숨김</button>
               </div>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {PHOTO_EXAMPLES.map((ex) => (
-                  <div key={ex.label} className="text-center">
-                    <div className="aspect-square rounded-none overflow-hidden bg-white border border-[#e0e0e0] mb-1">
-                      <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
-                    </div>
-                    <p className="text-xs text-gray-600">{ex.label}</p>
+              {/* 슬롯 안내 5개 (글자) */}
+              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                {PHOTO_SLOTS.map((t, i) => (
+                  <div key={t} className="aspect-square rounded-none border border-dashed border-[#e0e0e0] bg-[#f7f7f7] flex flex-col items-center justify-center text-center p-2">
+                    <span className="text-xs text-gray-400">{i + 1}</span>
+                    <span className="text-sm text-gray-700">{t}</span>
                   </div>
                 ))}
               </div>
+              <p className="text-xs text-gray-500 mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
               <button className="text-sm text-[#000000] hover:text-[#000000] font-semibold mt-3 inline-flex items-center gap-1">
                 최고 품질의 사진을 위한 팁 <ChevronRight className="w-3 h-3" />
               </button>
@@ -2312,7 +2307,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             <div>
               <label className="block font-semibold mb-1">
-                이 상품과 그 상태에 대해 설명해 주세요 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
+                이 상품과 그 상태에 대해 설명해 주세요
               </label>
               <div className="border border-[#e0e0e0] rounded-none overflow-hidden focus-within:border-[#000000]">
                 <div className="flex gap-1 px-2 py-1.5 border-b border-[#e0e0e0] bg-[#f7f7f7]">

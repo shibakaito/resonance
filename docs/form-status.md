@@ -82,7 +82,7 @@
 | 제품 정보 | 핸드메이드 제품인가요? |  |  |
 | 제품 정보 | 직접 만든 수제품입니다. |  | 체크박스 |
 | 사진 및 설명 | 장비 사진을 업로드하세요 | ● |  |
-| 사진 및 설명 | 이 상품과 그 상태에 대해 설명해 주세요 | ● |  |
+| 사진 및 설명 | 이 상품과 그 상태에 대해 설명해 주세요 |  |  |
 | 사진 및 설명 | 이 상품은 "설명한 그대로" 판매됩니다. "설명대로" 판매한 상품은 설명… |  | 체크박스 |
 | 사진 및 설명 | 유튜브 영상 링크를 붙여넣으세요 |  |  |
 | 사진 및 설명 | 유튜브 영상을 검색하세요 |  |  |
@@ -96,7 +96,7 @@
 | 배송 | 국가 |  |  |
 | 배송 | 지역 |  |  |
 
-제출할 때 실제로 검사하는 것: "브랜드와 모델명을 입력해주세요." · "카테고리를 선택해주세요." · "상품명을 입력해주세요." · "상태를 선택해주세요." · "가격을 입력해주세요."
+제출할 때 실제로 검사하는 것: "브랜드와 모델명을 입력해주세요." · "카테고리를 선택해주세요." · "상품명을 입력해주세요." · "상태를 선택해주세요." · "가격을 입력해주세요." · "사진을 1장 이상 올려 주세요."
 
 ## 앰프 — 스키마 59칸
 
@@ -483,15 +483,15 @@
 | 16 | 무게 | 텍스트 |  |  | 카테고리 선택 후 | 선택 |
 | 17 | 기타 사양 | 긴 글 |  |  | 카테고리 선택 후 | 선택 |
 
-## 코드에서 보이는 미완·보류 — 총 41건
+## 코드에서 보이는 미완·보류 — 총 35건
 
 ### 1. TODO·임시·보류 주석 — 7건
 
 | 위치 | 주석 | 메모 |
 |---|---|---|
 | `src/app/components/home-page.tsx:326` | 관심 있게 본 매물: (로그인 기능 전이라) 임시로 최신 DB 매물 표시 |  |
-| `src/app/components/upload-page.tsx:913` | 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계. | 요약·저장은 이미 구현됨 — 주석만 오래됨 |
-| `src/app/components/upload-page.tsx:2476` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
+| `src/app/components/upload-page.tsx:907` | 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계. | 요약·저장은 이미 구현됨 — 주석만 오래됨 |
+| `src/app/components/upload-page.tsx:2471` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
 | `src/app/data/catalog.ts:776` | (하위 카테고리 영어 별칭은 추후 필요해지면 추가) |  |
 | `src/app/data/category-specs.ts:467` | 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가. |  |
 | `src/lib/listings.ts:5` | 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에) | 영문키 통일은 보류 결정(Y안) — 다국어 착수 때 다시 |
@@ -510,13 +510,11 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | `src/app/data/catalog.ts` | `CATALOG_CATEGORIES` |
 | `src/app/data/category-slugs.ts` | `validateSlugMapping` |
 
-### 3. 라벨 표(labels.ts) 중 쓰이지 않는 것 — 9건
+### 3. 라벨 표(labels.ts) 중 쓰이지 않는 것 — 7건
 
 | 표 | 이름 | 상태 |
 |---|---|---|
 | LABELS | `status` | 사용처 0 |
-| LABELS | `locationCountryFull` | 사용처 0 |
-| LABELS | `currency` | 사용처 0 |
 | LABELS | `shipping_type` | 사용처 0 |
 | SPEC_LABELS | `impedance` | 사용처 0 |
 | SPEC_LABELS | `conductor` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
@@ -524,14 +522,12 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | SPEC_LABELS | `shield` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 | SPEC_LABELS | `pair` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 
-### 4. 원천 없는·죽은 필터 — 12건 (+ 도달할 수 없는 카테고리 분기 3개)
+### 4. 원천 없는·죽은 필터 — 10건 (+ 도달할 수 없는 카테고리 분기 3개)
 
-mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼이 specs 최상위에 쓰는 키: tech, appearance, appearanceDetail, working, workingDetail, componentsOther.
+mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼이 specs 최상위에 쓰는 키: tech, appearance, appearanceDetail, working, workingDetail, yearApprox, components, componentsOther.
 
 | Listing 필드 | 읽는 flat 키 | 필터 UI | 판정 |
 |---|---|---|---|
-| `yearApprox` | `s.yearApprox` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
-| `components` | `s.components` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `ampType` | `s.ampType` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `ratedCapacity` | `s.ratedCapacity` | 사이드바(isPowerDevice) | 죽은 필터 — UI 가 도달할 수 없는 분기(isPowerDevice) 아래 |
 | `cableLength` | `s.cableLength` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
@@ -545,13 +541,12 @@ mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼
 
 browse-page.tsx 의 카테고리 분기 중 CATEGORY_TREE 에 없는 대분류를 가리키는 것: `isAccessory` (category === '액세서리') · `isTtAccessory` (category === '턴테이블') · `isPowerDevice` (isAccessory && [...subCategories].some((s) => POWER_DEVICE_ITEMS.includes(s))) — 그 아래 그룹·필터 코드는 실행되지 않음.
 
-### 5. 필수 표시 vs 제출 검사 — 불일치 2건
+### 5. 필수 표시 vs 제출 검사 — 불일치 0건
 
-필수 표시(●): 카테고리 · 브랜드 · 모델 · 상태 · 상품명 · 장비 사진을 업로드하세요 · 이 상품과 그 상태에 대해 설명해 주세요 · 판매 가격
+필수 표시(●): 카테고리 · 브랜드 · 모델 · 상태 · 상품명 · 장비 사진을 업로드하세요 · 판매 가격
 
-제출 시 검사 변수: brand, model, category, title, condition, price
+제출 시 검사 변수: brand, model, category, title, condition, price, images
 
-표시는 필수인데 제출 때 검사 안 함: 장비 사진을 업로드하세요 · 이 상품과 그 상태에 대해 설명해 주세요
 
 ### 6. 인수인계 보류 2건 — 현재 코드 상태
 
