@@ -755,7 +755,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                     <FilterSection label="지원 임피던스" options={IMPEDANCE_OPTS} selected={filters.impedance} onToggle={toggleField('impedance')} counts={counts.impedance} defaultOpen={false} />
                   )}
                   <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} getLabel={lab('phono')} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
-                  <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} getLabel={lab('toneControl')} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />
+                  {FEATURE_FLAGS.toneControlFilter && <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} getLabel={lab('toneControl')} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />}
                   {FEATURE_FLAGS.remoteFilter && <FilterSection label="리모컨 포함" options={REMOTE_OPTS} selected={filters.remote} getLabel={lab('remote')} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />}
                   <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
@@ -808,7 +808,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label="카트리지" options={CARTRIDGE_OPTS} selected={filters.cartridge} getLabel={lab('cartridge')} onToggle={toggleField('cartridge')} counts={counts.cartridge} />
                   <FilterSection label="회전수" options={SPEED_OPTS} selected={filters.speeds} getLabel={lab('speeds')} onToggle={toggleField('speeds')} counts={counts.speeds} defaultOpen={false} />
                   <FilterSection label="조작 방식" options={AUTO_OPTS} selected={filters.autoMode} getLabel={lab('autoMode')} onToggle={toggleField('autoMode')} counts={counts.autoMode} defaultOpen={false} />
-                  <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />
+                  {FEATURE_FLAGS.dustCoverFilter && <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />}
                 </>
               )}
 

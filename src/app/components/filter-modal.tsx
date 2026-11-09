@@ -773,6 +773,7 @@ export function FilterModal({
                   counts={counts.phono}
                 />
               </Section>
+              {FEATURE_FLAGS.toneControlFilter && (
               <Section title="톤 컨트롤">
                 <CheckGroup
                   options={TONE_OPTS}
@@ -782,6 +783,7 @@ export function FilterModal({
                   counts={counts.toneControl}
                 />
               </Section>
+              )}
               {FEATURE_FLAGS.remoteFilter && (
               <Section title="리모컨 포함">
                 <CheckGroup
@@ -908,6 +910,7 @@ export function FilterModal({
                   counts={counts.autoMode}
                 />
               </Section>
+              {FEATURE_FLAGS.dustCoverFilter && (
               <Section title="더스트 커버" defaultOpen>
                 <CheckGroup
                   options={DUSTCOVER_OPTS}
@@ -917,6 +920,7 @@ export function FilterModal({
                   counts={counts.dustCover}
                 />
               </Section>
+              )}
             </>
           )}
 

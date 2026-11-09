@@ -475,7 +475,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.headphoneImp != null) r = r.filter((l) => l.hpImpedance != null && inRange(f.headphoneImp, l.hpImpedance.min, l.hpImpedance.max));
     if (f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
-    if (f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl));
+    if (FEATURE_FLAGS.toneControlFilter && f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl)); // 플래그 꺼짐: 톤 컨트롤 필터 없음
     if (FEATURE_FLAGS.remoteFilter && f.remote.size > 0) r = r.filter((l) => f.remote.has(l.remote)); // 플래그 꺼짐: 리모컨 필터 없음
     if (f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
   }
@@ -494,7 +494,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.cartridge.size > 0) r = r.filter((l) => f.cartridge.has(l.cartridge));
     if (f.speeds.size > 0) r = r.filter((l) => l.speeds.some((s) => f.speeds.has(s)));
     if (f.autoMode.size > 0) r = r.filter((l) => f.autoMode.has(l.autoMode));
-    if (f.dustCover.size > 0) r = r.filter((l) => f.dustCover.has(l.dustCover));
+    if (FEATURE_FLAGS.dustCoverFilter && f.dustCover.size > 0) r = r.filter((l) => f.dustCover.has(l.dustCover)); // 플래그 꺼짐: 더스트 커버 필터 없음
   }
   if (isPowerDevice) {
     if (f.ratedCapacityMin != null) r = r.filter((l) => l.ratedCapacity >= f.ratedCapacityMin!);
