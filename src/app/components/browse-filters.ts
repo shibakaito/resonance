@@ -489,8 +489,62 @@ export function inRange(v: number | null | undefined, min: number | null, max: n
   return true;
 }
 
-// 매물 목록에 필터 적용 (정렬 제외)
-export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpeaker: boolean, isTurntable: boolean, isPowerDevice: boolean, isCable: boolean, isCd = false, isTuner = false): Listing[] {
+// ── 필터 칸이 보이는 조건 (한 곳, 2026-11-10) ──
+//   "어느 하위 카테고리 조합일 때 어떤 필터가 보이나"를 여기서만 정함. 둘러보기 사이드바, 필터 모달, 활성 필터 칩, 사라진 필터 자동 해제, applyFilters 가 전부 이 값을 씀
+//   category = 대분류 한글(앰프 등), subs = 고른 하위 카테고리. 전용 필터(턴테이블, 카세트, CD, 튜너, 헤드폰 앰프)는 그 하위 카테고리 하나만 골랐을 때
+export type FilterVisibility = {
+  amp: boolean; speaker: boolean; source: boolean;
+  channel: boolean;      // 채널 — 앰프, 헤드폰 앰프만 골랐을 때 빼고
+  power: boolean;        // 정격 출력 — 앰프, 프리앰프만, 헤드폰 앰프만 골랐을 때 빼고
+  headphoneImp: boolean; // 내 헤드폰 임피던스 — 헤드폰 앰프만 골랐을 때
+  impedance: boolean;    // 지원 임피던스 — 정격 출력과 같은 조건
+  voltage: boolean;      // 전원 전압 — 앰프, 턴테이블, 카세트 데크
+  turntable: boolean; cassette: boolean; cd: boolean; tuner: boolean;
+  powerDevice: boolean; cable: boolean;
+};
+export function filterVisibility(category: string | null | undefined, subs: ReadonlySet<string>): FilterVisibility {
+  const only = (name: string) => subs.size === 1 && subs.has(name);
+  const amp = category === '앰프';
+  const source = category === '소스기기';
+  const preampOnly = amp && only('프리앰프');
+  const headphoneOnly = amp && only('헤드폰 앰프');
+  const turntable = source && only('턴테이블');
+  const cassette = source && only('카세트 데크');
+  return {
+    amp, speaker: category === '스피커', source,
+    channel: amp && !headphoneOnly,
+    power: amp && !preampOnly && !headphoneOnly,
+    headphoneImp: headphoneOnly,
+    impedance: amp && !preampOnly && !headphoneOnly,
+    voltage: amp || turntable || cassette,
+    turntable, cassette, cd: source && only('CD 플레이어'), tuner: source && only('튜너'),
+    powerDevice: category === '액세서리' && [...subs].some((s) => POWER_DEVICE_ITEMS.includes(s)),
+    cable: category === '케이블',
+  };
+}
+// 필터 키 하나가 지금 보이는 칸인가 (칩, 자동 해제가 씀). 공통 필터(브랜드, 상태, 가격, 연도, 지역 등)는 늘 보임
+export function isFilterKeyVisible(key: keyof Filters, v: FilterVisibility): boolean {
+  switch (key) {
+    case 'ampType': case 'ampMethod': case 'phono': case 'toneControl': case 'remote': return v.amp;
+    case 'ampDetail': return v.channel;
+    case 'powerMin': case 'powerMax': return v.power;
+    case 'headphoneImp': return v.headphoneImp;
+    case 'impedance': return v.impedance;
+    case 'voltage': return v.voltage;
+    case 'speakerDetail': case 'driverConfig': case 'enclosure': case 'speakerImpedance': case 'wooferSize':
+    case 'sensitivityMin': case 'sensitivityMax': case 'recPowerMin': case 'recPowerMax': return v.speaker;
+    case 'driveType': case 'tonearm': case 'cartridge': case 'speeds': case 'autoMode': case 'phonoBuiltIn': case 'dustCover': return v.turntable;
+    case 'cdDigitalOut': case 'cdAnalogOut': return v.cd;
+    case 'tunerBand': return v.tuner;
+    case 'ratedCapacityMin': case 'ratedCapacityMax': return v.powerDevice;
+    case 'cableLengthMin': case 'cableLengthMax': case 'terminalIn': case 'terminalOut': case 'directional':
+    case 'conductor': case 'plating': case 'shield': case 'pair': return v.cable;
+    default: return true;
+  }
+}
+
+// 매물 목록에 필터 적용 (정렬 제외). 어떤 칸을 적용할지는 filterVisibility 결과(vis)가 정함 — 안 보이는 칸은 값이 남아 있어도 안 거름
+export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility): Listing[] {
   let r = list;
   if (f.brand.size > 0) r = r.filter((l) => f.brand.has(l.brand));
   if (f.model.size > 0) r = r.filter((l) => f.model.has(l.model));
@@ -507,21 +561,21 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   if (f.country.size > 0) r = r.filter((l) => f.country.has(l.country));
   if (f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
   if (f.region.size > 0) r = r.filter((l) => f.region.has(l.location));
-  if (isAmp) {
+  if (vis.amp) {
     if (f.ampType.size > 0) r = r.filter((l) => f.ampType.has(l.ampType));
-    if (f.ampDetail.size > 0) r = r.filter((l) => f.ampDetail.has(l.ampDetail));
     if (f.ampMethod.size > 0) r = r.filter((l) => f.ampMethod.has(l.ampMethod));
-    if (f.powerMin != null || f.powerMax != null) r = r.filter((l) => inRange(l.power, f.powerMin, f.powerMax)); // 미입력(null) 제외
-    // 내 헤드폰 임피던스 N: 매물 범위가 N을 포함하면 통과 (빈 쪽 = 제한 없음, 범위 미입력 매물은 제외 — inRange 의 값·경계 역할만 바뀜)
-    if (f.headphoneImp != null) r = r.filter((l) => l.hpImpedance != null && inRange(f.headphoneImp, l.hpImpedance.min, l.hpImpedance.max));
-    if (f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
     if (FEATURE_FLAGS.toneControlFilter && f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl)); // 플래그 꺼짐: 톤 컨트롤 필터 없음
     if (FEATURE_FLAGS.remoteFilter && f.remote.size > 0) r = r.filter((l) => f.remote.has(l.remote)); // 플래그 꺼짐: 리모컨 필터 없음
   }
-  // 전원 전압 — 앰프와 턴테이블 (2026-11-10 턴테이블 추가)
-  if ((isAmp || isTurntable) && f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
-  if (isSpeaker) {
+  if (vis.channel && f.ampDetail.size > 0) r = r.filter((l) => f.ampDetail.has(l.ampDetail));
+  if (vis.power && (f.powerMin != null || f.powerMax != null)) r = r.filter((l) => inRange(l.power, f.powerMin, f.powerMax)); // 미입력(null) 제외
+  // 내 헤드폰 임피던스 N: 매물 범위가 N을 포함하면 통과 (빈 쪽 = 제한 없음, 범위 미입력 매물은 제외 — inRange 의 값·경계 역할만 바뀜)
+  if (vis.headphoneImp && f.headphoneImp != null) r = r.filter((l) => l.hpImpedance != null && inRange(f.headphoneImp, l.hpImpedance.min, l.hpImpedance.max));
+  if (vis.impedance && f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
+  // 전원 전압 — 앰프, 턴테이블, 카세트 데크 (filterVisibility.voltage)
+  if (vis.voltage && f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
+  if (vis.speaker) {
     if (f.speakerDetail.size > 0) r = r.filter((l) => f.speakerDetail.has(l.speakerDetail));
     if (f.driverConfig.size > 0) r = r.filter((l) => l.driverConfig.some((d) => f.driverConfig.has(d))); // 하나라도 맞으면 (지원 임피던스와 같음)
     if (f.enclosure.size > 0) r = r.filter((l) => f.enclosure.has(l.enclosure));
@@ -530,7 +584,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.sensitivityMin != null || f.sensitivityMax != null) r = r.filter((l) => inRange(l.sensitivity, f.sensitivityMin, f.sensitivityMax)); // 미입력(null — 액티브 등) 제외
     if (FEATURE_FLAGS.recPowerFilter && (f.recPowerMin != null || f.recPowerMax != null)) r = r.filter((l) => inRange(l.recPower, f.recPowerMin, f.recPowerMax)); // 플래그 꺼짐: 권장 앰프 출력 필터 없음
   }
-  if (isTurntable) {
+  if (vis.turntable) {
     if (f.driveType.size > 0) r = r.filter((l) => f.driveType.has(l.driveType));
     if (f.tonearm.size > 0) r = r.filter((l) => f.tonearm.has(l.tonearm));
     if (f.cartridge.size > 0) r = r.filter((l) => f.cartridge.has(l.cartridge));
@@ -540,16 +594,16 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (FEATURE_FLAGS.dustCoverFilter && f.dustCover.size > 0) r = r.filter((l) => f.dustCover.has(l.dustCover)); // 플래그 꺼짐: 더스트 커버 필터 없음
   }
   // CD 플레이어 (디지털, 아날로그 출력: 하나라도 맞으면), 튜너 (수신 밴드) — 비운 매물은 안 걸림 (2026-11-10)
-  if (isCd) {
+  if (vis.cd) {
     if (f.cdDigitalOut.size > 0) r = r.filter((l) => l.cdDigitalOut.some((v) => f.cdDigitalOut.has(v)));
     if (f.cdAnalogOut.size > 0) r = r.filter((l) => l.cdAnalogOut.some((v) => f.cdAnalogOut.has(v)));
   }
-  if (isTuner && f.tunerBand.size > 0) r = r.filter((l) => f.tunerBand.has(l.tunerBand));
-  if (isPowerDevice) {
+  if (vis.tuner && f.tunerBand.size > 0) r = r.filter((l) => f.tunerBand.has(l.tunerBand));
+  if (vis.powerDevice) {
     if (f.ratedCapacityMin != null) r = r.filter((l) => l.ratedCapacity >= f.ratedCapacityMin!);
     if (f.ratedCapacityMax != null) r = r.filter((l) => l.ratedCapacity <= f.ratedCapacityMax!);
   }
-  if (isCable) {
+  if (vis.cable) {
     if (f.cableLengthMin != null) r = r.filter((l) => l.cableLength >= f.cableLengthMin!);
     if (f.cableLengthMax != null) r = r.filter((l) => l.cableLength <= f.cableLengthMax!);
     // 입력 단자: terminalIn ∈ 선택된 입력 단자들

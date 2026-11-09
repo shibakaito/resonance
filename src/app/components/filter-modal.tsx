@@ -44,7 +44,8 @@ import {
   PAIR_OPTS,
   PHONO_OPTS,
   PLATING_OPTS,
-  POWER_DEVICE_ITEMS,
+  filterVisibility,
+  isFilterKeyVisible,
   REMOTE_OPTS,
   SHIELD_OPTS,
   SHIELD_RELEVANT,
@@ -221,6 +222,7 @@ export function MinMaxRow({
 export function FilterModal({
   filters,
   counts,
+  category,
   isAmp,
   isSpeaker,
   isSource,
@@ -236,6 +238,7 @@ export function FilterModal({
 }: {
   filters: Filters;
   counts: Counts;
+  category: string | null; // 대분류 한글 — filterVisibility 에 넣음
   isAmp: boolean;
   isSpeaker: boolean;
   isSource: boolean;
@@ -303,15 +306,14 @@ export function FilterModal({
     return Number.isFinite(n) ? n : null;
   };
 
-  const draftIsTurntable =
-    isSource && draftSubCategories.size === 1 && draftSubCategories.has('턴테이블');
-  const draftIsCd = isSource && draftSubCategories.size === 1 && draftSubCategories.has('CD 플레이어'); // 2026-11-10
-  const draftIsTuner = isSource && draftSubCategories.size === 1 && draftSubCategories.has('튜너');
-  const draftIsPowerDevice =
-    isAccessory && [...draftSubCategories].some((s) => POWER_DEVICE_ITEMS.includes(s));
-  const draftIsCable = isCable;
-  // 헤드폰 앰프 단독 선택 시: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 (사이드바와 동일)
-  const draftIsHeadphoneAmp = isAmp && draftSubCategories.size === 1 && draftSubCategories.has('헤드폰 앰프');
+  // 어떤 필터 칸이 보이나 — 사이드바와 같은 함수(browse-filters.ts filterVisibility)에 모달에서 고르는 중인 하위 카테고리를 넣어서 (2026-11-10)
+  const draftVis = useMemo(() => filterVisibility(category, draftSubCategories), [category, draftSubCategories]);
+  const draftIsTurntable = draftVis.turntable;
+  const draftIsCd = draftVis.cd;
+  const draftIsTuner = draftVis.tuner;
+  const draftIsPowerDevice = draftVis.powerDevice;
+  const draftIsCable = draftVis.cable;
+  const draftIsHeadphoneAmp = draftVis.headphoneImp;
 
   // 현재 모달에서 설정한 값으로 미리 필터링한 결과 수
   const previewCount = useMemo(() => {
@@ -335,8 +337,8 @@ export function FilterModal({
       cableLengthMin: num(lenMinInput),
       cableLengthMax: num(lenMaxInput)
     };
-    return applyFilters(base, effective, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable, draftIsCd, draftIsTuner).length;
-  }, [draft, draftSubCategories, priceMinInput, priceMaxInput, yearMinInput, yearMaxInput, powerMinInput, powerMaxInput, hpImpInput, sensMinInput, sensMaxInput, recMinInput, recMaxInput, capMinInput, capMaxInput, lenMinInput, lenMaxInput, listings, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable]);
+    return applyFilters(base, effective, draftVis).length;
+  }, [draftVis, draft, draftSubCategories, priceMinInput, priceMaxInput, yearMinInput, yearMaxInput, powerMinInput, powerMaxInput, hpImpInput, sensMinInput, sensMaxInput, recMinInput, recMaxInput, capMinInput, capMaxInput, lenMinInput, lenMaxInput, listings, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable]);
 
   const handleReset = () => {
     setDraft(emptyFilters());
@@ -444,6 +446,7 @@ export function FilterModal({
     });
   }
   for (const key of setFieldKeys) {
+    if (!isFilterKeyVisible(key, draftVis)) continue; // 지금 보이는 칸의 값만 칩으로 (사이드바와 같은 규칙)
     if (combineTerm && (key === 'terminalIn' || key === 'terminalOut')) continue;
     for (const v of draft[key] as Set<string>) {
       const prefix = prefixFor[key];
@@ -476,7 +479,7 @@ export function FilterModal({
         setYearMaxInput('');
       }
     });
-  const powerLabel = rangeLabel(powerMinInput, powerMaxInput, 'W');
+  const powerLabel = draftVis.power ? rangeLabel(powerMinInput, powerMaxInput, 'W') : null;
   if (powerLabel)
     draftChips.push({
       key: 'power',
@@ -690,6 +693,7 @@ export function FilterModal({
           )}
           {isAmp && (
             <>
+              {draftVis.channel && (
               <Section title="채널" defaultOpen>
                 <CheckGroup
                   options={AMP_DETAILS}
@@ -699,6 +703,7 @@ export function FilterModal({
                   counts={counts.ampDetail}
                 />
               </Section>
+              )}
               <Section title="증폭 방식" defaultOpen>
                 <CheckGroup
                   options={AMP_METHODS}
@@ -763,7 +768,7 @@ export function FilterModal({
                 <Section title="내 헤드폰 임피던스 (Ω)" defaultOpen>
                   <MinMaxRow minVal={hpImpInput} maxVal="" setMin={setHpImpInput} setMax={() => {}} minOnly minPlaceholder="예: 32" />
                 </Section>
-              ) : (
+              ) : draftVis.power && (
                 <Section title="정격 출력 (W)" defaultOpen>
                   <MinMaxRow
                     minVal={powerMinInput}
@@ -773,6 +778,7 @@ export function FilterModal({
                   />
                 </Section>
               )}
+              {draftVis.impedance && (
               <Section title="지원 임피던스">
                 <CheckGroup
                   options={IMPEDANCE_OPTS}
@@ -781,6 +787,7 @@ export function FilterModal({
                   counts={counts.impedance}
                 />
               </Section>
+              )}
               <Section title="포노 입력">
                 <CheckGroup
                   options={PHONO_OPTS}

@@ -56,7 +56,8 @@ import {
   PAIR_OPTS,
   PHONO_OPTS,
   PLATING_OPTS,
-  POWER_DEVICE_ITEMS,
+  filterVisibility,
+  isFilterKeyVisible,
   REMOTE_OPTS,
   SHIELD_OPTS,
   SHIELD_RELEVANT,
@@ -267,25 +268,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     return baseCategoryListings;
   }, [baseCategoryListings, subCategories]);
 
-  // 턴테이블 단독 선택 시 턴테이블 전용 필터 활성
-  const isTurntable =
-    isSource && subCategories.size === 1 && subCategories.has('턴테이블');
-  // CD 플레이어, 튜너 단독 선택 시 전용 필터 (턴테이블과 같은 규칙, 2026-11-10)
-  const isCd = isSource && subCategories.size === 1 && subCategories.has('CD 플레이어');
-  const isTuner = isSource && subCategories.size === 1 && subCategories.has('튜너');
-
-  // 프리앰프 단독 선택 시 정격 출력 필터 숨김 (프리앰프는 출력 정격이 없음)
-  const isPreampOnly =
-    isAmp && subCategories.size === 1 && subCategories.has('프리앰프');
-
-  // 헤드폰 앰프 단독 선택 시 정격 출력 대신 "내 헤드폰 임피던스(Ω)" 한 칸 필터 표시
-  const isHeadphoneAmp =
-    isAmp && subCategories.size === 1 && subCategories.has('헤드폰 앰프');
-
-  // 액세서리 페이지에서 전원 장치 그룹 항목이 하나라도 선택되면 전원 장치 전용 필터 활성
-  const isPowerDevice =
-    isAccessory && [...subCategories].some((s) => POWER_DEVICE_ITEMS.includes(s));
-  const isCable = isCableCat;
+  // 어떤 필터 칸이 보이나 — browse-filters.ts filterVisibility 한 곳에서 (사이드바, 모달, 칩, 자동 해제, applyFilters 공용, 2026-11-10)
+  //   턴테이블, 카세트, CD, 튜너, 헤드폰 앰프 전용 필터는 그 하위 카테고리 하나만 골랐을 때. 프리앰프만, 헤드폰 앰프만이면 정격 출력, 지원 임피던스 숨김
+  const vis = useMemo(() => filterVisibility(category, subCategories), [category, subCategories]);
+  const isTurntable = vis.turntable;
+  const isCd = vis.cd;
+  const isTuner = vis.tuner;
+  const isPowerDevice = vis.powerDevice;
+  const isCable = vis.cable;
 
   const subCatCounts = useMemo(
     () => countBy(baseCategoryListings, (l) => l.categories),
@@ -418,7 +408,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   };
 
   const filtered = useMemo(() => {
-    const list = applyFilters(categoryListings, filters, isAmp, isSpeaker, isTurntable, isPowerDevice, isCable, isCd, isTuner);
+    const list = applyFilters(categoryListings, filters, vis);
     const sorted = [...list];
     if (sort === '최신순') sorted.sort((a, b) => a.daysAgo - b.daysAgo);
     else if (sort === '가격 낮은순') sorted.sort((a, b) => a.price - b.price);
@@ -445,7 +435,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     });
   }
   {
-    const setFieldKeys: { key: keyof Filters; prefix?: string; ampOnly?: boolean; speakerOnly?: boolean; turntableOnly?: boolean; cableOnly?: boolean }[] = [
+    // 칩은 지금 보이는 칸(isFilterKeyVisible — filterVisibility 와 같은 규칙)의 값만
+    const setFieldKeys: { key: keyof Filters; prefix?: string }[] = [
       { key: 'brand' },
       { key: 'model' },
       { key: 'condition' },
@@ -455,36 +446,36 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'country' },
       { key: 'locationCountry' },
       { key: 'region' },
-      { key: 'ampType', ampOnly: true },
-      { key: 'ampDetail', ampOnly: true },
-      { key: 'ampMethod', ampOnly: true },
-      { key: 'impedance', ampOnly: true },
-      { key: 'phono', prefix: '포노', ampOnly: true },
-      { key: 'toneControl', prefix: '톤 컨트롤', ampOnly: true },
-      { key: 'remote', prefix: '리모컨', ampOnly: true },
+      { key: 'ampType' },
+      { key: 'ampDetail' },
+      { key: 'ampMethod' },
+      { key: 'impedance' },
+      { key: 'phono', prefix: '포노' },
+      { key: 'toneControl', prefix: '톤 컨트롤' },
+      { key: 'remote', prefix: '리모컨' },
       { key: 'voltage' }, // 앰프와 턴테이블 (아래에서 거름)
-      { key: 'speakerDetail', speakerOnly: true },
-      { key: 'driverConfig', speakerOnly: true },
-      { key: 'enclosure', speakerOnly: true },
-      { key: 'speakerImpedance', speakerOnly: true },
-      { key: 'wooferSize', speakerOnly: true },
-      { key: 'driveType', turntableOnly: true },
-      { key: 'tonearm', prefix: '톤암', turntableOnly: true },
-      { key: 'cartridge', prefix: '카트리지', turntableOnly: true },
-      { key: 'speeds', turntableOnly: true },
-      { key: 'autoMode', turntableOnly: true },
-      { key: 'dustCover', prefix: '더스트 커버', turntableOnly: true },
-      { key: 'phonoBuiltIn', prefix: '포노앰프 내장', turntableOnly: true },
+      { key: 'speakerDetail' },
+      { key: 'driverConfig' },
+      { key: 'enclosure' },
+      { key: 'speakerImpedance' },
+      { key: 'wooferSize' },
+      { key: 'driveType' },
+      { key: 'tonearm', prefix: '톤암' },
+      { key: 'cartridge', prefix: '카트리지' },
+      { key: 'speeds' },
+      { key: 'autoMode' },
+      { key: 'dustCover', prefix: '더스트 커버' },
+      { key: 'phonoBuiltIn', prefix: '포노앰프 내장' },
       { key: 'cdDigitalOut', prefix: '디지털 출력' },  // CD 플레이어 (아래에서 거름)
       { key: 'cdAnalogOut', prefix: '아날로그 출력' },
       { key: 'tunerBand' },                            // 튜너
-      { key: 'terminalIn', prefix: '입력', cableOnly: true },
-      { key: 'terminalOut', prefix: '출력', cableOnly: true },
-      { key: 'directional', prefix: '방향성', cableOnly: true },
-      { key: 'conductor', prefix: '도체', cableOnly: true },
-      { key: 'plating', prefix: '도금', cableOnly: true },
-      { key: 'shield', prefix: '차폐', cableOnly: true },
-      { key: 'pair', cableOnly: true },
+      { key: 'terminalIn', prefix: '입력' },
+      { key: 'terminalOut', prefix: '출력' },
+      { key: 'directional', prefix: '방향성' },
+      { key: 'conductor', prefix: '도체' },
+      { key: 'plating', prefix: '도금' },
+      { key: 'shield', prefix: '차폐' },
+      { key: 'pair' },
     ];
     // 케이블: 입력/출력 둘 다 정확히 1개 선택된 경우 결합 칩으로 표시
     const combineTermActive =
@@ -503,14 +494,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           }))
       });
     }
-    for (const { key, prefix, ampOnly, speakerOnly, turntableOnly, cableOnly } of setFieldKeys) {
-      if (ampOnly && !isAmp) continue;
-      if (speakerOnly && !isSpeaker) continue;
-      if (turntableOnly && !isTurntable) continue;
-      if (cableOnly && !isCable) continue;
-      if (key === 'voltage' && !isAmp && !isTurntable) continue;
-      if ((key === 'cdDigitalOut' || key === 'cdAnalogOut') && !isCd) continue;
-      if (key === 'tunerBand' && !isTuner) continue;
+    for (const { key, prefix } of setFieldKeys) {
+      if (!isFilterKeyVisible(key, vis)) continue;
       if (combineTermActive && (key === 'terminalIn' || key === 'terminalOut')) continue;
       const useColon = key === 'terminalIn' || key === 'terminalOut';
       for (const v of filters[key] as Set<string>) {
@@ -536,15 +521,15 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
         label: `출시 연도: ${yearLabel}`,
         remove: () => setFilters((prev) => ({ ...prev, yearMin: null, yearMax: null }))
       });
-    if (isAmp) {
-      const powerLabel = rangeChipLabel(filters.powerMin, filters.powerMax, 'W');
+    {
+      const powerLabel = vis.power ? rangeChipLabel(filters.powerMin, filters.powerMax, 'W') : null;
       if (powerLabel)
         activeChips.push({
           key: 'power',
           label: `정격 출력: ${powerLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, powerMin: null, powerMax: null }))
         });
-      if (filters.headphoneImp != null)
+      if (vis.headphoneImp && filters.headphoneImp != null)
         activeChips.push({
           key: 'headphoneImp',
           label: `내 헤드폰 임피던스: ${filters.headphoneImp}Ω`,
@@ -736,15 +721,15 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {/* 앰프: 채널·증폭 방식·정격 출력은 브랜드 위에 표시 */}
               {isAmp && (
                 <>
-                  {!isHeadphoneAmp && (
+                  {vis.channel && (
                     <FilterSection label="채널" options={AMP_DETAILS} selected={filters.ampDetail} getLabel={lab('ampDetail')} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
                   )}
                   <FilterSection label="증폭 방식" options={AMP_METHODS} selected={filters.ampMethod} getLabel={lab('ampMethod')} onToggle={toggleField('ampMethod')} counts={counts.ampMethod} />
                   {/* 헤드폰 앰프: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 — 매물 권장 범위(하한 ≤ N ≤ 상한)에 들면 표시 */}
-                  {isHeadphoneAmp ? (
+                  {vis.headphoneImp ? (
                     <RangeSection label="내 헤드폰 임피던스" unit="Ω" single singlePlaceholder="예: 32" min={filters.headphoneImp} max={null} onApply={(n) => setFilters((prev) => ({ ...prev, headphoneImp: n }))} />
                   ) : (
-                    !isPreampOnly && (
+                    vis.power && (
                       <RangeSection label="정격 출력 (W·8Ω)" min={filters.powerMin} max={filters.powerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, powerMin: m, powerMax: x }))} />
                     )
                   )}
@@ -770,7 +755,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {/* 앰프 전용 (채널·증폭 방식·정격 출력은 브랜드 위로 이동) */}
               {isAmp && (
                 <>
-                  {!isPreampOnly && !isHeadphoneAmp && (
+                  {vis.impedance && (
                     <FilterSection label="지원 임피던스" options={IMPEDANCE_OPTS} selected={filters.impedance} onToggle={toggleField('impedance')} counts={counts.impedance} defaultOpen={false} />
                   )}
                   <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} getLabel={lab('phono')} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
@@ -920,6 +905,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
         <FilterModal
           filters={filters}
           counts={counts}
+          category={category ?? null}
           isAmp={isAmp}
           isSpeaker={isSpeaker}
           isSource={isSource}
