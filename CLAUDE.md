@@ -12,6 +12,7 @@
 - 새 카테고리 = 해당 대분류 배열에 블록 추가 + 게이트 술어 (앰프에 AVR, 소스기기에 카세트 추가한 방식)
 - 카테고리 노출은 CATEGORY_TREE(catalog.ts)의 숨김 표식(hidden: true)으로 관리. 켜기 = 표식 제거
 - 상세 사양은 보이는 카테고리 전부 자유 추가(customSpecs). 정해진 칸 정의는 남아 있고 DETAIL_MODE_BY_SUB로 복귀 가능 (category-specs.ts, 'custom' = 상세 칸 숨김 + [제목][내용] → specs.tech.customSpecs, 'fields' = 정해진 칸. 숨긴 카테고리는 'fields', 켤 때 'custom' 한 줄. 숨는 칸 목록은 docs/hidden.md)
+- 상태(condition)는 종류 4개(new / unopened / nos / used)만. 중고의 등급은 specs.appearance(외관 4)와 specs.working(작동 3), 새상품, 미개봉, NOS면 둘 다 숨김. 카드 배지는 browse-filters conditionBadge 한 함수(중고 = 외관 등급, 비면 '중고', 작동이 점검 필요나 수리 필요면 경고). 옛 used_* 키는 labels conditionKind가 used로 읽음 (2026-11-10)
 - src/lib/listings.ts mapRow는 specs.tech만 읽음. 필터 옵션 = 폼 옵션의 저장값(optValues, 영문 키), 화면 글자는 browse-filters filterLabel / labels.ts label, 숫자는 미입력 null, 파생 키는 빌더에서 생성
 - 선택형 저장값은 영문 키(MM, 220V, ARC 같은 중립 글자는 그대로), 한글은 labels.ts에만. 시드 검증이 한글 저장값을 막음. 빌더 조립 글(진공관, 드라이버, 앰프 출력)은 아직 한글 포함(보류)
 ## 검증
