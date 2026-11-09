@@ -24,7 +24,7 @@ import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, COMPONE
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, detailModeOf, hiddenByDetailMode, cleanCustomSpecs, type CustomSpecRow, type CategorySpecField, optLabel, optLabels, optValue, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, detailModeOf, hiddenByDetailMode, cleanCustomSpecs, type CustomSpecRow, type CategorySpecField, optLabel, optLabels, optValue, optValues, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -2095,6 +2095,32 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             onChange={setSel}
                             displayText={impedanceRange(sel)}
                           />
+                        </div>
+                      );
+                    }
+                    // 턴테이블 회전수: 드롭다운 대신 각진 버튼 토글 3개 (누르면 선택, 다시 누르면 해제). 저장값은 그대로 '33' / '45' / '78', 순서는 목록 순 (2026-11-10)
+                    if (f.key === 'speeds') {
+                      const opts = optValues(f.input.options);
+                      const SPEED_TEXT: Record<string, string> = { '33': '33⅓', '45': '45', '78': '78' }; // 버튼 글자 (라벨 표는 '33 1/3 RPM')
+                      return (
+                        <div key={f.key} className="spec-field">
+                          <label>{f.label}</label>
+                          <div className="flex gap-2">
+                            {opts.map((v) => {
+                              const on = sel.includes(v);
+                              return (
+                                <button
+                                  key={v}
+                                  type="button"
+                                  aria-pressed={on}
+                                  onClick={() => setSel((prev) => opts.filter((o) => (o === v ? !prev.includes(o) : prev.includes(o))))}
+                                  className={`h-[42px] min-w-[64px] px-4 border rounded-none text-sm font-semibold ${on ? 'border-[#000000] bg-[#000000] text-white' : 'border-[#e0e0e0] bg-white text-[#000000] hover:border-[#000000]'}`}
+                                >
+                                  {SPEED_TEXT[v] ?? v}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
                       );
                     }
