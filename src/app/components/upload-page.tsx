@@ -1481,7 +1481,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
                 {/* 고른 등급의 정의 한 줄 */}
-                {condition && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
+                {desc('condition', condition) && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
               </div>
 
               {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님 */}
@@ -1535,7 +1535,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
-                {conditionAppearance && <p className="mt-1 text-xs text-gray-500">{desc('appearance', conditionAppearance)}</p>}
+                {desc('appearance', conditionAppearance) && <p className="mt-1 text-xs text-gray-500">{desc('appearance', conditionAppearance)}</p>}
               </div>
               )}
 
@@ -1568,7 +1568,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
-                {conditionWorking && <p className="mt-1 text-xs text-gray-500">{desc('working', conditionWorking)}</p>}
+                {desc('working', conditionWorking) && <p className="mt-1 text-xs text-gray-500">{desc('working', conditionWorking)}</p>}
               </div>
               )}
 

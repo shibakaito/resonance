@@ -509,7 +509,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div className="font-bold">외관 상태</div>
                       <div className="break-words">
                         {label('appearance', listing.appearance)}{' '}
-                        <span className="text-xs text-gray-500">{desc('appearance', listing.appearance)}</span>
+                        {desc('appearance', listing.appearance) && <span className="text-xs text-gray-500">{desc('appearance', listing.appearance)}</span>}
                         {listing.appearanceDetail && (
                           <p className="mt-1 text-sm text-gray-600">{listing.appearanceDetail}</p>
                         )}
@@ -522,7 +522,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div className="font-bold">작동 상태</div>
                       <div className="break-words">
                         {label('working', listing.working)}{' '}
-                        <span className="text-xs text-gray-500">{desc('working', listing.working)}</span>
+                        {desc('working', listing.working) && <span className="text-xs text-gray-500">{desc('working', listing.working)}</span>}
                         {listing.workingDetail && (
                           <p className="mt-1 text-sm text-gray-600">{listing.workingDetail}</p>
                         )}

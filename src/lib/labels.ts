@@ -6,6 +6,7 @@
 //   예) label('condition','used_excellent','en') 에 영어를 넣으면 영어가 나옴
 // ※ 카테고리(앰프/파워앰프 등)는 여기 말고 category-slugs.ts의 categoryFromSlug 사용.
 // ============================================================================
+import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 export type Locale = 'ko' | 'en' | 'ja';
 type LabelMap = Record<string, Partial<Record<Locale, string>>>;
 
@@ -189,9 +190,9 @@ export const LABEL_DESC: Record<string, LabelMap> = {
     needs_repair: { ko: '일부 기능에 이상이 있음(일부 이상). 어떤 기능이 어떻게 이상한지 옆 칸에 꼭 적음.' },
   },
 };
-// 키 → 정의 한 줄 (없으면 '')
+// 키 → 정의 한 줄 (없으면 ''). FEATURE_FLAGS.gradeDescriptions 가 꺼져 있으면 늘 '' (문구는 위 표에 그대로)
 export function desc(field: string, key: string | null | undefined, locale: Locale = 'ko'): string {
-  if (!key) return '';
+  if (!key || !FEATURE_FLAGS.gradeDescriptions) return '';
   const m = LABEL_DESC[field]?.[key];
   return m?.[locale] ?? m?.ko ?? '';
 }
