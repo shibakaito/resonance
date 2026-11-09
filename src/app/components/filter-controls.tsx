@@ -86,16 +86,16 @@ export function FilterSection({
       >
         <span className="text-sm font-semibold text-fg">{label}</span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-gray-600" />
+          <ChevronUp className="w-4 h-4 text-fg" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-600" />
+          <ChevronDown className="w-4 h-4 text-fg" />
         )}
       </button>
       {open && (
         <div className="mt-2.5 space-y-1">
           {searchable && (
             <div className="relative mb-2">
-              <Search className="w-3.5 h-3.5 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-3.5 h-3.5 text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={query}
@@ -106,11 +106,11 @@ export function FilterSection({
             </div>
           )}
           {/* max-h를 행 높이(28px)의 정확한 배수(10행=280px)로 → 마지막 행이 반쪽으로 삐져나오지 않음 */}
-          <div ref={scrollRef} className={visible.length > 12 ? 'max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-gray-300 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
+          <div ref={scrollRef} className={visible.length > 12 ? 'max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-line [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
             {visible.map((opt) => (
               <label
                 key={opt}
-                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-muted hover:text-fg"
+                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-fg hover:text-fg"
               >
                 <input
                   type="checkbox"
@@ -120,7 +120,7 @@ export function FilterSection({
                 />
                 <span className="flex-1 truncate">{show(opt)}</span>
                 {counts && (
-                  <span className="text-xs text-gray-400">({counts[opt] ?? 0})</span>
+                  <span className="text-xs text-muted">({counts[opt] ?? 0})</span>
                 )}
               </label>
             ))}
@@ -130,7 +130,7 @@ export function FilterSection({
                 {hasMore && (
                   <button
                     onClick={showMore}
-                    className="text-xs font-medium text-gray-600 hover:text-fg underline"
+                    className="text-xs font-medium text-fg hover:text-fg underline"
                   >
                     모두 보기
                   </button>
@@ -138,7 +138,7 @@ export function FilterSection({
                 {expanded && (
                   <button
                     onClick={collapse}
-                    className="text-xs font-medium text-gray-600 hover:text-fg underline"
+                    className="text-xs font-medium text-fg hover:text-fg underline"
                   >
                     접기
                   </button>
@@ -211,9 +211,9 @@ export function RangeSection({
           {label}{unit ? ` (${unit})` : ''}
         </span>
         {open ? (
-          <ChevronUp className="w-4 h-4 text-gray-600" />
+          <ChevronUp className="w-4 h-4 text-fg" />
         ) : (
-          <ChevronDown className="w-4 h-4 text-gray-600" />
+          <ChevronDown className="w-4 h-4 text-fg" />
         )}
       </button>
       {open && (
@@ -250,7 +250,7 @@ export function RangeSection({
           </div>
           <button
             onClick={apply}
-            className="mt-2 w-full py-1.5 text-xs font-medium bg-fg text-bg rounded hover:bg-gray-800"
+            className="mt-2 w-full py-1.5 text-xs font-medium bg-fg text-bg rounded hover:bg-fg"
           >
             적용
           </button>
@@ -308,12 +308,12 @@ export function FilterDropdown({
     ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
         selected.size > 0 || open
           ? 'border-fg text-fg'
-          : 'border-line text-muted hover:border-gray-400'
+          : 'border-line text-fg hover:border-muted'
       }`
     : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
         selected.size > 0
           ? 'border-fg bg-surface text-fg'
-          : 'border-line bg-bg text-muted hover:border-gray-400'
+          : 'border-line bg-bg text-fg hover:border-muted'
       }`;
 
   return (
@@ -348,12 +348,12 @@ export function FilterDropdown({
         const expandedScroll = showAll && hasMore && options.length > 8;
         const useScroll = scrollable || expandedScroll;
         const scrollCls = useScroll
-          ? 'max-h-64 overflow-y-scroll [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-surface [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500'
+          ? 'max-h-64 overflow-y-scroll [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-surface [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-muted [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-muted'
           : '';
         const collapseBtn = hasMore && (
           <button
             onClick={() => setShowAll((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-sm font-medium text-muted hover:text-fg"
+            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-sm font-medium text-fg hover:text-fg"
           >
             {showAll ? (
               <>
@@ -378,7 +378,7 @@ export function FilterDropdown({
               {visible.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-sm text-muted"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-sm text-fg"
                 >
                   <input
                     type="checkbox"
@@ -387,7 +387,7 @@ export function FilterDropdown({
                     className="accent-fg"
                   />
                   <span>{opt}</span>
-                  {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
+                  {counts && <span className="text-muted">({counts[opt] ?? 0})</span>}
                 </label>
               ))}
               {/* 펼친 상태에서는 '접기' 버튼이 스크롤 영역 안 맨 끝에 위치 */}
@@ -451,12 +451,12 @@ export function PriceDropdown({
             ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
                 active || open
                   ? 'border-fg text-fg'
-                  : 'border-line text-muted hover:border-gray-400'
+                  : 'border-line text-fg hover:border-muted'
               }`
             : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 active
                   ? 'border-fg bg-surface text-fg'
-                  : 'border-line bg-bg text-muted hover:border-gray-400'
+                  : 'border-line bg-bg text-fg hover:border-muted'
               }`
         }
       >
@@ -491,7 +491,7 @@ export function PriceDropdown({
               aria-label="가격 적용"
               className="px-3 border-l border-line hover:bg-surface flex items-center justify-center"
             >
-              <Search className="w-4 h-4 text-muted" />
+              <Search className="w-4 h-4 text-fg" />
             </button>
           </div>
         </div>
@@ -553,12 +553,12 @@ export function LengthDropdown({
             ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
                 active || open
                   ? 'border-fg text-fg'
-                  : 'border-line text-muted hover:border-gray-400'
+                  : 'border-line text-fg hover:border-muted'
               }`
             : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 active
                   ? 'border-fg bg-surface text-fg'
-                  : 'border-line bg-bg text-muted hover:border-gray-400'
+                  : 'border-line bg-bg text-fg hover:border-muted'
               }`
         }
       >
@@ -597,7 +597,7 @@ export function LengthDropdown({
               aria-label="길이 적용"
               className="px-3 border-l border-line hover:bg-surface flex items-center justify-center"
             >
-              <Search className="w-4 h-4 text-muted" />
+              <Search className="w-4 h-4 text-fg" />
             </button>
           </div>
         </div>

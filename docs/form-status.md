@@ -581,4 +581,4 @@ browse-page.tsx 의 카테고리 분기 중 CATEGORY_TREE 에 없는 대분류�
 | 항목 | 현재 상태 |
 |---|---|
 | 기술 사양 고급 설정 접기 | 미구현 — 고급/기본 칸 구분 없음. 기술 사양은 섹션 전체 접기만 있음 (techExpanded, 기본 펼침) |
-| multiSel 칩 테두리 | 다중 선택 칩(MultiSelectDropdown): 테두리 없음 · 배경 #f7f7f7 · 선택됐을 때만 표시 — 입력/출력 단자·무선·포맷 등 다중 선택 공통 (지원 임피던스는 별도 위젯 ImpedanceSelect) |
+| multiSel 칩 테두리 | 다중 선택 칩(MultiSelectDropdown): 테두리 없음 · 배경 - · 선택됐을 때만 표시 — 입력/출력 단자·무선·포맷 등 다중 선택 공통 (지원 임피던스는 별도 위젯 ImpedanceSelect) |

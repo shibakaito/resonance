@@ -72,7 +72,7 @@ export function SiteHeader() {
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition ${
                   megaOpen && !megaClosing
                     ? 'border-fg bg-fg text-bg'
-                    : 'border-line bg-bg text-gray-800 hover:border-gray-400'
+                    : 'border-line bg-bg text-fg hover:border-muted'
                 }`}
               >
                 <span>Shop by Category</span>
@@ -125,7 +125,7 @@ export function SiteHeader() {
                                     goBrowse(hoverCat);
                                     setMegaOpen(false);
                                   }}
-                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-xs font-medium text-muted"
+                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-xs font-medium text-fg"
                                 >
                                   Shop All <ChevronRight className="w-3 h-3" />
                                 </button>
@@ -174,7 +174,7 @@ export function SiteHeader() {
                                 />
                               </div>
                               <div className="mt-3">
-                                <p className="text-xs text-gray-500 leading-relaxed group-hover:text-fg transition-colors">
+                                <p className="text-xs text-muted leading-relaxed group-hover:text-fg transition-colors">
                                   {megaDesc(hoverCat)}
                                 </p>
                               </div>
@@ -185,7 +185,7 @@ export function SiteHeader() {
                     </div>
                     {/* 백드롭: 패널 아래에 붙어 슬라이드에 맞춰 함께 내려감/올라감 */}
                     <div
-                      className={`h-screen bg-black/20 backdrop-blur-sm ${
+                      className={`h-screen bg-fg/20 backdrop-blur-sm ${
                         megaClosing
                           ? 'animate-out fade-out-0 fill-mode-forwards duration-300'
                           : 'animate-in fade-in-0 duration-500'
@@ -199,14 +199,14 @@ export function SiteHeader() {
           </div>
 
           <nav className="flex gap-6 items-center">
-            <button onClick={() => router.push('/')} className={`hover:text-fg transition ${isHome ? 'text-fg font-semibold' : 'text-muted'}`}>홈</button>
+            <button onClick={() => router.push('/')} className={`hover:text-fg transition ${isHome ? 'text-fg font-semibold' : 'text-fg'}`}>홈</button>
             <button
               onClick={() => router.push('/sell')}
-              className={`hover:text-fg transition ${isSell ? 'text-fg font-semibold' : 'text-muted'}`}
+              className={`hover:text-fg transition ${isSell ? 'text-fg font-semibold' : 'text-fg'}`}
             >
               판매
             </button>
-            <a href="#" className="text-muted hover:text-fg">장바구니</a>
+            <a href="#" className="text-fg hover:text-fg">장바구니</a>
           </nav>
         </div>
       </div>

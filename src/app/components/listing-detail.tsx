@@ -163,7 +163,7 @@ export function ListingDetail({ id }: { id?: string }) {
       aria-label="이전 사진"
       className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
     >
-      <ChevronLeft className="w-5 h-5 text-muted" />
+      <ChevronLeft className="w-5 h-5 text-fg" />
     </button>
   );
 
@@ -173,7 +173,7 @@ export function ListingDetail({ id }: { id?: string }) {
       aria-label="다음 사진"
       className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
     >
-      <ChevronRight className="w-5 h-5 text-muted" />
+      <ChevronRight className="w-5 h-5 text-fg" />
     </button>
   );
 
@@ -203,7 +203,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   aria-label="썸네일 위로"
                   className="absolute top-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
                 >
-                  <ChevronUp className="w-4 h-4 text-muted" />
+                  <ChevronUp className="w-4 h-4 text-fg" />
                 </button>
 
                 <div
@@ -240,7 +240,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   aria-label="썸네일 아래로"
                   className="absolute bottom-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
                 >
-                  <ChevronDown className="w-4 h-4 text-muted" />
+                  <ChevronDown className="w-4 h-4 text-fg" />
                 </button>
               </div>
 
@@ -271,7 +271,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   ))}
                 </Slider>
 
-                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-red-500 text-bg text-xs font-semibold rounded-full pointer-events-none">
+                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-fg text-bg text-xs font-semibold rounded-full pointer-events-none">
                   3명의 장바구니에 담음
                 </div>
 
@@ -281,12 +281,12 @@ export function ListingDetail({ id }: { id?: string }) {
                     setMainLiked((v) => !v);
                   }}
                   aria-label="좋아요"
-                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-line hover:border-gray-400 shadow-sm rounded-full active:scale-95 transition"
+                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-line hover:border-muted shadow-sm rounded-full active:scale-95 transition"
                 >
-                  <span className="text-sm font-semibold text-muted">{mainLikeCount}</span>
+                  <span className="text-sm font-semibold text-fg">{mainLikeCount}</span>
                   <Heart
                     className={`w-4 h-4 ${
-                      mainLiked ? 'fill-red-500 text-red-500' : 'text-muted'
+                      mainLiked ? 'fill-fg text-fg' : 'text-fg'
                     }`}
                   />
                 </button>
@@ -296,7 +296,7 @@ export function ListingDetail({ id }: { id?: string }) {
             <div className="relative group/carousel">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-lg font-bold">비슷한 제품</h3>
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted">
                   <span>광고</span>
                   <Info className="w-3.5 h-3.5" />
                 </div>
@@ -329,8 +329,8 @@ export function ListingDetail({ id }: { id?: string }) {
                         <Heart
                           className={`w-4 h-4 ${
                             likedSimilar.has(idx)
-                              ? 'fill-red-500 text-red-500'
-                              : 'text-muted'
+                              ? 'fill-fg text-fg'
+                              : 'text-fg'
                           }`}
                         />
                       </button>
@@ -339,10 +339,10 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <div className="p-3">
                         <h4 className="text-sm font-semibold truncate">{item.title}</h4>
-                        <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
+                        <p className="text-xs text-fg mt-1">{item.condition}</p>
                         <p className="text-base font-bold text-fg mt-1">{item.price}</p>
                         {isNew && (
-                          <div className="flex items-center gap-1 mt-1 text-xs text-muted">
+                          <div className="flex items-center gap-1 mt-1 text-xs text-fg">
                             <Truck className="w-3.5 h-3.5" />
                             <span>무료 배송</span>
                           </div>
@@ -358,29 +358,29 @@ export function ListingDetail({ id }: { id?: string }) {
                 aria-label="이전"
                 className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
               >
-                <ChevronLeft className="w-5 h-5 text-muted" />
+                <ChevronLeft className="w-5 h-5 text-fg" />
               </button>
               <button
                 onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: 400, behavior: 'smooth' })}
                 aria-label="다음"
                 className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
               >
-                <ChevronRight className="w-5 h-5 text-muted" />
+                <ChevronRight className="w-5 h-5 text-fg" />
               </button>
             </div>
 
             <div className="border border-line rounded-lg p-6">
               <h3 className="text-2xl font-bold mb-6">
-                이 제품은 <span className="text-green-600">합리적인 가격</span>이에요
+                이 제품은 <span className="text-muted">합리적인 가격</span>이에요
               </h3>
 
               <div className="flex items-start gap-6">
                 <div className="flex-shrink-0">
-                  <p className="text-muted leading-relaxed">
+                  <p className="text-fg leading-relaxed">
                     현재 평균 시장 가격대<br />
                     안에 있어요
                   </p>
-                  <Info className="w-5 h-5 mt-3 text-gray-500" />
+                  <Info className="w-5 h-5 mt-3 text-muted" />
                 </div>
 
                 <div className="flex-1 mt-2 relative pt-14">
@@ -394,19 +394,19 @@ export function ListingDetail({ id }: { id?: string }) {
 
                   <div className="relative">
                     <div className="flex h-1.5 gap-0.5">
-                      <div className="flex-1 bg-purple-400 rounded-l-full"></div>
-                      <div className="flex-[2] bg-green-500"></div>
-                      <div className="flex-1 bg-muted rounded-r-full"></div>
+                      <div className="flex-1 bg-muted rounded-l-full"></div>
+                      <div className="flex-[2] bg-muted"></div>
+                      <div className="flex-1 bg-fg rounded-r-full"></div>
                     </div>
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-bg border-2 border-green-500 rounded-full shadow-md flex items-center justify-center"
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-bg border-2 border-muted rounded-full shadow-md flex items-center justify-center"
                       style={{ left: '53.5%' }}
                     >
-                      <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                      <div className="w-3 h-3 rounded-full bg-muted"></div>
                     </div>
                   </div>
 
-                  <div className="flex justify-between text-sm text-gray-500 mt-3 px-[12.5%]">
+                  <div className="flex justify-between text-sm text-muted mt-3 px-[12.5%]">
                     <span>23,100,000원</span>
                     <span>28,000,000원</span>
                   </div>
@@ -452,7 +452,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <div className="text-right font-semibold">30,800,000원</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-line">
+                    <p className="text-xs text-muted mt-4 pt-4 border-t border-line">
                       가격 정보는 판매자가 제공한 가격 변동 내역 기준입니다.
                     </p>
                   </div>
@@ -495,7 +495,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div className="break-words">
                         {listing.components.map((k) => label('components', k)).join(', ')}
                         {listing.componentsOther && (
-                          <p className={listing.components.length > 0 ? 'mt-1 text-sm text-gray-600' : ''}>{listing.componentsOther}</p>
+                          <p className={listing.components.length > 0 ? 'mt-1 text-sm text-fg' : ''}>{listing.componentsOther}</p>
                         )}
                       </div>
                     </>
@@ -506,7 +506,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="break-words">
                     {label('condition', listing?.condition)}{' '}
                     {/* 정의 작은 안내 (labels.ts LABEL_DESC, gradeDescriptions 플래그 꺼져 있으면 안 보임) */}
-                    {desc('condition', listing?.condition) && <span className="text-xs text-gray-500">{desc('condition', listing?.condition)}</span>}{' '}
+                    {desc('condition', listing?.condition) && <span className="text-xs text-muted">{desc('condition', listing?.condition)}</span>}{' '}
                     <a href="#" className="text-fg underline hover:text-fg text-sm">
                       등급 기준 자세히 보기
                     </a>
@@ -517,9 +517,9 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div className="font-bold">외관 상태</div>
                       <div className="break-words">
                         {label('appearance', listing.appearance)}{' '}
-                        {desc('appearance', listing.appearance) && <span className="text-xs text-gray-500">{desc('appearance', listing.appearance)}</span>}
+                        {desc('appearance', listing.appearance) && <span className="text-xs text-muted">{desc('appearance', listing.appearance)}</span>}
                         {listing.appearanceDetail && (
-                          <p className="mt-1 text-sm text-gray-600">{listing.appearanceDetail}</p>
+                          <p className="mt-1 text-sm text-fg">{listing.appearanceDetail}</p>
                         )}
                       </div>
                     </>
@@ -530,9 +530,9 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div className="font-bold">작동 상태</div>
                       <div className="break-words">
                         {label('working', listing.working)}{' '}
-                        {desc('working', listing.working) && <span className="text-xs text-gray-500">{desc('working', listing.working)}</span>}
+                        {desc('working', listing.working) && <span className="text-xs text-muted">{desc('working', listing.working)}</span>}
                         {listing.workingDetail && (
-                          <p className="mt-1 text-sm text-gray-600">{listing.workingDetail}</p>
+                          <p className="mt-1 text-sm text-fg">{listing.workingDetail}</p>
                         )}
                       </div>
                     </>
@@ -643,7 +643,7 @@ export function ListingDetail({ id }: { id?: string }) {
               <h2 className="text-2xl font-bold mb-4">제품 설명</h2>
               <div className="relative">
                 <div
-                  className={`prose max-w-none text-muted space-y-4 leading-relaxed ${
+                  className={`prose max-w-none text-fg space-y-4 leading-relaxed ${
                     !descriptionExpanded ? 'max-h-[200px] overflow-hidden' : ''
                   }`}
                 >
@@ -696,15 +696,15 @@ export function ListingDetail({ id }: { id?: string }) {
               <h2 className="text-2xl font-bold mb-6">판매자에 대하여</h2>
               <div className="flex items-start justify-between gap-6 mb-6">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-bg font-bold text-2xl flex-shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-surface flex items-center justify-center text-fg font-bold text-2xl flex-shrink-0">
                     몽
                   </div>
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-2xl font-bold">몽키타르</p>
                       <div className="relative group/badge inline-block">
-                        <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-100 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                        <BadgeCheck className="w-6 h-6 text-fg fill-surface cursor-help" />
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-fg text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
                           이 판매자는 뛰어난 서비스를 제공합니다.
                           <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-fg"></div>
                         </div>
@@ -712,12 +712,12 @@ export function ListingDetail({ id }: { id?: string }) {
                     </div>
                     {/* 판매자 지역 = 매물의 지역 값(DB location). 비어 있으면 줄째 숨김 */}
                     {listing?.location && (
-                      <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
+                      <div className="flex items-center gap-2 text-sm text-fg mt-1">
                         <MapPin className="w-4 h-4" />
                         <span>{locationText(listing.location)}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-sm text-muted mt-2">
+                    <div className="flex items-center gap-2 text-sm text-fg mt-2">
                       <span className="font-semibold">Resonance 가입일 :</span>
                       <span>2018년</span>
                     </div>
@@ -735,38 +735,38 @@ export function ListingDetail({ id }: { id?: string }) {
 
               <div className="rounded-2xl bg-gradient-to-br from-surface/60 via-bg to-surface border border-line p-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-muted hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-line flex items-center justify-center group-hover:bg-line transition">
                         <BookOpen className="w-4 h-4 text-fg" />
                       </div>
                       <span className="font-bold text-sm">브랜드 스토리</span>
                     </div>
-                    <p className="text-sm text-muted leading-relaxed">
+                    <p className="text-sm text-fg leading-relaxed">
                       2006년 설립된 <span className="font-semibold">'Monkey Guitar'</span>의 약자입니다.
                     </p>
                   </div>
 
-                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-muted hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
-                        <Package className="w-4 h-4 text-blue-600" />
+                      <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center group-hover:bg-line transition">
+                        <Package className="w-4 h-4 text-fg" />
                       </div>
                       <span className="font-bold text-sm">취급 제품</span>
                     </div>
-                    <p className="text-sm text-muted leading-relaxed">
+                    <p className="text-sm text-fg leading-relaxed">
                       신품·중고 유명 브랜드. 구하기 어려운 제품을 <span className="font-semibold">합리적인 가격</span>에 제공합니다.
                     </p>
                   </div>
 
-                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-muted hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition">
-                        <ShieldAlert className="w-4 h-4 text-amber-600" />
+                      <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center group-hover:bg-line transition">
+                        <ShieldAlert className="w-4 h-4 text-fg" />
                       </div>
                       <span className="font-bold text-sm">거래 정책</span>
                     </div>
-                    <p className="text-sm text-muted leading-relaxed">
+                    <p className="text-sm text-fg leading-relaxed">
                       현 상태 그대로 판매 · <span className="font-semibold">환불 불가</span>
                       <button
                         onClick={() => setSellerDescExpanded(!sellerDescExpanded)}
@@ -776,7 +776,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       </button>
                     </p>
                     {sellerDescExpanded && (
-                      <p className="text-xs text-gray-600 leading-relaxed mt-2 pt-2 border-t border-surface">
+                      <p className="text-xs text-fg leading-relaxed mt-2 pt-2 border-t border-surface">
                         모든 기타, 이펙터 및 액세서리는 현 상태 그대로 판매되며 환불이 불가합니다. 배송비에는 PayPal 수수료와 Reverb 수수료가 포함됩니다.
                       </p>
                     )}
@@ -794,14 +794,14 @@ export function ListingDetail({ id }: { id?: string }) {
                   <h2 className="text-2xl font-bold">판매자 리뷰 (1,234)</h2>
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="w-5 h-5 fill-muted text-muted" />
+                      <Star key={star} className="w-5 h-5 fill-fg text-fg" />
                     ))}
                   </div>
                 </div>
                 {sellerReviewsOpen ? (
-                  <ChevronUp className="w-6 h-6 text-muted" />
+                  <ChevronUp className="w-6 h-6 text-fg" />
                 ) : (
-                  <ChevronDown className="w-6 h-6 text-muted" />
+                  <ChevronDown className="w-6 h-6 text-fg" />
                 )}
               </button>
 
@@ -813,24 +813,24 @@ export function ListingDetail({ id }: { id?: string }) {
                     <div className="text-4xl font-bold text-fg">4.9</div>
                     <div className="flex justify-center mt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="w-4 h-4 fill-muted text-muted" />
+                        <Star key={star} className="w-4 h-4 fill-fg text-fg" />
                       ))}
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">종합 평점</p>
+                    <p className="text-sm text-fg mt-1">종합 평점</p>
                   </div>
                   <div className="flex-1 border-l border-line pl-6">
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
-                        <div className="text-2xl font-bold text-green-600">99%</div>
-                        <p className="text-xs text-gray-600">긍정 평가</p>
+                        <div className="text-2xl font-bold text-fg">99%</div>
+                        <p className="text-xs text-fg">긍정 평가</p>
                       </div>
                       <div>
                         <div className="text-2xl font-bold">1,234</div>
-                        <p className="text-xs text-gray-600">총 리뷰</p>
+                        <p className="text-xs text-fg">총 리뷰</p>
                       </div>
                       <div>
                         <div className="text-2xl font-bold">2020</div>
-                        <p className="text-xs text-gray-600">가입 연도</p>
+                        <p className="text-xs text-fg">가입 연도</p>
                       </div>
                     </div>
                   </div>
@@ -839,29 +839,29 @@ export function ListingDetail({ id }: { id?: string }) {
                 <div className="space-y-3">
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 mb-1">정확도</p>
+                      <p className="text-fg mb-1">정확도</p>
                       <p className="font-semibold">100%</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 mb-1">배송</p>
+                      <p className="text-fg mb-1">배송</p>
                       <p className="font-semibold">99%</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 mb-1">소통</p>
+                      <p className="text-fg mb-1">소통</p>
                       <p className="font-semibold">100%</p>
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <p className="text-gray-600 mb-1">가격</p>
+                      <p className="text-fg mb-1">가격</p>
                       <p className="font-semibold">4.9 / 5.0</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 mb-1">속도</p>
+                      <p className="text-fg mb-1">속도</p>
                       <p className="font-semibold">4.8 / 5.0</p>
                     </div>
                     <div>
-                      <p className="text-gray-600 mb-1">서비스</p>
+                      <p className="text-fg mb-1">서비스</p>
                       <p className="font-semibold">5.0 / 5.0</p>
                     </div>
                   </div>
@@ -869,11 +869,11 @@ export function ListingDetail({ id }: { id?: string }) {
               </div>
 
               <div className="mb-4 flex items-center justify-between pb-2 border-b border-line">
-                <span className="font-semibold text-muted">전체 리뷰 ({allReviews.length})</span>
+                <span className="font-semibold text-fg">전체 리뷰 ({allReviews.length})</span>
                 <select
                   value={reviewSort}
                   onChange={(e) => { setReviewSort(e.target.value as 'latest' | 'rating-high' | 'rating-low'); setReviewPage(1); }}
-                  className="text-xs border border-line rounded-md px-2 py-1 bg-bg hover:border-gray-400 cursor-pointer focus:outline-none focus:border-fg"
+                  className="text-xs border border-line rounded-md px-2 py-1 bg-bg hover:border-muted cursor-pointer focus:outline-none focus:border-fg"
                 >
                   <option value="latest">최신순</option>
                   <option value="rating-high">별점 높은 순</option>
@@ -889,15 +889,15 @@ export function ListingDetail({ id }: { id?: string }) {
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`w-4 h-4 ${star <= review.rating ? 'fill-muted text-muted' : 'text-line'}`}
+                            className={`w-4 h-4 ${star <= review.rating ? 'fill-fg text-fg' : 'text-line'}`}
                           />
                         ))}
                       </div>
                       <span className="font-semibold">{review.name}</span>
-                      <span className="text-sm text-gray-500">• {formatDaysAgo(review.daysAgo)}</span>
+                      <span className="text-sm text-muted">• {formatDaysAgo(review.daysAgo)}</span>
                     </div>
-                    <p className="text-muted mb-2">{review.text}</p>
-                    <p className="text-sm text-gray-500">제품: {review.product}</p>
+                    <p className="text-fg mb-2">{review.text}</p>
+                    <p className="text-sm text-muted">제품: {review.product}</p>
                   </div>
                 ))}
               </div>
@@ -946,20 +946,20 @@ export function ListingDetail({ id }: { id?: string }) {
               <div className={`bg-bg rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
                 <div>
                   <h1 className="text-3xl font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
-                  <div className="flex items-center gap-2 text-gray-600 mb-2">
+                  <div className="flex items-center gap-2 text-fg mb-2">
                     {listing?.handmade && (
                       <span className="px-1.5 py-0.5 bg-fg text-bg rounded text-xs font-medium">수제품</span>
                     )}
                     {/* 상태 배지 — 카드와 같은 conditionBadge (중고는 외관 등급, 작동 경고) */}
-                    {listing && <ConditionBadge listing={listing} className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs" />}
+                    {listing && <ConditionBadge listing={listing} className="px-1.5 py-0.5 border border-line text-fg rounded text-xs" />}
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="w-4 h-4 fill-muted text-muted" />
+                        <Star key={star} className="w-4 h-4 fill-fg text-fg" />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-600">(리뷰 124개)</span>
+                    <span className="text-sm text-fg">(리뷰 124개)</span>
                   </div>
                 </div>
 
@@ -973,7 +973,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button className="w-full bg-fg text-bg py-3 px-6 rounded-lg font-semibold hover:bg-fg transition">
                     장바구니 담기
                   </button>
-                  <button className="w-full bg-slate-900 text-bg py-3 px-6 rounded-lg font-semibold hover:bg-slate-800 transition">
+                  <button className="w-full bg-fg text-bg py-3 px-6 rounded-lg font-semibold hover:bg-fg transition">
                     바로 구매
                   </button>
                 </div>
@@ -981,54 +981,54 @@ export function ListingDetail({ id }: { id?: string }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setMainLiked((v) => !v)}
-                    className="flex-1 border-2 border-line text-muted hover:border-gray-400 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-sm"
+                    className="flex-1 border-2 border-line text-fg hover:border-muted py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-sm"
                   >
-                    <Heart className={`w-4 h-4 ${mainLiked ? 'fill-red-500 text-red-500' : ''}`} />
+                    <Heart className={`w-4 h-4 ${mainLiked ? 'fill-fg text-fg' : ''}`} />
                     관심 제품
                   </button>
-                  <button className="flex-1 border-2 border-line text-muted py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 hover:border-gray-400 transition text-sm">
+                  <button className="flex-1 border-2 border-line text-fg py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 hover:border-muted transition text-sm">
                     <MessageCircle className="w-4 h-4" />
                     가격 제안
                   </button>
-                  <button className="border-2 border-line text-muted py-2 px-3 rounded-lg hover:border-gray-400 transition">
+                  <button className="border-2 border-line text-fg py-2 px-3 rounded-lg hover:border-muted transition">
                     <Share2 className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 py-2">
+                <div className="grid grid-cols-3 gap-2 text-xs text-fg py-2">
                   <div className="text-center">
-                    <span className="font-bold text-muted">등록일:</span> 13일 전
+                    <span className="font-bold text-fg">등록일:</span> 13일 전
                   </div>
                   <div className="text-center">
-                    <span className="font-bold text-muted">조회수:</span> 197
+                    <span className="font-bold text-fg">조회수:</span> 197
                   </div>
                   <div className="text-center">
-                    <span className="font-bold text-muted">제안:</span> 3
+                    <span className="font-bold text-fg">제안:</span> 3
                   </div>
                 </div>
 
                 <div className="border-t border-t-line py-8 flex items-center gap-3 relative">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-bg font-bold text-lg flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-fg font-bold text-lg flex-shrink-0">
                     몽
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
                       <span className="font-bold">몽키타르</span>
                       <div className="relative group/badge2 inline-block">
-                        <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-100 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                        <BadgeCheck className="w-4 h-4 text-fg fill-surface cursor-help" />
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-fg text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
                           이 판매자는 뛰어난 서비스를 제공합니다.
                           <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-fg"></div>
                         </div>
                       </div>
                       <div className="flex ml-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="w-3.5 h-3.5 fill-muted text-muted" />
+                          <Star key={star} className="w-3.5 h-3.5 fill-fg text-fg" />
                         ))}
                       </div>
-                      <span className="text-sm text-gray-600">(245)</span>
+                      <span className="text-sm text-fg">(245)</span>
                     </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
+                    <div className="flex items-center gap-1 text-sm text-fg mt-0.5">
                       <MapPin className="w-3.5 h-3.5" />
                       <span>{locationText(listing?.location)}</span>
                     </div>
@@ -1036,11 +1036,11 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button
                     onClick={() => setSellerSaved((v) => !v)}
                     aria-label="판매자 저장"
-                    className="flex items-center gap-1.5 px-3 py-2 border border-line hover:border-gray-400 rounded-full text-sm font-semibold text-muted active:scale-95 transition flex-shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-2 border border-line hover:border-muted rounded-full text-sm font-semibold text-fg active:scale-95 transition flex-shrink-0"
                   >
                     <Heart
                       className={`w-4 h-4 ${
-                        sellerSaved ? 'fill-red-500 text-red-500' : 'text-muted'
+                        sellerSaved ? 'fill-fg text-fg' : 'text-fg'
                       }`}
                     />
                     판매자 저장
@@ -1098,7 +1098,7 @@ export function ListingDetail({ id }: { id?: string }) {
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">{section.sectionTitle}</h2>
               {section.sectionTitle.includes('최근 조회') && (
-                <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="flex items-center gap-1 text-xs text-muted">
                   <span>광고</span>
                   <Info className="w-3.5 h-3.5" />
                 </div>
@@ -1125,8 +1125,8 @@ export function ListingDetail({ id }: { id?: string }) {
                       <Heart
                         className={`w-3.5 h-3.5 ${
                           likedSimilar.has(likedKey)
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-muted'
+                            ? 'fill-fg text-fg'
+                            : 'text-fg'
                         }`}
                       />
                     </button>
@@ -1135,10 +1135,10 @@ export function ListingDetail({ id }: { id?: string }) {
                     </div>
                     <div className="p-3">
                       <h4 className="text-sm font-semibold truncate">{item.title}</h4>
-                      <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
+                      <p className="text-xs text-fg mt-1">{item.condition}</p>
                       <p className="text-base font-bold text-fg mt-1">{item.price}</p>
                       {isNew && (
-                        <div className="flex items-center gap-1 mt-2 text-xs text-muted">
+                        <div className="flex items-center gap-1 mt-2 text-xs text-fg">
                           <Truck className="w-3 h-3" />
                           <span>무료 배송</span>
                         </div>
@@ -1154,14 +1154,14 @@ export function ListingDetail({ id }: { id?: string }) {
               aria-label="이전"
               className="absolute left-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
             >
-              <ChevronLeft className="w-5 h-5 text-muted" />
+              <ChevronLeft className="w-5 h-5 text-fg" />
             </button>
             <button
               onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: 400, behavior: 'smooth' })}
               aria-label="다음"
               className="absolute right-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
             >
-              <ChevronRight className="w-5 h-5 text-muted" />
+              <ChevronRight className="w-5 h-5 text-fg" />
             </button>
           </div>
         ))}

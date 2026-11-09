@@ -29,7 +29,7 @@ export function ListingGrid({
   // 결과가 하나도 없을 때
   if (listings.length === 0) {
     return (
-      <div className="bg-surface border border-line rounded-lg py-16 text-center text-gray-500">
+      <div className="bg-surface border border-line rounded-lg py-16 text-center text-muted">
         조건에 맞는 매물이 없습니다. 필터를 조정해보세요.
       </div>
     );
@@ -65,7 +65,7 @@ export function ListingGrid({
                   alt={`${l.brand} ${l.model}`}
                   className="w-full h-full object-contain opacity-70"
                 />
-                <span className="absolute text-xs text-gray-400">이미지 없음</span>
+                <span className="absolute text-xs text-muted">이미지 없음</span>
               </>
             )}
             <button
@@ -74,18 +74,18 @@ export function ListingGrid({
               aria-label="찜하기"
             >
               <Heart
-                className={`w-4 h-4 ${liked.has(l.id) ? 'fill-fg text-fg' : 'text-gray-500'}`}
+                className={`w-4 h-4 ${liked.has(l.id) ? 'fill-fg text-fg' : 'text-muted'}`}
               />
             </button>
           </div>
           <div className="p-3">
-            <p className="text-xs text-gray-500 mb-1">{l.brand}</p>
+            <p className="text-xs text-muted mb-1">{l.brand}</p>
             <h3 className="text-sm font-semibold text-fg line-clamp-1 group-hover:text-fg transition">
               {l.model}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
+            <p className="text-xs text-muted mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
             <p className="text-base font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
-            <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
+            <div className="flex items-center justify-between text-xs text-muted mt-1">
               {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
               <ConditionBadge listing={l} />
               <span>{label('location', l.location)}</span>

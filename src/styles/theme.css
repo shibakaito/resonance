@@ -25,7 +25,7 @@
   --color-surface: #f7f7f7;  /* 옅은 면 */
   --color-line: #e0e0e0;     /* 테두리, 구분선 */
   --color-fg: #000000;       /* 글자, 강조 */
-  --color-muted: oklch(37.3% 0.034 259.733); /* 보조 글자 (= Tailwind gray-700 과 같은 값) */
+  --color-muted: #6b7280;    /* 보조 글자, 비활성 (2026-11-10 확정: gray-400, gray-500, #717182 가 여기로) */
   --color-danger: #d93025;   /* 경고 (작동 이상 배지 빨강) */
 
   /* 간격 기준 4px (p-1 = 4px) */
@@ -78,16 +78,26 @@
 }
 
 @layer base {
-  /* 기본 테두리색, 외곽선색 — 예전 shadcn 변수(--border, --ring)의 값 그대로 (토큰 정리는 design-audit.md ⑤ 매핑표) */
+  /* 기본 테두리색 = line, 기본 외곽선색 = fg (2026-11-10 확정) */
   * {
-    border-color: rgba(0, 0, 0, 0.1);
-    outline-color: color-mix(in oklab, oklch(0.708 0 0) 50%, transparent);
+    border-color: var(--color-line);
+    outline-color: var(--color-fg);
   }
 
   body {
     background-color: var(--color-bg);
-    color: oklch(0.145 0 0); /* 예전 --foreground 값 그대로 (fg #000000 으로 옮길지는 매핑표에서 결정) */
+    color: var(--color-fg);
     font-family: var(--font-sans); /* Pretendard */
+  }
+
+  /* 포커스 — Tab 으로 왔을 때 fg 2px 외곽선 + 2px 띄움. 바탕이 fg 인 요소는 bg 색 외곽선을 안쪽으로(바깥이면 흰 바탕에 안 보임) */
+  :focus-visible {
+    outline: 2px solid var(--color-fg);
+    outline-offset: 2px;
+  }
+  .bg-fg:focus-visible {
+    outline-color: var(--color-bg);
+    outline-offset: -4px;
   }
 
   /**
@@ -169,13 +179,13 @@
   letter-spacing: 0.08em;
   font-size: 13px;
   font-weight: 600;
-  color: #717182;
+  color: var(--color-muted);
 }
-/* 제품 정보 입력: 회색 채움·무테두리 → 포커스 흰 배경 + 파랑 */
+/* 제품 정보 입력: surface 채움, 무테두리 → 포커스 bg 바탕 + fg 외곽선 */
 #section-info input,
 #section-info select,
 #section-info textarea {
-  background-color: #f4f4f5;
+  background-color: var(--color-surface);
   border: 1px solid transparent;
   border-radius: 0;
 }
@@ -183,14 +193,14 @@
 #section-info select:focus,
 #section-info textarea:focus {
   background-color: var(--color-bg);
-  border-color: #3b82f6;
-  outline: none;
+  outline: 2px solid var(--color-fg); /* 포커스 = fg 2px 외곽선 + 2px 띄움 (예전 파랑 #3b82f6 테두리) */
+  outline-offset: 2px;
 }
-/* 기술 사양 입력: 회색 채움·무테두리 박스 → 포커스 흰 배경 + 파랑 (제품 정보와 동일) */
+/* 기술 사양 입력: 제품 정보와 같음 */
 .spec-field input,
 .spec-field select,
 .spec-field textarea {
-  background-color: #f4f4f5;
+  background-color: var(--color-surface);
   border: 1px solid transparent;
   border-radius: 0;
 }
@@ -198,8 +208,8 @@
 .spec-field select:focus,
 .spec-field textarea:focus {
   background-color: var(--color-bg);
-  border-color: #3b82f6;
-  outline: none;
+  outline: 2px solid var(--color-fg); /* 포커스 = fg 2px 외곽선 + 2px 띄움 (예전 파랑 #3b82f6 테두리) */
+  outline-offset: 2px;
 }
 /* 기술 사양 라벨 = 제품 정보와 동일한 eyebrow (라벨 위·입력 아래 1열). 2칸 분할 버전은 커밋 bd64ce1에 보관 */
 .spec-field label {
@@ -209,5 +219,5 @@
   letter-spacing: 0.08em;
   font-size: 13px;
   font-weight: 600;
-  color: #717182;
+  color: var(--color-muted);
 }

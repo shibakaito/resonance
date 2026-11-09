@@ -608,7 +608,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     <main className="max-w-7xl mx-auto px-4 py-6">
       {/* 헤더 */}
       <div className="mb-5">
-        <nav className="text-sm text-gray-500 mb-2">
+        <nav className="text-sm text-muted mb-2">
           홈
           {category && (
             <>
@@ -636,16 +636,16 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           <div>
             <h1 className="text-3xl font-bold mb-3">
               ‘{searchQuery}’ 검색 결과{' '}
-              <span className="text-2xl font-semibold text-gray-500">{filtered.length.toLocaleString('ko-KR')}건</span>
+              <span className="text-2xl font-semibold text-muted">{filtered.length.toLocaleString('ko-KR')}건</span>
             </h1>
             {/* "Did you mean?" — 결과 0건 + 비슷한 후보가 있을 때만 표시 */}
             {suggestion && (
-              <p className="text-base text-muted mb-3">
+              <p className="text-base text-fg mb-3">
                 혹시{' '}
                 <button
                   type="button"
                   onClick={() => onSearch?.(suggestion.label)}
-                  className="text-blue-600 hover:text-blue-800 hover:underline font-semibold"
+                  className="text-fg underline font-semibold"
                 >
                   ‘{suggestion.label}’
                 </button>
@@ -654,7 +654,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             )}
             {/* 0건인데 비슷한 판매중 브랜드도 없으면 추천 없이 안내만 */}
             {!suggestion && !listingsLoading && searchedListings.length === 0 && (
-              <p className="text-base text-muted mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
+              <p className="text-base text-fg mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
             )}
             {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
             <form
@@ -672,7 +672,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 aria-label="검색"
                 className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full hover:bg-surface flex items-center justify-center"
               >
-                <Search className="w-4 h-4 text-muted" />
+                <Search className="w-4 h-4 text-fg" />
               </button>
             </form>
           </div>
@@ -701,7 +701,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <span className="text-sm font-semibold text-fg">활성 필터</span>
                   <button
                     onClick={resetAll}
-                    className="text-sm text-gray-600 hover:text-fg underline"
+                    className="text-sm text-fg hover:text-fg underline"
                   >
                     전체 초기화
                   </button>
@@ -899,7 +899,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 filterCount > 0
                   ? 'border-fg bg-surface text-fg'
-                  : 'border-line bg-bg text-muted hover:border-gray-400'
+                  : 'border-line bg-bg text-fg hover:border-muted'
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
@@ -914,7 +914,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
 
           {/* 결과 수 + 정렬 */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted">
+            <p className="text-sm text-fg">
               {listingsLoading
                 ? '매물을 불러오는 중…'
                 : <><b className="text-fg">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물</>}
@@ -929,7 +929,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <option key={s} value={s}>{s}</option>
                 ))}
               </select>
-              <ChevronDown className="w-4 h-4 text-gray-500 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <ChevronDown className="w-4 h-4 text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             </div>
           </div>
 

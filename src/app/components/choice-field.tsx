@@ -49,7 +49,7 @@ function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabl
       className={`h-[42px] min-w-[64px] px-4 border rounded-none text-sm font-semibold whitespace-nowrap disabled:cursor-not-allowed ${
         on
           ? 'border-fg bg-fg text-bg'
-          : 'border-line bg-bg text-fg hover:border-fg disabled:bg-surface disabled:text-gray-400 disabled:hover:border-line'
+          : 'border-line bg-bg text-fg hover:border-fg disabled:bg-surface disabled:text-muted disabled:hover:border-line'
       }`}
     >
       {children}

@@ -102,9 +102,9 @@ export function Section({
       >
         <h4 className="text-base font-bold text-fg">{title}</h4>
         {open ? (
-          <ChevronUp className="w-5 h-5 text-gray-500" />
+          <ChevronUp className="w-5 h-5 text-muted" />
         ) : (
-          <ChevronDown className="w-5 h-5 text-gray-500" />
+          <ChevronDown className="w-5 h-5 text-muted" />
         )}
       </button>
       {open && <div className="pb-4">{children}</div>}
@@ -138,7 +138,7 @@ export function CheckGroup({
         {visible.map((opt) => (
           <label
             key={opt}
-            className="flex items-center gap-2 text-sm text-muted cursor-pointer hover:text-fg"
+            className="flex items-center gap-2 text-sm text-fg cursor-pointer hover:text-fg"
           >
             <input
               type="checkbox"
@@ -147,14 +147,14 @@ export function CheckGroup({
               className="accent-fg"
             />
             <span>{getLabel ? getLabel(opt) : opt}</span>
-            {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
+            {counts && <span className="text-muted">({counts[opt] ?? 0})</span>}
           </label>
         ))}
       </div>
       {hasMore && (
         <button
           onClick={() => setShowAll((v) => !v)}
-          className="flex items-center gap-1 mt-2 text-sm font-medium text-muted hover:text-fg"
+          className="flex items-center gap-1 mt-2 text-sm font-medium text-fg hover:text-fg"
         >
           {showAll ? (
             <>
@@ -533,7 +533,7 @@ export function FilterModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 bg-fg/40 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
@@ -548,7 +548,7 @@ export function FilterModal({
             className="w-8 h-8 rounded-full hover:bg-surface flex items-center justify-center"
             aria-label="닫기"
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-fg" />
           </button>
         </div>
 
@@ -1096,7 +1096,7 @@ export function FilterModal({
         <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-t border-line">
           <button
             onClick={handleReset}
-            className="text-sm text-gray-600 hover:text-fg font-medium"
+            className="text-sm text-fg hover:text-fg font-medium"
           >
             필터 초기화
           </button>
