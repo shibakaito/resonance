@@ -475,7 +475,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
     if (f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl));
-    if (f.remote.size > 0) r = r.filter((l) => f.remote.has(l.remote));
+    if (FEATURE_FLAGS.remoteFilter && f.remote.size > 0) r = r.filter((l) => f.remote.has(l.remote)); // 플래그 꺼짐: 리모컨 필터 없음
     if (f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
   }
   if (isSpeaker) {

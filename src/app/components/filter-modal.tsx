@@ -11,6 +11,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { ChevronDown, ChevronUp, X, Plus, Minus } from 'lucide-react';
 import { FilterDropdown } from './filter-controls';
 import { terminalsPrioritized } from '../data/cable-terminals';
+import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 import {
   ACCESSORY_GROUPS,
   AMP_DETAILS,
@@ -781,6 +782,7 @@ export function FilterModal({
                   counts={counts.toneControl}
                 />
               </Section>
+              {FEATURE_FLAGS.remoteFilter && (
               <Section title="리모컨 포함">
                 <CheckGroup
                   options={REMOTE_OPTS}
@@ -790,6 +792,7 @@ export function FilterModal({
                   counts={counts.remote}
                 />
               </Section>
+              )}
               <Section title="전원 전압">
                 <CheckGroup
                   options={VOLTAGE_OPTS}

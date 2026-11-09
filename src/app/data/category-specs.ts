@@ -541,12 +541,12 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
 // 핵심/상세 사양 분리 — 여기 적힌 하위 카테고리만 폼이 "핵심 사양"(항상 표시)과 "상세 사양"(접힘)으로 나눔.
 //   값 = 핵심으로 둘 필드 key. 타입(auto)은 늘 맨 위 그대로. 목록에 없는 key는 상세로. 저장 키(specs.tech)는 바뀌지 않음.
 //   적용 안 된 하위 카테고리(공통 꼬리 5칸뿐인 소스기기 12종 등)와 케이블(폴백)은 지금처럼 전부 한 번에 표시.
-const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'remote', 'voltage'];
+const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'voltage']; // 리모컨은 2026-11-09 핵심에서 빼 상세 사양으로 (앰프 하위 공통)
 const SPEAKER_CORE = ['speakerDetail', 'driverComposition', 'enclosure', 'speakerImpedance', 'sensitivity', 'recPower', 'voltage'];
 // 접기가 켜진 하위 카테고리(CORE_SPEC_KEYS)에서 늘 보이는 칸 — 핵심 칸 맨 아래(전원 다음), 그 밑에 '상세 사양' 버튼. 상세 개수에서 빠짐
 export const ALWAYS_SPEC_KEYS = ['dimensions', 'weight'];
 export const CORE_SPEC_KEYS: Record<string, string[]> = {
-  프리앰프: ['channel', 'device', 'phono', 'remote', 'voltage'],
+  프리앰프: ['channel', 'device', 'phono', 'voltage'],
   파워앰프: AMP_CORE_7,
   인티앰프: AMP_CORE_7,
   '네트워크 앰프': AMP_CORE_7,
@@ -555,7 +555,7 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   'MC 스텝업 헤드앰프': ['device', 'mcHeadGain', 'voltage'],
   'MC 스텝업 트랜스': ['sutRatio'],
   '헤드폰 앰프': ['device', 'hpOutputs', 'hpImpedanceRange', 'hpForm', 'voltage'],
-  'AV 리시버': ['avrChannels', 'powerRated', 'hdmiIn', 'videoPassthrough', 'arcSupport', 'audioFormats', 'remote', 'voltage'],
+  'AV 리시버': ['avrChannels', 'powerRated', 'hdmiIn', 'videoPassthrough', 'arcSupport', 'audioFormats', 'voltage'],
   // 스피커 4종 — 감도, 권장 앰프 출력은 패시브만, 전원은 액티브만(기존 showWhen 그대로)
   '북쉘프 스피커': SPEAKER_CORE,
   '플로어 스탠딩 스피커': SPEAKER_CORE,

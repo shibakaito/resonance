@@ -92,6 +92,7 @@ import { FilterModal } from './filter-modal';
 import { ListingGrid } from './listing-grid';
 // ── Supabase 연동: DB에서 실제 매물을 불러옴 ──
 import { fetchListings } from '@/lib/listings';
+import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 브랜드 영문명 → 한글 별칭 목록 (검색용). 홈 콤보박스와 동일하게 BRAND_DIRECTORY 재사용.
 const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
@@ -755,7 +756,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   )}
                   <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} getLabel={lab('phono')} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
                   <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} getLabel={lab('toneControl')} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />
-                  <FilterSection label="리모컨 포함" options={REMOTE_OPTS} selected={filters.remote} getLabel={lab('remote')} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />
+                  {FEATURE_FLAGS.remoteFilter && <FilterSection label="리모컨 포함" options={REMOTE_OPTS} selected={filters.remote} getLabel={lab('remote')} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />}
                   <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
