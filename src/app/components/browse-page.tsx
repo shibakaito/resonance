@@ -71,6 +71,9 @@ import {
   TT_ACCESSORY_GROUPS,
   VOLTAGE_OPTS,
   PHONO_BUILTIN_OPTS,
+  CD_DIGITAL_OUTS,
+  CD_ANALOG_OUTS,
+  TUNER_BANDS,
   WOOFER_SIZES,
   applyFilters,
   filterLabel,
@@ -267,6 +270,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   // 턴테이블 단독 선택 시 턴테이블 전용 필터 활성
   const isTurntable =
     isSource && subCategories.size === 1 && subCategories.has('턴테이블');
+  // CD 플레이어, 튜너 단독 선택 시 전용 필터 (턴테이블과 같은 규칙, 2026-11-10)
+  const isCd = isSource && subCategories.size === 1 && subCategories.has('CD 플레이어');
+  const isTuner = isSource && subCategories.size === 1 && subCategories.has('튜너');
 
   // 프리앰프 단독 선택 시 정격 출력 필터 숨김 (프리앰프는 출력 정격이 없음)
   const isPreampOnly =
@@ -316,6 +322,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       autoMode: countBy(categoryListings, (l) => l.autoMode),
       dustCover: countBy(categoryListings, (l) => l.dustCover),
       phonoBuiltIn: countBy(categoryListings, (l) => l.phonoBuiltIn),
+      cdDigitalOut: countBy(categoryListings, (l) => l.cdDigitalOut),
+      cdAnalogOut: countBy(categoryListings, (l) => l.cdAnalogOut),
+      tunerBand: countBy(categoryListings, (l) => l.tunerBand),
       terminalIn: countBy(categoryListings, (l) => l.terminalIn),
       terminalOut: countBy(categoryListings, (l) => l.terminalOut),
       directional: countBy(categoryListings, (l) => l.directional),
@@ -409,7 +418,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   };
 
   const filtered = useMemo(() => {
-    const list = applyFilters(categoryListings, filters, isAmp, isSpeaker, isTurntable, isPowerDevice, isCable);
+    const list = applyFilters(categoryListings, filters, isAmp, isSpeaker, isTurntable, isPowerDevice, isCable, isCd, isTuner);
     const sorted = [...list];
     if (sort === '최신순') sorted.sort((a, b) => a.daysAgo - b.daysAgo);
     else if (sort === '가격 낮은순') sorted.sort((a, b) => a.price - b.price);
@@ -466,6 +475,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'autoMode', turntableOnly: true },
       { key: 'dustCover', prefix: '더스트 커버', turntableOnly: true },
       { key: 'phonoBuiltIn', prefix: '포노앰프 내장', turntableOnly: true },
+      { key: 'cdDigitalOut', prefix: '디지털 출력' },  // CD 플레이어 (아래에서 거름)
+      { key: 'cdAnalogOut', prefix: '아날로그 출력' },
+      { key: 'tunerBand' },                            // 튜너
       { key: 'terminalIn', prefix: '입력', cableOnly: true },
       { key: 'terminalOut', prefix: '출력', cableOnly: true },
       { key: 'directional', prefix: '방향성', cableOnly: true },
@@ -497,6 +509,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (turntableOnly && !isTurntable) continue;
       if (cableOnly && !isCable) continue;
       if (key === 'voltage' && !isAmp && !isTurntable) continue;
+      if ((key === 'cdDigitalOut' || key === 'cdAnalogOut') && !isCd) continue;
+      if (key === 'tunerBand' && !isTuner) continue;
       if (combineTermActive && (key === 'terminalIn' || key === 'terminalOut')) continue;
       const useColon = key === 'terminalIn' || key === 'terminalOut';
       for (const v of filters[key] as Set<string>) {
@@ -818,6 +832,18 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                   {FEATURE_FLAGS.dustCoverFilter && <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />}
                 </>
+              )}
+
+              {/* CD 플레이어 전용 (2026-11-10) */}
+              {isCd && (
+                <>
+                  <FilterSection label="디지털 출력" options={CD_DIGITAL_OUTS} selected={filters.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleField('cdDigitalOut')} counts={counts.cdDigitalOut} />
+                  <FilterSection label="아날로그 출력" options={CD_ANALOG_OUTS} selected={filters.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleField('cdAnalogOut')} counts={counts.cdAnalogOut} />
+                </>
+              )}
+              {/* 튜너 전용 (2026-11-10) */}
+              {isTuner && (
+                <FilterSection label="수신 밴드" options={TUNER_BANDS} selected={filters.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleField('tunerBand')} counts={counts.tunerBand} />
               )}
 
               {/* 전원 장치 전용 */}

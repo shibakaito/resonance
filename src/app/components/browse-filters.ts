@@ -12,7 +12,7 @@
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
 import { LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, CONDITION_KEYS, SPEC_LABELS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_IMPEDANCE_BUCKETS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS, TT_PHONO_BUILTIN_OPTS } from '@/app/data/category-specs';
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_IMPEDANCE_BUCKETS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS, TT_PHONO_BUILTIN_OPTS, CD_DIGITAL_OUT_OPTS, CD_ANALOG_OUT_OPTS, TUNER_BAND_OPTS } from '@/app/data/category-specs';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 상태 = 종류 4개 (labels.ts CONDITION_KEYS: new / unopened / nos / used, 주소 ?condition=used). 중고의 등급은 외관, 작동 필터가 맡음 (2026-11-10 상태 등급 재구성)
@@ -56,6 +56,10 @@ export const CARTRIDGE_OPTS = optValues(TT_CARTRIDGE_OPTS); // included / not_in
 export const SPEED_OPTS = optValues(TT_SPEED_OPTS);         // 33 / 45 / 78
 export const AUTO_OPTS = optValues(TT_AUTO_OPTS);           // full_auto / semi_auto / manual
 export const DUSTCOVER_OPTS = optValues(TT_DUSTCOVER_OPTS); // yes / no / damaged
+// CD 플레이어, 튜너 필터 옵션 = 폼 옵션의 저장값 (2026-11-10)
+export const CD_DIGITAL_OUTS = optValues(CD_DIGITAL_OUT_OPTS); // coaxial / optical / none
+export const CD_ANALOG_OUTS = optValues(CD_ANALOG_OUT_OPTS);   // rca / xlr
+export const TUNER_BANDS = optValues(TUNER_BAND_OPTS);         // fm_only / am_fm
 export const PHONO_BUILTIN_OPTS = optValues(TT_PHONO_BUILTIN_OPTS); // 포노앰프 내장: built_in / none (필터 글자는 있음 / 없음)
 
 // 필터 값(키) → 화면 글자. 사이드바, 필터 팝업, 활성 필터 칩이 같이 씀. 표에 없는 값(브랜드, 모델, 8Ω 같은 중립 글자, 카테고리 이름)은 그대로
@@ -86,6 +90,9 @@ export function filterLabel(field: keyof Filters, v: string): string {
     case 'speeds': return optLabel(TT_SPEED_OPTS, v);
     case 'autoMode': return optLabel(TT_AUTO_OPTS, v);
     case 'dustCover': return optLabel(TT_DUSTCOVER_OPTS, v);
+    case 'cdDigitalOut': return optLabel(CD_DIGITAL_OUT_OPTS, v);
+    case 'cdAnalogOut': return optLabel(CD_ANALOG_OUT_OPTS, v);
+    case 'tunerBand': return optLabel(TUNER_BAND_OPTS, v);
     case 'phonoBuiltIn': return v === 'built_in' ? '있음' : v === 'none' ? '없음' : v; // 필터 제목이 '포노앰프 내장'이라 있음 / 없음 (폼 글자는 내장 / 미내장)
     default: return v;
   }
@@ -243,6 +250,9 @@ export type Listing = {
   autoMode: string;
   dustCover: string;
   phonoBuiltIn: string;      // 포노앰프 내장 키 (built_in / none, 없으면 '')
+  cdDigitalOut: string[];    // CD 디지털 출력 키 (coaxial 등, 없으면 [])
+  cdAnalogOut: string[];     // CD 아날로그 출력 키 (rca / xlr)
+  tunerBand: string;         // 튜너 수신 밴드 키 (fm_only / am_fm, 없으면 '')
   // 전원 장치 전용
   ratedCapacity: number; // 정격 용량 (W)
   // 케이블 전용
@@ -314,6 +324,9 @@ export type Filters = {
   autoMode: Set<string>;
   dustCover: Set<string>;
   phonoBuiltIn: Set<string>;
+  cdDigitalOut: Set<string>;
+  cdAnalogOut: Set<string>;
+  tunerBand: Set<string>;
   // 전원 장치 전용
   ratedCapacityMin: number | null;
   ratedCapacityMax: number | null;
@@ -370,6 +383,9 @@ export const emptyFilters = (): Filters => ({
   autoMode: new Set(),
   dustCover: new Set(),
   phonoBuiltIn: new Set(),
+  cdDigitalOut: new Set(),
+  cdAnalogOut: new Set(),
+  tunerBand: new Set(),
   ratedCapacityMin: null,
   ratedCapacityMax: null,
   cableLengthMin: null,
@@ -425,6 +441,9 @@ export function cloneFilters(f: Filters): Filters {
     autoMode: new Set(f.autoMode),
     dustCover: new Set(f.dustCover),
     phonoBuiltIn: new Set(f.phonoBuiltIn),
+    cdDigitalOut: new Set(f.cdDigitalOut),
+    cdAnalogOut: new Set(f.cdAnalogOut),
+    tunerBand: new Set(f.tunerBand),
     ratedCapacityMin: f.ratedCapacityMin,
     ratedCapacityMax: f.ratedCapacityMax,
     cableLengthMin: f.cableLengthMin,
@@ -444,7 +463,7 @@ export function countFilters(f: Filters): number {
     'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
-    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn',
+    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn', 'cdDigitalOut', 'cdAnalogOut', 'tunerBand',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   let n = 0;
@@ -471,7 +490,7 @@ export function inRange(v: number | null | undefined, min: number | null, max: n
 }
 
 // 매물 목록에 필터 적용 (정렬 제외)
-export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpeaker: boolean, isTurntable: boolean, isPowerDevice: boolean, isCable: boolean): Listing[] {
+export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpeaker: boolean, isTurntable: boolean, isPowerDevice: boolean, isCable: boolean, isCd = false, isTuner = false): Listing[] {
   let r = list;
   if (f.brand.size > 0) r = r.filter((l) => f.brand.has(l.brand));
   if (f.model.size > 0) r = r.filter((l) => f.model.has(l.model));
@@ -520,6 +539,12 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.phonoBuiltIn.size > 0) r = r.filter((l) => f.phonoBuiltIn.has(l.phonoBuiltIn)); // 비운 매물은 안 걸림
     if (FEATURE_FLAGS.dustCoverFilter && f.dustCover.size > 0) r = r.filter((l) => f.dustCover.has(l.dustCover)); // 플래그 꺼짐: 더스트 커버 필터 없음
   }
+  // CD 플레이어 (디지털, 아날로그 출력: 하나라도 맞으면), 튜너 (수신 밴드) — 비운 매물은 안 걸림 (2026-11-10)
+  if (isCd) {
+    if (f.cdDigitalOut.size > 0) r = r.filter((l) => l.cdDigitalOut.some((v) => f.cdDigitalOut.has(v)));
+    if (f.cdAnalogOut.size > 0) r = r.filter((l) => l.cdAnalogOut.some((v) => f.cdAnalogOut.has(v)));
+  }
+  if (isTuner && f.tunerBand.size > 0) r = r.filter((l) => f.tunerBand.has(l.tunerBand));
   if (isPowerDevice) {
     if (f.ratedCapacityMin != null) r = r.filter((l) => l.ratedCapacity >= f.ratedCapacityMin!);
     if (f.ratedCapacityMax != null) r = r.filter((l) => l.ratedCapacity <= f.ratedCapacityMax!);

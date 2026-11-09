@@ -178,6 +178,10 @@ function mapRow(row: ListingRow): Listing {
     autoMode: techStr('autoMode'),
     dustCover: techStr('dustCover'),
     phonoBuiltIn: techStr('phonoBuiltIn'), // 포노앰프 내장: built_in / none
+    // CD 플레이어, 튜너 (2026-11-10)
+    cdDigitalOut: techArr('cdDigitalOut'), // coaxial / optical / none
+    cdAnalogOut: techArr('cdAnalogOut'),   // rca / xlr
+    tunerBand: techStr('tunerBand'),       // fm_only / am_fm
     // 전원 장치
     ratedCapacity: s.ratedCapacity ?? 0,
     // 케이블

@@ -127,6 +127,11 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   autoMode: { full_auto: { ko: '풀 오토' }, semi_auto: { ko: '세미 오토' }, manual: { ko: '매뉴얼' } },
   dustCover: { yes: { ko: '있음' }, no: { ko: '없음' }, damaged: { ko: '손상 있음' } },
   phonoBuiltIn: { built_in: { ko: '내장' }, none: { ko: '미내장' } },
+  // CD 플레이어 (2026-11-10 핵심 칸) — 디지털 출력, 아날로그 출력 (다중)
+  cdDigitalOut: { coaxial: { ko: '동축' }, optical: { ko: '광' }, none: { ko: '없음' } },
+  cdAnalogOut: { rca: { ko: 'RCA' }, xlr: { ko: 'XLR' } },
+  // 튜너 (2026-11-10 핵심 칸) — 수신 밴드
+  tunerBand: { fm_only: { ko: 'FM 전용' }, am_fm: { ko: 'AM과 FM' } },
   bluetooth: { none: { ko: '없음' }, rx: { ko: '수신' }, tx: { ko: '송신' }, rx_tx: { ko: '송수신' } },
   ttType: { hifi: { ko: '하이파이' }, all_in_one: { ko: '올인원·포터블' }, dj: { ko: 'DJ' } },
   speakerConfig: { built_in: { ko: '내장 스피커' }, detachable: { ko: '분리형 스피커 동봉' }, none: { ko: '없음' } },

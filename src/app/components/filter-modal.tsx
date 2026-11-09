@@ -59,6 +59,9 @@ import {
   TT_ACCESSORY_GROUPS,
   VOLTAGE_OPTS,
   PHONO_BUILTIN_OPTS,
+  CD_DIGITAL_OUTS,
+  CD_ANALOG_OUTS,
+  TUNER_BANDS,
   WOOFER_SIZES,
   applyFilters,
   cloneFilters,
@@ -302,6 +305,8 @@ export function FilterModal({
 
   const draftIsTurntable =
     isSource && draftSubCategories.size === 1 && draftSubCategories.has('턴테이블');
+  const draftIsCd = isSource && draftSubCategories.size === 1 && draftSubCategories.has('CD 플레이어'); // 2026-11-10
+  const draftIsTuner = isSource && draftSubCategories.size === 1 && draftSubCategories.has('튜너');
   const draftIsPowerDevice =
     isAccessory && [...draftSubCategories].some((s) => POWER_DEVICE_ITEMS.includes(s));
   const draftIsCable = isCable;
@@ -330,7 +335,7 @@ export function FilterModal({
       cableLengthMin: num(lenMinInput),
       cableLengthMax: num(lenMaxInput)
     };
-    return applyFilters(base, effective, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable).length;
+    return applyFilters(base, effective, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable, draftIsCd, draftIsTuner).length;
   }, [draft, draftSubCategories, priceMinInput, priceMaxInput, yearMinInput, yearMaxInput, powerMinInput, powerMaxInput, hpImpInput, sensMinInput, sensMaxInput, recMinInput, recMaxInput, capMinInput, capMaxInput, lenMinInput, lenMaxInput, listings, isAmp, isSpeaker, draftIsTurntable, draftIsPowerDevice, draftIsCable]);
 
   const handleReset = () => {
@@ -398,12 +403,14 @@ export function FilterModal({
     'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
-    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn',
+    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn', 'cdDigitalOut', 'cdAnalogOut', 'tunerBand',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   const prefixFor: Partial<Record<keyof Filters, string>> = {
     appearance: '외관',
     phonoBuiltIn: '포노앰프 내장',
+    cdDigitalOut: '디지털 출력',
+    cdAnalogOut: '아날로그 출력',
     phono: '포노',
     toneControl: '톤 컨트롤',
     remote: '리모컨',
@@ -874,6 +881,23 @@ export function FilterModal({
               </Section>
               )}
             </>
+          )}
+
+          {/* CD 플레이어, 튜너 전용 (2026-11-10) */}
+          {draftIsCd && (
+            <>
+              <Section title="디지털 출력" defaultOpen>
+                <CheckGroup options={CD_DIGITAL_OUTS} selected={draft.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleIn('cdDigitalOut')} counts={counts.cdDigitalOut} />
+              </Section>
+              <Section title="아날로그 출력" defaultOpen>
+                <CheckGroup options={CD_ANALOG_OUTS} selected={draft.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleIn('cdAnalogOut')} counts={counts.cdAnalogOut} />
+              </Section>
+            </>
+          )}
+          {draftIsTuner && (
+            <Section title="수신 밴드" defaultOpen>
+              <CheckGroup options={TUNER_BANDS} selected={draft.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleIn('tunerBand')} counts={counts.tunerBand} />
+            </Section>
           )}
 
           {draftIsTurntable && (

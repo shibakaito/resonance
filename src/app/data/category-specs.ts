@@ -103,6 +103,9 @@ const ttPhonoBuilt = (s: Record<string, string | string[]>) => isTurntable(s) &&
 const ttSpkIncl = (s: Record<string, string | string[]>) => isTtAllInOne(s) && (s.speakerConfig === 'built_in' || s.speakerConfig === 'detachable');
 // 카세트 데크 — 소스기기 하위 게이트 (1단계: 공통 필드. 3축 분기·정비는 2·3단계)
 const isCassette = (s: Record<string, string | string[]>) => s.__sub === '카세트 데크';
+// CD 플레이어, 튜너 — 소스기기 하위 게이트 (2026-11-10 핵심 칸)
+const isCdPlayer = (s: Record<string, string | string[]>) => s.__sub === 'CD 플레이어';
+const isTuner = (s: Record<string, string | string[]>) => s.__sub === '튜너';
 // 카세트 분기 (값 기반 — 턴테이블 isTtHifi 패턴). 트리거 미선택/해당없음이면 하위필드 숨김 (3헤드 분기는 오프테이프 모니터링 칸 삭제로 없어짐)
 const casDouble = (s: Record<string, string | string[]>) => isCassette(s) && s.deckCount === 'double';
 const casAutoRev = (s: Record<string, string | string[]>) => isCassette(s) && (s.autoReverse === 'playback' || s.autoReverse === 'rec_play');
@@ -454,6 +457,9 @@ export const TT_CART_TYPE_OPTS: SelectOption[] = ['MM', 'MC', labelOpt('cartType
 export const TT_SPEAKER_CONFIG_OPTS = labelOpts('speakerConfig'); // built_in / detachable / none
 
 // ── 카세트 데크 옵션 (1단계 공통) — select·multi는 labelOpts(영문키 저장), 단자·헤드재질은 문자열 ──
+export const CD_DIGITAL_OUT_OPTS = labelOpts('cdDigitalOut'); // coaxial / optical / none (다중)
+export const CD_ANALOG_OUT_OPTS = labelOpts('cdAnalogOut');   // rca / xlr (다중)
+export const TUNER_BAND_OPTS = labelOpts('tunerBand');         // fm_only / am_fm
 export const CAS_HEAD_COUNT_OPTS = labelOpts('headCount');        // two_head / three_head
 export const CAS_DECK_COUNT_OPTS = labelOpts('deckCount');        // single / double (★축D 트리거)
 export const CAS_AUTOREVERSE_OPTS = labelOpts('autoReverse');     // none / playback / rec_play (★축C 트리거)
@@ -544,6 +550,10 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   // ── 카세트 정비/상태 (3단계 — isCassette 게이트, 외관/작동 상태와 별개 축. 정비 이력은 제품 정보 공통 칸으로 옮김) ──
   { key: 'headWear', label: '헤드 상태', input: { kind: 'select', options: CAS_HEAD_WEAR_OPTS }, showWhen: isCassette },
   { key: 'recFunction', label: '녹음 기능', input: { kind: 'select', options: CAS_REC_FUNCTION_OPTS }, showWhen: isCassette }, // 결함 고지 핵심(재생전용/불가)
+  // ── CD 플레이어, 튜너 (2026-11-10 핵심 칸, 영문 키 저장 + labels.ts 라벨) ──
+  { key: 'cdDigitalOut', label: '디지털 출력', input: { kind: 'multi', options: CD_DIGITAL_OUT_OPTS }, showWhen: isCdPlayer },
+  { key: 'cdAnalogOut', label: '아날로그 출력', input: { kind: 'multi', options: CD_ANALOG_OUT_OPTS }, showWhen: isCdPlayer },
+  { key: 'tunerBand', label: '수신 밴드', input: { kind: 'select', options: TUNER_BAND_OPTS }, showWhen: isTuner },
   // ── 공통 꼬리 (소스기기 전체 — 게이트 없음, 앰프/스피커와 동일 키 재사용) ──
   { key: 'finish', label: '마감(색상)', input: { kind: 'text', free: true } },
   { key: 'voltage', label: '전원 전압', input: { kind: 'select', options: AMP_VOLTAGE_OPTS } },
@@ -584,8 +594,8 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
   '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear', 'voltage'], // 정비 이력은 제품 정보 공통 칸으로 옮김. 전원 전압은 2026-11-10 핵심으로
   // CD 플레이어, 튜너 — 원래 분리 없음(마감, 전원, 크기, 무게뿐). 2026-11-10 상세 모드 'custom'을 켜려고 전원 전압만 핵심으로
-  'CD 플레이어': ['voltage'],
-  튜너: ['voltage'],
+  'CD 플레이어': ['cdDigitalOut', 'cdAnalogOut', 'voltage'], // 2026-11-10 디지털, 아날로그 출력 추가
+  튜너: ['tunerBand', 'voltage'],                               // 2026-11-10 수신 밴드 추가
   // 올인원 오디오 (2026-11-10 신설, 숨김) — 전용 칸은 아직 없음. 공통 꼬리(전원, 크기, 무게) + 사양 추가
   '올인원 오디오': ['voltage'],
 };
