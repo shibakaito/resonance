@@ -20,7 +20,7 @@ import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
-import { label, locationText } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
+import { label, desc, locationText } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
@@ -491,6 +491,8 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="font-bold">상태</div>
                   <div className="break-words">
                     {label('condition', listing?.condition)}{' '}
+                    {/* 등급 정의 작은 안내 (labels.ts LABEL_DESC) */}
+                    {desc('condition', listing?.condition) && <span className="text-xs text-gray-500">{desc('condition', listing?.condition)}</span>}{' '}
                     <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
                       등급 기준 자세히 보기
                     </a>
@@ -500,7 +502,8 @@ export function ListingDetail({ id }: { id?: string }) {
                     <>
                       <div className="font-bold">외관 상태</div>
                       <div className="break-words">
-                        {listing.appearance}
+                        {label('appearance', listing.appearance)}{' '}
+                        <span className="text-xs text-gray-500">{desc('appearance', listing.appearance)}</span>
                         {listing.appearanceDetail && (
                           <p className="mt-1 text-sm text-gray-600">{listing.appearanceDetail}</p>
                         )}
@@ -512,7 +515,8 @@ export function ListingDetail({ id }: { id?: string }) {
                     <>
                       <div className="font-bold">작동 상태</div>
                       <div className="break-words">
-                        {listing.working}
+                        {label('working', listing.working)}{' '}
+                        <span className="text-xs text-gray-500">{desc('working', listing.working)}</span>
                         {listing.workingDetail && (
                           <p className="mt-1 text-sm text-gray-600">{listing.workingDetail}</p>
                         )}

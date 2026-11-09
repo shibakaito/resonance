@@ -179,9 +179,9 @@ export type Listing = {
   price: number;
   currency: string;           // 통화 키 (krw / jpy) — 가격 표시 기호. 필터는 통화 구분 없이 숫자 비교
   condition: string;         // 상태 키 (used_good 등, 화면은 label('condition'))
-  appearance: string;        // 외관 등급 (한글 라벨, 없으면 '')
+  appearance: string;        // 외관 등급 키 (mint 등, 없으면 '')
   appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
-  working: string;           // 작동 등급 (한글 라벨, 없으면 '')
+  working: string;           // 작동 등급 키 (working 등, 없으면 '')
   workingDetail: string;     // 작동 자유 입력 (없으면 '')
   maintenance: string[];     // 정비 이력 (한글 라벨, 직접 입력 글은 그대로, 없으면 []) — specs.tech.maintenance
   location: string;          // 지역 키 (kr_seoul, jp_tokyo 등) — 필터 값과 같음. 화면 글자는 label('location'), 위치 줄은 locationText

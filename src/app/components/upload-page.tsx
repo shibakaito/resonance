@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
-import { NEW_CONDITION_KEYS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
+import { NEW_CONDITION_KEYS, desc, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
@@ -55,17 +55,17 @@ const OWNERSHIP_OPTIONS = [
   { value: 'multiple_owners', label: '2인 이상 소유' },
 ];
 
-// 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일.
+// 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일. 등급 정의 한 줄은 labels.ts LABEL_DESC(desc)
 const CONDITIONS = [
-  { value: 'new', label: '새상품', desc: '사용하지 않은 새 제품' },
-  { value: 'unopened', label: '미개봉', desc: '포장을 개봉하지 않은 새 제품' },
-  { value: 'nos', label: 'NOS', desc: '신품이지만 오래 보관된 재고품 (New Old Stock)' },
-  { value: 'used_mint', label: '민트급', desc: '새상품에 가까운 상태로 사용 흔적이 거의 없음' },
-  { value: 'used_excellent', label: '매우 좋음', desc: '가벼운 사용감만 있는 양호한 상태' },
-  { value: 'used_good', label: '좋음', desc: '약간의 외관 흠집이 있으나 깨끗한 상태' },
-  { value: 'used_fair', label: '보통', desc: '눈에 띄는 사용감, 작동은 정상' },
-  { value: 'used_needs_service', label: '점검 필요', desc: '작동 이상 또는 점검/수리가 필요' },
-  { value: 'used_not_working', label: '작동 불가', desc: '부품용 또는 수리를 전제로 한 상태' }
+  { value: 'new', label: '새상품' },
+  { value: 'unopened', label: '미개봉' },
+  { value: 'nos', label: 'NOS' },
+  { value: 'used_mint', label: '민트급' },
+  { value: 'used_excellent', label: '매우 좋음' },
+  { value: 'used_good', label: '좋음' },
+  { value: 'used_fair', label: '보통' },
+  { value: 'used_needs_service', label: '점검 필요' },
+  { value: 'used_not_working', label: '작동 불가' }
 ];
 
 const PHOTO_EXAMPLES = [
@@ -1325,6 +1325,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
+                {/* 고른 등급의 정의 한 줄 */}
+                {condition && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
               </div>
 
               {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님 */}
@@ -1378,6 +1380,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
+                {conditionAppearance && <p className="mt-1 text-xs text-gray-500">{desc('appearance', conditionAppearance)}</p>}
               </div>
               )}
 
@@ -1410,6 +1413,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                 </div>
+                {conditionWorking && <p className="mt-1 text-xs text-gray-500">{desc('working', conditionWorking)}</p>}
               </div>
               )}
 

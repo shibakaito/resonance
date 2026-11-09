@@ -112,9 +112,9 @@ function mapRow(row: ListingRow): Listing {
     currency: row.currency ?? 'krw', // 통화 키 (krw / jpy), 칸이 없던 옛 행은 원화
     condition: row.condition, // 상태 키 (used_good 등) — 필터가 키로 비교, 화면은 label('condition')
     // 외관/작동 상태 (참고용, specs에서)
-    appearance: label('appearance', typeof s.appearance === 'string' ? s.appearance : ''),
+    appearance: typeof s.appearance === 'string' ? s.appearance : '', // 외관 등급 키 (mint 등) — 화면은 label('appearance'), 정의는 desc
     appearanceDetail: typeof s.appearanceDetail === 'string' ? s.appearanceDetail : '',
-    working: label('working', typeof s.working === 'string' ? s.working : ''),
+    working: typeof s.working === 'string' ? s.working : '',          // 작동 등급 키 (working 등)
     workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
     // 정비 이력 (제품 정보 공통 칸, 저장 자리는 tech.maintenance) — 영문키는 한글 라벨로, 직접 입력 글은 그대로
     maintenance: techArr('maintenance').map((x) => label('maintenance', x)),
