@@ -182,6 +182,13 @@ function mapRow(row: ListingRow): Listing {
     cdDigitalOut: techArr('cdDigitalOut'), // coaxial / optical / none
     cdAnalogOut: techArr('cdAnalogOut'),   // rca / xlr
     tunerBand: techStr('tunerBand'),       // fm_only / am_fm
+    // 카세트 데크 핵심 칸 (2026-11-10 필터)
+    headCount: techStr('headCount'),
+    autoReverse: techStr('autoReverse'),
+    capstan: techStr('capstan'),
+    noiseReduction: techArr('noiseReduction'),
+    tapeTypeRec: techArr('tapeTypeRec'),
+    headWear: techStr('headWear'),
     // 전원 장치
     ratedCapacity: s.ratedCapacity ?? 0,
     // 케이블

@@ -64,6 +64,12 @@ import {
   CD_DIGITAL_OUTS,
   CD_ANALOG_OUTS,
   TUNER_BANDS,
+  CAS_HEAD_COUNTS,
+  CAS_AUTOREVERSES,
+  CAS_CAPSTANS,
+  CAS_NRS,
+  CAS_TAPE_TYPES,
+  CAS_HEAD_WEARS,
   WOOFER_SIZES,
   applyFilters,
   cloneFilters,
@@ -413,6 +419,7 @@ export function FilterModal({
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn', 'cdDigitalOut', 'cdAnalogOut', 'tunerBand',
+    'headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   const prefixFor: Partial<Record<keyof Filters, string>> = {
@@ -420,6 +427,8 @@ export function FilterModal({
     phonoBuiltIn: '포노앰프 내장',
     cdDigitalOut: '디지털 출력',
     cdAnalogOut: '아날로그 출력',
+    autoReverse: '오토리버스',
+    headWear: '헤드 상태',
     phono: '포노',
     toneControl: '톤 컨트롤',
     remote: '리모컨',
@@ -905,6 +914,32 @@ export function FilterModal({
               </Section>
               <Section title="아날로그 출력" defaultOpen>
                 <CheckGroup options={CD_ANALOG_OUTS} selected={draft.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleIn('cdAnalogOut')} counts={counts.cdAnalogOut} />
+              </Section>
+            </>
+          )}
+          {/* 카세트 데크 전용 (2026-11-10) — 핵심 칸 6개 + 전원 전압 */}
+          {draftVis.cassette && (
+            <>
+              <Section title="헤드 수" defaultOpen>
+                <CheckGroup options={CAS_HEAD_COUNTS} selected={draft.headCount} getLabel={lab('headCount')} onToggle={toggleIn('headCount')} counts={counts.headCount} />
+              </Section>
+              <Section title="오토리버스" defaultOpen>
+                <CheckGroup options={CAS_AUTOREVERSES} selected={draft.autoReverse} getLabel={lab('autoReverse')} onToggle={toggleIn('autoReverse')} counts={counts.autoReverse} />
+              </Section>
+              <Section title="캡스턴" defaultOpen>
+                <CheckGroup options={CAS_CAPSTANS} selected={draft.capstan} getLabel={lab('capstan')} onToggle={toggleIn('capstan')} counts={counts.capstan} />
+              </Section>
+              <Section title="노이즈 리덕션" defaultOpen>
+                <CheckGroup options={CAS_NRS} selected={draft.noiseReduction} getLabel={lab('noiseReduction')} onToggle={toggleIn('noiseReduction')} counts={counts.noiseReduction} />
+              </Section>
+              <Section title="녹음 가능 테이프" defaultOpen>
+                <CheckGroup options={CAS_TAPE_TYPES} selected={draft.tapeTypeRec} getLabel={lab('tapeTypeRec')} onToggle={toggleIn('tapeTypeRec')} counts={counts.tapeTypeRec} />
+              </Section>
+              <Section title="헤드 상태" defaultOpen>
+                <CheckGroup options={CAS_HEAD_WEARS} selected={draft.headWear} getLabel={lab('headWear')} onToggle={toggleIn('headWear')} counts={counts.headWear} />
+              </Section>
+              <Section title="전원 전압" defaultOpen>
+                <CheckGroup options={VOLTAGE_OPTS} selected={draft.voltage} getLabel={lab('voltage')} onToggle={toggleIn('voltage')} counts={counts.voltage} />
               </Section>
             </>
           )}

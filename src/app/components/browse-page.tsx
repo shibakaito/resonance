@@ -76,6 +76,12 @@ import {
   CD_DIGITAL_OUTS,
   CD_ANALOG_OUTS,
   TUNER_BANDS,
+  CAS_HEAD_COUNTS,
+  CAS_AUTOREVERSES,
+  CAS_CAPSTANS,
+  CAS_NRS,
+  CAS_TAPE_TYPES,
+  CAS_HEAD_WEARS,
   WOOFER_SIZES,
   applyFilters,
   filterLabel,
@@ -320,6 +326,12 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       cdDigitalOut: countBy(categoryListings, (l) => l.cdDigitalOut),
       cdAnalogOut: countBy(categoryListings, (l) => l.cdAnalogOut),
       tunerBand: countBy(categoryListings, (l) => l.tunerBand),
+      headCount: countBy(categoryListings, (l) => l.headCount),
+      autoReverse: countBy(categoryListings, (l) => l.autoReverse),
+      capstan: countBy(categoryListings, (l) => l.capstan),
+      noiseReduction: countBy(categoryListings, (l) => l.noiseReduction),
+      tapeTypeRec: countBy(categoryListings, (l) => l.tapeTypeRec),
+      headWear: countBy(categoryListings, (l) => l.headWear),
       terminalIn: countBy(categoryListings, (l) => l.terminalIn),
       terminalOut: countBy(categoryListings, (l) => l.terminalOut),
       directional: countBy(categoryListings, (l) => l.directional),
@@ -474,6 +486,12 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'cdDigitalOut', prefix: '디지털 출력' },  // CD 플레이어 (아래에서 거름)
       { key: 'cdAnalogOut', prefix: '아날로그 출력' },
       { key: 'tunerBand' },                            // 튜너
+      { key: 'headCount' },                            // 카세트 데크 (2026-11-10)
+      { key: 'autoReverse', prefix: '오토리버스' },
+      { key: 'capstan' },
+      { key: 'noiseReduction' },
+      { key: 'tapeTypeRec' },
+      { key: 'headWear', prefix: '헤드 상태' },
       { key: 'terminalIn', prefix: '입력' },
       { key: 'terminalOut', prefix: '출력' },
       { key: 'directional', prefix: '방향성' },
@@ -829,6 +847,18 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 <>
                   <FilterSection label="디지털 출력" options={CD_DIGITAL_OUTS} selected={filters.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleField('cdDigitalOut')} counts={counts.cdDigitalOut} />
                   <FilterSection label="아날로그 출력" options={CD_ANALOG_OUTS} selected={filters.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleField('cdAnalogOut')} counts={counts.cdAnalogOut} />
+                </>
+              )}
+              {/* 카세트 데크 전용 (2026-11-10) — 핵심 칸 6개 + 전원 전압 */}
+              {vis.cassette && (
+                <>
+                  <FilterSection label="헤드 수" options={CAS_HEAD_COUNTS} selected={filters.headCount} getLabel={lab('headCount')} onToggle={toggleField('headCount')} counts={counts.headCount} />
+                  <FilterSection label="오토리버스" options={CAS_AUTOREVERSES} selected={filters.autoReverse} getLabel={lab('autoReverse')} onToggle={toggleField('autoReverse')} counts={counts.autoReverse} />
+                  <FilterSection label="캡스턴" options={CAS_CAPSTANS} selected={filters.capstan} getLabel={lab('capstan')} onToggle={toggleField('capstan')} counts={counts.capstan} />
+                  <FilterSection label="노이즈 리덕션" options={CAS_NRS} selected={filters.noiseReduction} getLabel={lab('noiseReduction')} onToggle={toggleField('noiseReduction')} counts={counts.noiseReduction} defaultOpen={false} />
+                  <FilterSection label="녹음 가능 테이프" options={CAS_TAPE_TYPES} selected={filters.tapeTypeRec} getLabel={lab('tapeTypeRec')} onToggle={toggleField('tapeTypeRec')} counts={counts.tapeTypeRec} defaultOpen={false} />
+                  <FilterSection label="헤드 상태" options={CAS_HEAD_WEARS} selected={filters.headWear} getLabel={lab('headWear')} onToggle={toggleField('headWear')} counts={counts.headWear} defaultOpen={false} />
+                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
               {/* 튜너 전용 (2026-11-10) */}
