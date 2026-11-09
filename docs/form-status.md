@@ -516,7 +516,7 @@
 |---|---|---|
 | `src/app/components/home-page.tsx:327` | 관심 있게 본 매물: (로그인 기능 전이라) 임시로 최신 DB 매물 표시 |  |
 | `src/app/components/upload-page.tsx:941` | 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계. | 요약·저장은 이미 구현됨 — 주석만 오래됨 |
-| `src/app/components/upload-page.tsx:2716` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
+| `src/app/components/upload-page.tsx:2724` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
 | `src/app/data/catalog.ts:777` | (하위 카테고리 영어 별칭은 추후 필요해지면 추가) |  |
 | `src/app/data/category-specs.ts:487` | 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가. |  |
 | `src/lib/listings.ts:5` | 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에) | 영문키 통일은 보류 결정(Y안) — 다국어 착수 때 다시 |

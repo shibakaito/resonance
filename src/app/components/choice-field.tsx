@@ -9,6 +9,7 @@
 // 버튼 모양 = 각진 버튼(턴테이블 회전수와 같은 모양). 저장값은 드롭다운과 같음:
 //   하나 고르기는 값 하나(다시 누르면 해제는 allowClear 일 때만), 여러 개 고르기는 누른 순서대로 쌓임(드롭다운과 같은 순서 규칙)
 // 드롭다운 쪽 모양은 부르는 곳이 dropdown 으로 넘김 (칸마다 검색, 별칭, 직접 입력 등 기존 동작 그대로)
+// 예외: CHOICE_DROPDOWN_ONLY 목록에 든 칸(fieldKey)은 선택지 수와 상관없이 늘 드롭다운 — 예외는 이 목록 하나로만 관리
 // ============================================================================
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 
@@ -16,13 +17,18 @@ export type ChoiceOption = string | { value: string; label: string };
 
 // 버튼으로 그릴 최대 선택지 수
 export const CHOICE_BUTTON_MAX = { single: 5, multi: 6 } as const;
-// 선택지 수 → 버튼으로 그릴지
-export const choiceAsButtons = (count: number, multiple: boolean): boolean =>
+// 버튼 규칙의 예외 — 늘 드롭다운으로 그릴 칸 (저장 키 이름). 칸을 더하거나 빼려면 여기만
+//   condition(상태): 2026-11-10 드롭다운 유지 결정
+export const CHOICE_DROPDOWN_ONLY: ReadonlySet<string> = new Set(['condition']);
+// 선택지 수(와 예외 목록) → 버튼으로 그릴지
+export const choiceAsButtons = (count: number, multiple: boolean, fieldKey?: string): boolean =>
+  !(fieldKey && CHOICE_DROPDOWN_ONLY.has(fieldKey)) &&
   count > 0 && count <= (multiple ? CHOICE_BUTTON_MAX.multi : CHOICE_BUTTON_MAX.single);
 
 const norm = (o: ChoiceOption) => (typeof o === 'string' ? { value: o, label: o } : o);
 
 type Common = {
+  fieldKey?: string;                   // 칸의 저장 키 (예: 'condition', 'channel') — 예외 목록 CHOICE_DROPDOWN_ONLY 와 맞춰 봄
   options: ChoiceOption[];
   dropdown: ReactNode;                 // 선택지가 많을 때 그릴 기존 드롭다운
   disabled?: boolean;                  // 흐리게(누를 수 없음) — 예: 상태가 중고가 아닐 때 외관, 작동
@@ -53,7 +59,7 @@ function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabl
 
 export function ChoiceField(props: Single | Multi) {
   const opts = props.options.map(norm);
-  if (!choiceAsButtons(opts.length, props.multiple === true)) return <>{props.dropdown}</>;
+  if (!choiceAsButtons(opts.length, props.multiple === true, props.fieldKey)) return <>{props.dropdown}</>;
   const text = (v: string, label: string) => props.buttonText?.[v] ?? label;
   // 버튼 하나의 상태와 누름 동작 — 여러 개 고르기는 누른 순서대로 쌓고 다시 누르면 뺌, 하나 고르기는 바꾸기(allowClear 면 다시 눌러 해제)
   let isOn: (v: string) => boolean;

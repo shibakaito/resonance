@@ -1488,8 +1488,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className="block font-semibold mb-1">
                   상태 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                 </label>
-                {/* 선택 부품(ChoiceField): 4개라 버튼 한 줄. 필수라 다시 눌러도 해제 안 됨 */}
+                {/* 선택 부품(ChoiceField): 상태는 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운. 버튼이 되더라도 필수라 다시 눌러도 해제 안 됨 */}
                 <ChoiceField
+                  fieldKey="condition"
                   ariaLabel="상태"
                   options={CONDITIONS}
                   value={condition}
@@ -1522,6 +1523,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>소유권</label>
                 <ChoiceField
+                  fieldKey="ownership"
                   ariaLabel="소유권"
                   options={OWNERSHIP_OPTIONS}
                   value={ownership}
@@ -1555,6 +1557,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>외관 상태</label>
                 {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
                 <ChoiceField
+                  fieldKey="appearance"
                   ariaLabel="외관 상태"
                   options={APPEARANCE_OPTIONS}
                   value={conditionAppearance}
@@ -1597,6 +1600,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>작동 상태</label>
                 {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
                 <ChoiceField
+                  fieldKey="working"
                   ariaLabel="작동 상태"
                   options={WORKING_OPTIONS}
                   value={conditionWorking}
@@ -1641,6 +1645,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 {/* 선택 부품: 6개라 버튼 토글(직접 입력은 드롭다운일 때만) */}
                 <ChoiceField
                   multiple
+                  fieldKey="maintenance"
                   ariaLabel="정비 이력"
                   options={MAINTENANCE_OPTS}
                   values={maintenance}
@@ -1725,6 +1730,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <ChoiceField
+                          fieldKey={f.key}
                           ariaLabel={f.label}
                           options={f.input.options}
                           value={v}
@@ -2152,6 +2158,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <label>{f.label}</label>
                         <ChoiceField
                           multiple
+                          fieldKey={f.key}
                           ariaLabel={f.label}
                           options={f.input.options}
                           values={sel}
@@ -2641,6 +2648,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className="block font-semibold mb-1">통화</label>
                 {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
                 <ChoiceField
+                  fieldKey="currency"
                   ariaLabel="통화"
                   options={CURRENCY_OPTS.map((o) => ({ value: o.value, label: `${o.label} (${CURRENCY_SYMBOLS[o.value]})` }))}
                   value={currency}
@@ -2882,6 +2890,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className="block font-semibold mb-1">국가</label>
                 {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음). 지역은 17개, 47개라 드롭다운 그대로 */}
                 <ChoiceField
+                  fieldKey="locationCountry"
                   ariaLabel="국가"
                   options={LOCATION_COUNTRY_OPTS}
                   value={locationCountry}
