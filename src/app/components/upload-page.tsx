@@ -2576,8 +2576,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             * - 사용자가 입력한 price 기준으로 보라(저렴) / 초록(적정) / 검정(비쌈) 영역에
             *   현재 가격 위치를 점·말풍선으로 표시.
             * - MARKET_MIN/MAX는 ⚠️ 임시 하드코딩. 추후 시장 데이터 기반 로직으로 교체 예정.
+            * - FEATURE_FLAGS.marketPriceCard 가 꺼져 있으면 카드 전체를 그리지 않음(계산 코드는 그대로)
             * ============================================================ */}
-          {(() => {
+          {FEATURE_FLAGS.marketPriceCard && (() => {
             const priceNum = parseInt(price || '0', 10);
             // ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체.
             const hasMarketData = true;
