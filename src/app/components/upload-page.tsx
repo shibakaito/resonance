@@ -20,11 +20,12 @@ import {
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
-import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
+import { ChoiceField } from './choice-field'; // 선택 부품: 선택지 수로 버튼 / 드롭다운 자동 (하나 고르기 5개 이하, 여러 개 6개 이하면 버튼)
+import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, SPEC_LABELS, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, detailModeOf, hiddenByDetailMode, cleanCustomSpecs, type CustomSpecRow, type CategorySpecField, optLabel, optLabels, optValue, optValues, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, detailModeOf, hiddenByDetailMode, cleanCustomSpecs, type CustomSpecRow, type CategorySpecField, optLabel, optLabels, optValue, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -59,6 +60,11 @@ const OWNERSHIP_OPTIONS = [
 // 상태: 종류 4개(새상품, 미개봉, NOS, 중고) — DB에 저장되는 영문 키(value) + 화면 표시(label), labels.ts LABELS.condition 그대로. 정의 한 줄은 LABEL_DESC(desc)
 //   중고의 등급은 아래 외관 상태, 작동 상태 칸이 맡음 (2026-11-10 상태 등급 재구성)
 const CONDITIONS = CONDITION_KEYS.map((value) => ({ value, label: label('condition', value) }));
+// 외관 상태 4개, 작동 상태 3개 — labels.ts SPEC_LABELS 표 그대로 (저장 = 영문 키)
+const APPEARANCE_OPTIONS = Object.keys(SPEC_LABELS.appearance).map((value) => ({ value, label: label('appearance', value) }));
+const WORKING_OPTIONS = Object.keys(SPEC_LABELS.working).map((value) => ({ value, label: label('working', value) }));
+// 버튼 글자만 바꾸는 칸 (저장값 그대로) — 턴테이블 회전수 '33' → '33⅓'
+const CHOICE_BUTTON_TEXT: Record<string, Record<string, string>> = { speeds: { '33': '33⅓', '45': '45', '78': '78' } };
 
 const PHOTO_EXAMPLES = [
   { label: '프론트', img: '/images/Front.png' },
@@ -904,6 +910,23 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [maintenance, setMaintenance] = useState<string[]>([]);              // 정비 이력 (다중 — 영문키 + 직접 입력 글) → specs.tech.maintenance
   // 새 제품 상태(새상품, 미개봉, NOS)면 중고 칸(외관 상태, 작동 상태)을 숨기고 저장도 안 함. 정비 이력은 화면은 FEATURE_FLAGS.maintenance 가 정하고, 저장은 예전처럼 새 제품 상태면 안 함
   const usedFieldsHidden = NEW_CONDITION_KEYS.includes(condition);
+  // 배송 국가 바꾸기 (버튼, 드롭다운 공용) — 다른 나라 지역이 남지 않게 지역 비움
+  const onLocationCountryChange = (c: string) => {
+    setLocationCountry(c);
+    if (locationCountryOf(location) !== c) setLocation('');
+  };
+  // 상태 바꾸기 (버튼, 드롭다운 공용) — 새상품, 미개봉, NOS 로 바뀌면 소유권, 외관, 작동, 정비 이력 값 자동 초기화
+  const onConditionChange = (v: string) => {
+    setCondition(v);
+    if (v !== 'used') {
+      setOwnership('');
+      setConditionAppearance('');
+      setConditionAppearanceDetail('');
+      setConditionWorking('');
+      setConditionWorkingDetail('');
+      setMaintenance([]);
+    }
+  };
   // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
   const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string; note?: string }[]>([{ w: '', ohm: '', note: '' }]);
   // range(하한~상한) — key별 보관 (주파수 응답·권장 임피던스 등 range 칸이 여러 개 동시에 떠도 독립)
@@ -1465,33 +1488,31 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <label className="block font-semibold mb-1">
                   상태 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
                 </label>
-                <div className="relative">
-                  <select
-                    value={condition}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      setCondition(v);
-                      // 새상품, 미개봉, NOS 로 바뀌면 소유권, 외관, 작동, 정비 이력 값 자동 초기화
-                      if (v !== 'used') {
-                        setOwnership('');
-                        setConditionAppearance('');
-                        setConditionAppearanceDetail('');
-                        setConditionWorking('');
-                        setConditionWorkingDetail('');
-                        setMaintenance([]);
-                      }
-                    }}
-                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
-                      condition ? '' : 'text-gray-400'
-                    }`}
-                  >
-                    <option value="" disabled>선택하세요</option>
-                    {CONDITIONS.map((c) => (
-                      <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                {/* 선택 부품(ChoiceField): 4개라 버튼 한 줄. 필수라 다시 눌러도 해제 안 됨 */}
+                <ChoiceField
+                  ariaLabel="상태"
+                  options={CONDITIONS}
+                  value={condition}
+                  onChange={onConditionChange}
+                  allowClear={false}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={condition}
+                        onChange={(e) => onConditionChange(e.target.value)}
+                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                          condition ? '' : 'text-gray-400'
+                        }`}
+                      >
+                        <option value="" disabled>선택하세요</option>
+                        {CONDITIONS.map((c) => (
+                          <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
                 {/* 고른 상태의 정의 한 줄 */}
                 {desc('condition', condition) && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
               </div>
@@ -1500,22 +1521,31 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {FEATURE_FLAGS.ownership && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>소유권</label>
-                <div className="relative">
-                  <select
-                    value={ownership}
-                    onChange={(e) => setOwnership(e.target.value)}
-                    disabled={condition !== 'used'}
-                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                      ownership ? '' : 'text-gray-400'
-                    }`}
-                  >
-                    <option value="" disabled>선택하세요</option>
-                    {OWNERSHIP_OPTIONS.map((opt) => (
-                      <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                <ChoiceField
+                  ariaLabel="소유권"
+                  options={OWNERSHIP_OPTIONS}
+                  value={ownership}
+                  onChange={setOwnership}
+                  disabled={condition !== 'used'}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={ownership}
+                        onChange={(e) => setOwnership(e.target.value)}
+                        disabled={condition !== 'used'}
+                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                          ownership ? '' : 'text-gray-400'
+                        }`}
+                      >
+                        <option value="" disabled>선택하세요</option>
+                        {OWNERSHIP_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
               </div>
               )}
 
@@ -1523,32 +1553,40 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>외관 상태</label>
-                <div className="flex gap-2">
-                  <div className="relative w-36 flex-shrink-0">
-                    <select
-                      value={conditionAppearance}
-                      onChange={(e) => setConditionAppearance(e.target.value)}
-                      disabled={condition !== 'used'}
-                      className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                        conditionAppearance ? '' : 'text-gray-400'
-                      }`}
-                    >
-                      <option value="" disabled>선택</option>
-                      <option value="mint" className="text-[#000000]">민트급</option>
-                      <option value="excellent" className="text-[#000000]">매우 좋음</option>
-                      <option value="good" className="text-[#000000]">좋음</option>
-                      <option value="fair" className="text-[#000000]">보통</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                  </div>
-                  <input
-                    value={conditionAppearanceDetail}
-                    onChange={(e) => setConditionAppearanceDetail(e.target.value)}
-                    disabled={condition !== 'used'}
-                    placeholder=""
-                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
-                  />
-                </div>
+                {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
+                <ChoiceField
+                  ariaLabel="외관 상태"
+                  options={APPEARANCE_OPTIONS}
+                  value={conditionAppearance}
+                  onChange={setConditionAppearance}
+                  disabled={condition !== 'used'}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={conditionAppearance}
+                        onChange={(e) => setConditionAppearance(e.target.value)}
+                        disabled={condition !== 'used'}
+                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                          conditionAppearance ? '' : 'text-gray-400'
+                        }`}
+                      >
+                        <option value="" disabled>선택</option>
+                        {APPEARANCE_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
+                <input
+                  value={conditionAppearanceDetail}
+                  onChange={(e) => setConditionAppearanceDetail(e.target.value)}
+                  disabled={condition !== 'used'}
+                  placeholder=""
+                  aria-label="외관 상태 자세히"
+                  className="mt-2 w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                />
                 {desc('appearance', conditionAppearance) && <p className="mt-1 text-xs text-gray-500">{desc('appearance', conditionAppearance)}</p>}
               </div>
               )}
@@ -1557,31 +1595,40 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>작동 상태</label>
-                <div className="flex gap-2">
-                  <div className="relative w-36 flex-shrink-0">
-                    <select
-                      value={conditionWorking}
-                      onChange={(e) => setConditionWorking(e.target.value)}
-                      disabled={condition !== 'used'}
-                      className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                        conditionWorking ? '' : 'text-gray-400'
-                      }`}
-                    >
-                      <option value="" disabled>선택</option>
-                      <option value="working" className="text-[#000000]">정상 작동</option>
-                      <option value="needs_inspection" className="text-[#000000]">점검 필요</option>
-                      <option value="needs_repair" className="text-[#000000]">수리 필요</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                  </div>
-                  <input
-                    value={conditionWorkingDetail}
-                    onChange={(e) => setConditionWorkingDetail(e.target.value)}
-                    disabled={condition !== 'used'}
-                    placeholder=""
-                    className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
-                  />
-                </div>
+                {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
+                <ChoiceField
+                  ariaLabel="작동 상태"
+                  options={WORKING_OPTIONS}
+                  value={conditionWorking}
+                  onChange={setConditionWorking}
+                  disabled={condition !== 'used'}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={conditionWorking}
+                        onChange={(e) => setConditionWorking(e.target.value)}
+                        disabled={condition !== 'used'}
+                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                          conditionWorking ? '' : 'text-gray-400'
+                        }`}
+                      >
+                        <option value="" disabled>선택</option>
+                        {WORKING_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
+                <input
+                  value={conditionWorkingDetail}
+                  onChange={(e) => setConditionWorkingDetail(e.target.value)}
+                  disabled={condition !== 'used'}
+                  placeholder=""
+                  aria-label="작동 상태 자세히"
+                  className="mt-2 w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                />
                 {desc('working', conditionWorking) && <p className="mt-1 text-xs text-gray-500">{desc('working', conditionWorking)}</p>}
               </div>
               )}
@@ -1591,11 +1638,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {FEATURE_FLAGS.maintenance && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>정비 이력</label>
-                <MultiSelectDropdown
+                {/* 선택 부품: 6개라 버튼 토글(직접 입력은 드롭다운일 때만) */}
+                <ChoiceField
+                  multiple
+                  ariaLabel="정비 이력"
                   options={MAINTENANCE_OPTS}
-                  selected={maintenance}
+                  values={maintenance}
                   onChange={setMaintenance}
                   disabled={condition !== 'used'}
+                  dropdown={<MultiSelectDropdown options={MAINTENANCE_OPTS} selected={maintenance} onChange={setMaintenance} disabled={condition !== 'used'} />}
                 />
               </div>
               )}
@@ -1667,12 +1718,19 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </div>
                     );
                   }
-                  // ── 드롭다운 ──
+                  // ── 하나 고르기 — 선택 부품(ChoiceField): 선택지 5개 이하면 각진 버튼 한 줄(다시 누르면 해제), 6개 이상이면 아래 드롭다운 ──
                   if (f.input.kind === 'select') {
                     const v = specs[f.key] || '';
                     return (
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
+                        <ChoiceField
+                          ariaLabel={f.label}
+                          options={f.input.options}
+                          value={v}
+                          onChange={setSpec}
+                          buttonText={CHOICE_BUTTON_TEXT[f.key]}
+                          dropdown={
                         <div className="relative">
                           <select
                             value={v}
@@ -1701,6 +1759,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           )}
                           <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                         </div>
+                          }
+                        />
                       </div>
                     );
                   }
@@ -2084,54 +2144,26 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'multi') {
                     const sel = f.key === 'impedance' ? impedances : (multiSel[f.key] ?? []);
                     const setSel = f.key === 'impedance' ? setImpedances : (next: string[] | ((p: string[]) => string[])) => setMultiSel((m) => ({ ...m, [f.key]: typeof next === 'function' ? next(m[f.key] ?? []) : next }));
-                    // 임피던스: 드롭다운 선택(다중) + 아래 회색 범위칸 / 단자: 검색 + 칩
-                    if (f.key === 'impedance') {
-                      return (
-                        <div key={f.key} className="spec-field">
-                          <label>{f.label}</label>
-                          <ImpedanceSelect
-                            options={f.input.options as string[]}
-                            selected={sel}
-                            onChange={setSel}
-                            displayText={impedanceRange(sel)}
-                          />
-                        </div>
-                      );
-                    }
-                    // 턴테이블 회전수: 드롭다운 대신 각진 버튼 토글 3개 (누르면 선택, 다시 누르면 해제). 저장값은 그대로 '33' / '45' / '78', 순서는 목록 순 (2026-11-10)
-                    if (f.key === 'speeds') {
-                      const opts = optValues(f.input.options);
-                      const SPEED_TEXT: Record<string, string> = { '33': '33⅓', '45': '45', '78': '78' }; // 버튼 글자 (라벨 표는 '33 1/3 RPM')
-                      return (
-                        <div key={f.key} className="spec-field">
-                          <label>{f.label}</label>
-                          <div className="flex gap-2">
-                            {opts.map((v) => {
-                              const on = sel.includes(v);
-                              return (
-                                <button
-                                  key={v}
-                                  type="button"
-                                  aria-pressed={on}
-                                  onClick={() => setSel((prev) => opts.filter((o) => (o === v ? !prev.includes(o) : prev.includes(o))))}
-                                  className={`h-[42px] min-w-[64px] px-4 border rounded-none text-sm font-semibold ${on ? 'border-[#000000] bg-[#000000] text-white' : 'border-[#e0e0e0] bg-white text-[#000000] hover:border-[#000000]'}`}
-                                >
-                                  {SPEED_TEXT[v] ?? v}
-                                </button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    }
+                    // 선택 부품(ChoiceField): 선택지 6개 이하면 각진 버튼 토글(누른 순서대로 쌓임, 다시 누르면 해제), 7개 이상이면 기존 드롭다운
+                    //   드롭다운 쪽: 임피던스 = 드롭다운 + 범위 표시(ImpedanceSelect) / 단자 등 = 검색 + 칩 + 직접 입력(MultiSelectDropdown)
+                    //   회전수도 여기서 같이 (버튼 글자만 CHOICE_BUTTON_TEXT 로 '33⅓')
                     return (
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
-                        <MultiSelectDropdown
+                        <ChoiceField
+                          multiple
+                          ariaLabel={f.label}
                           options={f.input.options}
-                          selected={sel}
+                          values={sel}
                           onChange={setSel}
-                          aliases={TERMINAL_ALIASES}
+                          buttonText={CHOICE_BUTTON_TEXT[f.key]}
+                          dropdown={
+                            f.key === 'impedance' ? (
+                              <ImpedanceSelect options={f.input.options as string[]} selected={sel} onChange={setSel} displayText={impedanceRange(sel)} />
+                            ) : (
+                              <MultiSelectDropdown options={f.input.options} selected={sel} onChange={setSel} aliases={TERMINAL_ALIASES} />
+                            )
+                          }
                         />
                       </div>
                     );
@@ -2607,18 +2639,28 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               <div className="max-w-[12rem]">
                 <label className="block font-semibold mb-1">통화</label>
-                <div className="relative">
-                  <select
-                    value={currency}
-                    onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
-                  >
-                    {CURRENCY_OPTS.map((o) => (
-                      <option key={o.value} value={o.value} className="text-[#000000]">{o.label} ({CURRENCY_SYMBOLS[o.value]})</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
+                <ChoiceField
+                  ariaLabel="통화"
+                  options={CURRENCY_OPTS.map((o) => ({ value: o.value, label: `${o.label} (${CURRENCY_SYMBOLS[o.value]})` }))}
+                  value={currency}
+                  onChange={setCurrency}
+                  allowClear={false}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={currency}
+                        onChange={(e) => setCurrency(e.target.value)}
+                        className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
+                      >
+                        {CURRENCY_OPTS.map((o) => (
+                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label} ({CURRENCY_SYMBOLS[o.value]})</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
@@ -2838,22 +2880,28 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
               <div>
                 <label className="block font-semibold mb-1">국가</label>
-                <div className="relative">
-                  <select
-                    value={locationCountry}
-                    onChange={(e) => {
-                      const c = e.target.value;
-                      setLocationCountry(c);
-                      if (locationCountryOf(location) !== c) setLocation(''); // 다른 나라 지역이 남지 않게
-                    }}
-                    className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
-                  >
-                    {LOCATION_COUNTRY_OPTS.map((o) => (
-                      <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                </div>
+                {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음). 지역은 17개, 47개라 드롭다운 그대로 */}
+                <ChoiceField
+                  ariaLabel="국가"
+                  options={LOCATION_COUNTRY_OPTS}
+                  value={locationCountry}
+                  onChange={onLocationCountryChange}
+                  allowClear={false}
+                  dropdown={
+                    <div className="relative">
+                      <select
+                        value={locationCountry}
+                        onChange={(e) => onLocationCountryChange(e.target.value)}
+                        className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
+                      >
+                        {LOCATION_COUNTRY_OPTS.map((o) => (
+                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                    </div>
+                  }
+                />
               </div>
               <div>
                 <label className="block font-semibold mb-1">지역</label>
