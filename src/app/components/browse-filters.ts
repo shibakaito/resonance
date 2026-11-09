@@ -609,8 +609,8 @@ export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility)
   // ⚠️ 가격 필터는 통화를 가리지 않고 숫자만 비교함(베타 1은 전부 원화). 엔화 매물이 섞이면 같은 숫자라도 값어치가 달라 환산이 필요(베타 3)
   if (f.priceMin != null) r = r.filter((l) => l.price >= f.priceMin! * 10000);
   if (f.priceMax != null) r = r.filter((l) => l.price <= f.priceMax! * 10000);
-  if (f.yearMin != null) r = r.filter((l) => l.releaseYear >= f.yearMin!);
-  if (f.yearMax != null) r = r.filter((l) => l.releaseYear <= f.yearMax!);
+  // 출시 연도 — 범위 필터 공통 규칙(inRange): 범위를 걸면 연도를 비운 매물(releaseYear 0)은 제외 (2026-11-10 통일)
+  if (f.yearMin != null || f.yearMax != null) r = r.filter((l) => inRange(l.releaseYear > 0 ? l.releaseYear : null, f.yearMin, f.yearMax));
   if (FEATURE_FLAGS.ownership && f.ownership.size > 0) r = r.filter((l) => f.ownership.has(l.ownership)); // 플래그 꺼짐: 소유권 필터 없음
   if (f.country.size > 0) r = r.filter((l) => f.country.has(l.country));
   if (f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
@@ -663,12 +663,12 @@ export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility)
     if (f.headWear.size > 0) r = r.filter((l) => f.headWear.has(l.headWear));
   }
   if (vis.powerDevice) {
-    if (f.ratedCapacityMin != null) r = r.filter((l) => l.ratedCapacity >= f.ratedCapacityMin!);
-    if (f.ratedCapacityMax != null) r = r.filter((l) => l.ratedCapacity <= f.ratedCapacityMax!);
+    // 정격 용량 — inRange (비운 매물 0 은 범위를 걸면 제외)
+    if (f.ratedCapacityMin != null || f.ratedCapacityMax != null) r = r.filter((l) => inRange(l.ratedCapacity > 0 ? l.ratedCapacity : null, f.ratedCapacityMin, f.ratedCapacityMax));
   }
   if (vis.cable) {
-    if (f.cableLengthMin != null) r = r.filter((l) => l.cableLength >= f.cableLengthMin!);
-    if (f.cableLengthMax != null) r = r.filter((l) => l.cableLength <= f.cableLengthMax!);
+    // 길이 — inRange (비운 매물 0 은 범위를 걸면 제외)
+    if (f.cableLengthMin != null || f.cableLengthMax != null) r = r.filter((l) => inRange(l.cableLength > 0 ? l.cableLength : null, f.cableLengthMin, f.cableLengthMax));
     // 입력 단자: terminalIn ∈ 선택된 입력 단자들
     if (f.terminalIn.size > 0) r = r.filter((l) => f.terminalIn.has(l.terminalIn));
     // 출력 단자: terminalOut ∈ 선택된 출력 단자들
