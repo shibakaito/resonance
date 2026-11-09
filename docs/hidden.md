@@ -30,6 +30,7 @@
 | 정비 이력 칸(폼 제품 정보), 상세의 정비 이력 줄 | 칸 | `FEATURE_FLAGS.maintenance` | 2026-11-10 | `true`로. 저장 로직(specs.tech.maintenance, 새 제품 상태면 저장 안 함)과 공통 목록은 그대로. 켜면 상태와 상관없이 칸이 보임(중고가 아니면 흐리게). 시드 4행의 정비 이력은 설명 글 끝 문장으로 옮겨 둠 |
 | 스피커 드라이버 빌더의 구조, 재질 칸과 요약의 구조, 재질 (줄 = 유닛, 크기 + inch/mm, 개수, 비고. 동축은 담당 대역 칸 유지) | 칸 | `FEATURE_FLAGS.driverMaterialStructure` | 2026-11-10 | `true`로. 칸과 요약 칩이 돌아오고 비고 칸은 그대로 남음. 파생 키(driverWays, wooferMaxInch) 계산은 원래 구조, 재질과 무관 |
 | 스피커 '권장 앰프 출력': 북쉘프, 플로어 스탠딩 핵심 칸에서 뺌(사양 추가로) + 필터(사이드바, 필터 모달) | 칸, 필터 | `category-specs.ts` SPEAKER_CORE_NO_REC + `FEATURE_FLAGS.recPowerFilter` | 2026-11-10 | 핵심: 두 하위의 CORE_SPEC_KEYS를 SPEAKER_CORE로. 필터: `true`로(값이 다시 들어와야 걸러짐) |
+| 턴테이블 '형식'(하이파이 / 올인원 / DJ) 칸 | 칸 | `FEATURE_FLAGS.turntableType` | 2026-11-10 | `true`로. 형식 칸과 형식별 칸(올인원 전용, DJ 전용)이 돌아오고, 톤암 등은 다시 하이파이, DJ일 때만. 올인원은 지금 별도 카테고리 '올인원 오디오'(숨김) |
 | 상태 등급 재구성(2026-11-10): 상태 9 → 4, 등급은 외관과 작동으로 | 선택지 | 플래그 없음(코드 변경) | 2026-11-10 | 되돌리려면 git 기록 참고 (커밋 9aee6de부터 03e75b3까지) |
 
 플래그를 켜고 끌 때는 시드(`scripts/seed-listings.ts`)도 같은 플래그를 따르니 dry-run으로 한 번 확인하세요.

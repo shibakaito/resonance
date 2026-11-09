@@ -93,7 +93,10 @@ const isTurntable = (s: Record<string, string | string[]>) => s.__sub === '턴�
 const isTtHifi = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'hifi';
 const isTtAllInOne = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'all_in_one';
 const isTtDj = (s: Record<string, string | string[]>) => isTurntable(s) && s.ttType === 'dj';
-const ttHifiOrDj = (s: Record<string, string | string[]>) => isTtHifi(s) || isTtDj(s); // 기계부 스펙 공유 (올인원 숨김)
+// 기계부 스펙 공유 (올인원 숨김). FEATURE_FLAGS.turntableType 꺼짐(2026-11-10): 형식 칸이 없으니 턴테이블이면 늘 보임(톤암 등). 올인원, DJ 전용 칸은 형식 값이 없어 안 보임
+const ttHifiOrDj = (s: Record<string, string | string[]>) => (FEATURE_FLAGS.turntableType ? isTtHifi(s) || isTtDj(s) : isTurntable(s));
+// 형식 칸 자체 — 플래그 꺼지면 숨김 + 저장 안 함 (폼과 시드가 showWhen 으로 같이 따름)
+const ttTypeShown = (s: Record<string, string | string[]>) => FEATURE_FLAGS.turntableType && isTurntable(s);
 // 턴테이블 구성품 조건부 — 사운드바 subIncl 패턴 (포함/내장 값일 때만 세부 필드 노출)
 const ttCartIncl = (s: Record<string, string | string[]>) => isTurntable(s) && s.cartridge === 'included';
 const ttPhonoBuilt = (s: Record<string, string | string[]>) => isTurntable(s) && s.phonoBuiltIn === 'built_in';
@@ -107,6 +110,7 @@ const casAutoRev = (s: Record<string, string | string[]>) => isCassette(s) && (s
 // labels.ts의 "영문키 → 한글" 표에서 select 옵션({value:영문키, label:한글})을 만든다.
 //   저장은 영문키(필터/labels.ts와 일치), 화면 표시는 한글. only를 주면 그 키만(순서는 labels.ts 정의 순).
 import { SPEC_LABELS } from '@/lib/labels';
+import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md) — 턴테이블 형식
 const labelOpts = (ns: string, only?: string[]): { value: string; label: string }[] =>
   Object.entries(SPEC_LABELS[ns] ?? {})
     .filter(([v]) => !only || only.includes(v))
@@ -478,7 +482,7 @@ export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / pl
 // 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·포터블) / DJ=+퍼포먼스(토크·피치·역재생)
 export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
   { key: 'type', label: '타입', input: { kind: 'auto' } },
-  { key: 'ttType', label: '형식', input: { kind: 'select', options: TT_TYPE_OPTS }, showWhen: isTurntable }, // ★ 분기 키 (스피커 '형식'과 동일 패턴)
+  { key: 'ttType', label: '형식', input: { kind: 'select', options: TT_TYPE_OPTS }, showWhen: ttTypeShown }, // ★ 분기 키 (스피커 '형식'과 동일 패턴). FEATURE_FLAGS.turntableType 꺼짐: 숨김
   // ── 턴테이블: 구동·회전 (전 유형) ──
   { key: 'driveType', label: '구동 방식', input: { kind: 'select', options: TT_DRIVE_OPTS }, showWhen: isTurntable },
   { key: 'motorType', label: '모터', input: { kind: 'text', free: true }, showWhen: ttHifiOrDj }, // 예: AC 싱크로너스, DC 서보
