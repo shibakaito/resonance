@@ -65,7 +65,7 @@ export function ListingGrid({
                   alt={`${l.brand} ${l.model}`}
                   className="w-full h-full object-contain opacity-70"
                 />
-                <span className="absolute text-xs text-muted">이미지 없음</span>
+                <span className="absolute text-12 text-muted">이미지 없음</span>
               </>
             )}
             <button
@@ -79,13 +79,13 @@ export function ListingGrid({
             </button>
           </div>
           <div className="p-3">
-            <p className="text-xs text-muted mb-1">{l.brand}</p>
-            <h3 className="text-sm font-semibold text-fg line-clamp-1 group-hover:text-fg transition">
+            <p className="text-12 text-muted mb-1">{l.brand}</p>
+            <h3 className="text-14 font-bold text-fg line-clamp-1 group-hover:text-fg transition">
               {l.model}
             </h3>
-            <p className="text-xs text-muted mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
-            <p className="text-base font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
-            <div className="flex items-center justify-between text-xs text-muted mt-1">
+            <p className="text-12 text-muted mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
+            <p className="text-16 font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
+            <div className="flex items-center justify-between text-12 text-muted mt-1">
               {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
               <ConditionBadge listing={l} />
               <span>{label('location', l.location)}</span>

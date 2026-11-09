@@ -207,7 +207,7 @@ function ImpedanceSelect({
                   key={o}
                   type="button"
                   onClick={() => toggle(o)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-surface ${active ? 'bg-surface font-semibold text-fg' : 'text-fg'}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-14 text-left hover:bg-surface ${active ? 'bg-surface font-bold text-fg' : 'text-fg'}`}
                 >
                   {o}
                   {active && <Check className="w-4 h-4 text-fg" />}
@@ -349,7 +349,7 @@ function MultiSelectDropdown({
                   data-idx={idx}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => toggle(o)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${nav ? 'bg-surface' : ''} ${active ? 'bg-surface font-semibold text-fg' : 'text-fg'}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-14 text-left ${nav ? 'bg-surface' : ''} ${active ? 'bg-surface font-bold text-fg' : 'text-fg'}`}
                 >
                   <span>{highlightMatch(labelOf(o), query)}</span>
                   {active && <Check className="w-4 h-4 text-fg flex-shrink-0" />}
@@ -363,14 +363,14 @@ function MultiSelectDropdown({
                 data-idx={matched.length}
                 onMouseEnter={() => setActiveIdx(matched.length)}
                 onClick={() => toggle(query.trim())}
-                className={`w-full text-left px-3 py-2 text-sm text-fg underline ${activeIdx === matched.length ? 'bg-surface' : ''} ${matched.length > 0 ? 'border-t border-line' : ''}`}
+                className={`w-full text-left px-3 py-2 text-14 text-fg underline ${activeIdx === matched.length ? 'bg-surface' : ''} ${matched.length > 0 ? 'border-t border-line' : ''}`}
               >
-                직접 입력: <span className="font-semibold">{query.trim()}</span>
+                직접 입력: <span className="font-bold">{query.trim()}</span>
               </button>
             )}
             {/* 매칭도 없고 검색어도 없을 때만 안내 */}
             {matched.length === 0 && !query.trim() && (
-              <div className="px-3 py-2 text-sm text-muted">검색 결과 없음</div>
+              <div className="px-3 py-2 text-14 text-muted">검색 결과 없음</div>
             )}
           </div>
         )}
@@ -379,7 +379,7 @@ function MultiSelectDropdown({
       {selected.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2 items-center">
           {selected.map((o) => (
-            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-surface rounded-none text-sm text-fg">
+            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-surface rounded-none text-14 text-fg">
               {labelOf(o)}
               <button
                 type="button"
@@ -409,7 +409,7 @@ function SpecTextarea({ value, onChange, maxLength = 500, placeholder = '' }: { 
         placeholder={placeholder}
         className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg resize-y"
       />
-      <p className="text-xs text-muted mt-1">{value.length}/{maxLength}자</p>
+      <p className="text-12 text-muted mt-1">{value.length}/{maxLength}자</p>
     </>
   );
 }
@@ -591,7 +591,7 @@ function Typeahead({
           className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-bg border border-line rounded-none shadow-lg"
         >
           {matched.length === 0 && (
-            <div className="px-3 py-2 text-sm text-muted">검색 결과 없음</div>
+            <div className="px-3 py-2 text-14 text-muted">검색 결과 없음</div>
           )}
           {navList.length > 0 &&
             navList.map((item, idx) => {
@@ -608,19 +608,19 @@ function Typeahead({
                     e.preventDefault();
                     commit(item);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm ${
+                  className={`w-full text-left px-3 py-2 text-14 ${
                     isActive ? 'bg-surface' : ''
                   } ${
                     isFree
                       ? 'text-fg underline border-t border-line'
                       : value === item.text
-                      ? 'font-semibold text-fg'
+                      ? 'font-bold text-fg'
                       : 'text-fg'
                   }`}
                 >
                   {isFree ? (
                     <>
-                      직접 입력: <span className="font-semibold">{item.text}</span>
+                      직접 입력: <span className="font-bold">{item.text}</span>
                     </>
                   ) : (
                     highlightMatch(item.text, query)
@@ -642,7 +642,7 @@ const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', ban
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-sm focus:outline-none focus:border-fg';
+  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-14 focus:outline-none focus:border-fg';
   const summary = driverSummary(rows);
   // 서브우퍼: 종류는 우퍼·패시브 라디에이터만, 셀(구조/재질/크기/개수)은 처음부터 펼침
   const typeOpts = subwoofer ? ['우퍼', '패시브 라디에이터'] : DRIVER_TYPES;
@@ -657,7 +657,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
-                className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-muted'}`}
+                className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-14 bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-muted'}`}
               >
                 <option value="" disabled>종류</option>
                 {typeOpts.map((t) => (
@@ -704,7 +704,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 <select
                   value={row.sizeUnit}
                   onChange={(e) => update(i, { sizeUnit: e.target.value })}
-                  className="w-full appearance-none border border-line rounded-none pl-2 pr-7 h-[42px] text-sm bg-bg focus:outline-none focus:border-fg"
+                  className="w-full appearance-none border border-line rounded-none pl-2 pr-7 h-[42px] text-14 bg-bg focus:outline-none focus:border-fg"
                 >
                   <option value="inch">inch</option>
                   <option value="mm">mm</option>
@@ -745,7 +745,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       <button
         type="button"
         onClick={() => onChange([...rows, { ...BLANK_DRIVER_ROW }])}
-        className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+        className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
       >
         <Plus className="w-3.5 h-3.5" /> 드라이버 추가
       </button>
@@ -753,7 +753,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       {summary.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {summary.map((chip, idx) => (
-            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-surface rounded-none text-sm text-fg">{chip}</span>
+            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-surface rounded-none text-14 text-fg">{chip}</span>
           ))}
         </div>
       )}
@@ -770,7 +770,7 @@ const BLANK_AMP_POWER_ROW: AmpPowerRow = { type: '', power: '' };
 function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
   const update = (i: number, patch: Partial<AmpPowerRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-sm focus:outline-none focus:border-fg';
+  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-14 focus:outline-none focus:border-fg';
   return (
     <div className="space-y-2">
       {rows.map((row, i) => (
@@ -780,7 +780,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
             <select
               value={row.type}
               onChange={(e) => update(i, { type: e.target.value })}
-              className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-muted'}`}
+              className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-14 bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-muted'}`}
             >
               <option value="" disabled>종류</option>
               {AMP_POWER_TYPES.map((t) => (
@@ -824,7 +824,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
       <button
         type="button"
         onClick={() => onChange([...rows, { ...BLANK_AMP_POWER_ROW }])}
-        className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+        className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
       >
         <Plus className="w-3.5 h-3.5" /> 앰프 출력 추가
       </button>
@@ -1235,7 +1235,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   return (
     <main className="bg-surface min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6">
-      <nav className="flex items-center gap-1 text-sm text-fg mb-4">
+      <nav className="flex items-center gap-1 text-14 text-fg mb-4">
         <button className="hover:text-fg">내 상품 목록</button>
         <ChevronRight className="w-3 h-3" />
         <span className="text-fg font-medium truncate max-w-md">
@@ -1246,16 +1246,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       {draftPrompt && (
         <div className="mb-4 border border-fg bg-bg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
-            <p className="font-semibold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
-            <p className="text-xs text-muted mt-0.5">
+            <p className="font-bold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
+            <p className="text-12 text-muted mt-0.5">
               {new Date(draftPrompt.savedAt).toLocaleString('ko-KR')}에 저장됨. 사진은 저장되지 않아 다시 올려야 해요.
             </p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={restoreDraft} className="bg-fg text-bg px-4 h-10 text-sm font-semibold rounded-none">
+            <button type="button" onClick={restoreDraft} className="bg-fg text-bg px-4 h-10 text-14 font-bold rounded-none">
               이어서 작성
             </button>
-            <button type="button" onClick={discardDraft} className="border border-line px-4 h-10 text-sm font-semibold rounded-none hover:border-muted">
+            <button type="button" onClick={discardDraft} className="border border-line px-4 h-10 text-14 font-bold rounded-none hover:border-muted">
               버리기
             </button>
           </div>
@@ -1294,11 +1294,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         {isDone ? (
                           <Check className="w-3.5 h-3.5" />
                         ) : (
-                          <span className="text-xs font-bold">{idx + 1}</span>
+                          <span className="text-12 font-bold">{idx + 1}</span>
                         )}
                       </span>
                       <span
-                        className={`font-semibold transition ${
+                        className={`font-bold transition ${
                           isActive ? 'text-fg' : 'text-muted group-hover:text-fg'
                         }`}
                       >
@@ -1317,11 +1317,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             id="section-info"
             className="bg-bg border border-line rounded-none py-6 px-10"
           >
-            <h2 className="text-2xl font-bold mb-2">제품 정보</h2>
+            <h2 className="text-24 font-bold mb-2">제품 정보</h2>
             <div className="space-y-4">
               {/* 카테고리 — 풀패스("앰프 > 프리앰프")로 검색·표시. 선택 시 상위/하위 분리 저장 */}
               <div>
-                <label className="block font-semibold mb-1">
+                <label className="block font-bold mb-1">
                   카테고리 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
@@ -1350,7 +1350,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 1. 브랜드 — 한글 별칭(예: '맥킨토시' → McIntosh) 매칭 지원 */}
               <div>
-                <label className="block font-semibold mb-1">
+                <label className="block font-bold mb-1">
                   브랜드 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
@@ -1378,7 +1378,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   - 카테고리 미선택 → 해당 브랜드의 전체 모델
                   - 카테고리 선택됨 → 해당 브랜드 + 그 카테고리(예: '프리앰프')만 */}
               <div>
-                <label className="block font-semibold mb-1">
+                <label className="block font-bold mb-1">
                   모델 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                 </label>
                 <Typeahead
@@ -1401,7 +1401,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 3. 출시 연도 — 플래그 켜짐: '대략'이면 specs.yearApprox = true(표시 '약 1975년', 필터는 그 연도로 비교), '모름'이면 칸 비활성 + 비워 저장
                   플래그 꺼짐(FEATURE_FLAGS.yearApprox): 숫자 칸만 */}
               <div>
-                <label className="block font-semibold mb-1">출시 연도</label>
+                <label className="block font-bold mb-1">출시 연도</label>
                 {FEATURE_FLAGS.yearApprox ? (
                 <div className="flex items-center gap-4">
                   <input
@@ -1411,7 +1411,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     placeholder=""
                     className="flex-1 min-w-0 border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg disabled:bg-surface disabled:text-muted disabled:cursor-not-allowed"
                   />
-                  <label className="flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
+                  <label className="flex items-center gap-2 cursor-pointer text-14 whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={yearApprox}
@@ -1421,7 +1421,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     />
                     대략
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
+                  <label className="flex items-center gap-2 cursor-pointer text-14 whitespace-nowrap">
                     <input
                       type="checkbox"
                       checked={yearUnknown}
@@ -1446,14 +1446,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 4. 제조국 */}
               <div>
-                <label className="block font-semibold mb-1">제조국</label>
+                <label className="block font-bold mb-1">제조국</label>
                 <Typeahead value={country} onChange={setCountry} options={COUNTRIES} />
               </div>
 
               {/* 6. 구성품 — 플래그 켜짐: 공통 7개 체크 카드 + 기타 구성품 글(specs.components 키 배열, specs.componentsOther 글)
                   플래그 꺼짐(FEATURE_FLAGS.componentChecks): 전처럼 자유 글 한 칸(specs.components 글) */}
               <div>
-                <label className="block font-semibold mb-1">구성품</label>
+                <label className="block font-bold mb-1">구성품</label>
                 {FEATURE_FLAGS.componentChecks && (
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {COMPONENT_OPTS.map((o) => {
@@ -1461,7 +1461,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     return (
                       <label
                         key={o.value}
-                        className={`flex items-center gap-2 border rounded-none px-3 h-[42px] text-sm cursor-pointer ${on ? 'border-fg bg-surface' : 'border-line hover:border-muted'}`}
+                        className={`flex items-center gap-2 border rounded-none px-3 h-[42px] text-14 cursor-pointer ${on ? 'border-fg bg-surface' : 'border-line hover:border-muted'}`}
                       >
                         <input
                           type="checkbox"
@@ -1485,7 +1485,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 7. 상태 — 종류 4개(CONDITIONS). 중고(used)일 때만 아래의 외관 상태, 작동 상태 활성화(둘 다 선택 사항) */}
               <div>
-                <label className="block font-semibold mb-1">
+                <label className="block font-bold mb-1">
                   상태 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                 </label>
                 {/* 선택 부품(ChoiceField): 상태는 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운. 버튼이 되더라도 필수라 다시 눌러도 해제 안 됨 */}
@@ -1515,13 +1515,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   }
                 />
                 {/* 고른 상태의 정의 한 줄 */}
-                {desc('condition', condition) && <p className="mt-1 text-xs text-muted">{desc('condition', condition)}</p>}
+                {desc('condition', condition) && <p className="mt-1 text-12 text-muted">{desc('condition', condition)}</p>}
               </div>
 
               {/* 소유권 — 드롭다운(1인/다중). 중고(used)일 때만 활성화. 필수 아님. FEATURE_FLAGS.ownership 꺼지면 칸만 숨김(저장 로직 그대로) */}
               {FEATURE_FLAGS.ownership && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>소유권</label>
+                <label className={`block font-bold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>소유권</label>
                 <ChoiceField
                   fieldKey="ownership"
                   ariaLabel="소유권"
@@ -1554,7 +1554,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 8. 외관 상태 — 중고(used)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김. 선택 사항 */}
               {!usedFieldsHidden && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>외관 상태</label>
+                <label className={`block font-bold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>외관 상태</label>
                 {/* 선택 부품(ChoiceField): 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — 예전 모양 [드롭다운][자세히 칸] 한 줄.
                     목록에서 빼면 선택지 수로 버튼이 되고, 그때 자세히 칸은 버튼 아래 줄로 */}
                 {(() => {
@@ -1604,14 +1604,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     </>
                   );
                 })()}
-                {desc('appearance', conditionAppearance) && <p className="mt-1 text-xs text-muted">{desc('appearance', conditionAppearance)}</p>}
+                {desc('appearance', conditionAppearance) && <p className="mt-1 text-12 text-muted">{desc('appearance', conditionAppearance)}</p>}
               </div>
               )}
 
               {/* 9. 작동 상태 — 중고(used)일 때만 활성화, 새 제품 상태면 숨김. 선택 사항 */}
               {!usedFieldsHidden && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>작동 상태</label>
+                <label className={`block font-bold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>작동 상태</label>
                 {/* 선택 부품(ChoiceField): 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — 예전 모양 [드롭다운][자세히 칸] 한 줄.
                     목록에서 빼면 선택지 수로 버튼이 되고, 그때 자세히 칸은 버튼 아래 줄로 */}
                 {(() => {
@@ -1661,7 +1661,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     </>
                   );
                 })()}
-                {desc('working', conditionWorking) && <p className="mt-1 text-xs text-muted">{desc('working', conditionWorking)}</p>}
+                {desc('working', conditionWorking) && <p className="mt-1 text-12 text-muted">{desc('working', conditionWorking)}</p>}
               </div>
               )}
 
@@ -1669,7 +1669,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   중고(used)일 때만 활성화. 선택지에 없는 정비는 직접 입력. 보이기는 FEATURE_FLAGS.maintenance 만 정함(상태 분기 없음) */}
               {FEATURE_FLAGS.maintenance && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>정비 이력</label>
+                <label className={`block font-bold mb-1 ${condition === 'used' ? '' : 'text-muted'}`}>정비 이력</label>
                 {/* 선택 부품: 6개라 버튼 토글(직접 입력은 드롭다운일 때만) */}
                 <ChoiceField
                   multiple
@@ -1686,7 +1686,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 상품명 — 브랜드+모델+하위카테고리 자동 반영, 수정·자유입력 가능 (필수) */}
               <div>
-                <label className="block font-semibold mb-1">
+                <label className="block font-bold mb-1">
                   상품명 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                 </label>
                 <input
@@ -1701,7 +1701,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   FEATURE_FLAGS.handmadeField 가 꺼져 있으면 칸만 숨김(저장 로직 그대로, 기본 false) */}
               {FEATURE_FLAGS.handmadeField && (
               <div>
-                <label className="block font-semibold mb-1">핸드메이드 제품인가요?</label>
+                <label className="block font-bold mb-1">핸드메이드 제품인가요?</label>
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"
@@ -1709,7 +1709,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => setHandmade(e.target.checked)}
                     className="accent-fg w-4 h-4"
                   />
-                  <span className="text-sm text-muted">직접 만든 수제품입니다.</span>
+                  <span className="text-14 text-muted">직접 만든 수제품입니다.</span>
                 </label>
               </div>
               )}
@@ -1723,7 +1723,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               onClick={() => setTechExpanded((v) => !v)}
               className="w-full flex items-center justify-between text-left"
             >
-              <h2 className="text-2xl font-bold">기술 사양</h2>
+              <h2 className="text-24 font-bold">기술 사양</h2>
               <ChevronDown className={`w-6 h-6 text-muted transition-transform ${techExpanded ? 'rotate-180' : ''}`} />
             </button>
             {techExpanded && (
@@ -1844,7 +1844,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             }`}
                           />
                           {unit && (
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">
                               {unit}
                             </span>
                           )}
@@ -1878,7 +1878,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               className={`w-full h-[42px] border border-line rounded-none pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-fg`}
                             />
                             {unit && (
-                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">{unit}</span>
+                              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">{unit}</span>
                             )}
                           </div>
                           <span className="text-muted">×</span>
@@ -1932,7 +1932,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   placeholder="출력값"
                                   className="w-full h-[42px] border border-line rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-fg"
                                 />
-                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">W</span>
+                                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">W</span>
                               </div>
                               <span className="text-muted">@</span>
                               {/* 기준 옴: w-28 고정 */}
@@ -2000,7 +2000,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '', note: '' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 임피던스별 출력 추가
                           </button>
@@ -2029,7 +2029,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               placeholder="하한"
                               className="w-full h-[42px] border border-line rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-fg"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">{lowUnit}</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">{lowUnit}</span>
                           </div>
                           <span className="text-muted">~</span>
                           <div className="relative flex-1 min-w-0">
@@ -2040,7 +2040,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               placeholder="상한"
                               className="w-full h-[42px] border border-line rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-fg"
                             />
-                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-sm pointer-events-none">{highUnit}</span>
+                            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">{highUnit}</span>
                           </div>
                         </div>
                       </div>
@@ -2064,7 +2064,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           placeholder={ph}
                           className="w-full h-[42px] border border-line rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-fg"
                         />
-                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-xs pointer-events-none">mm</span>
+                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-12 pointer-events-none">mm</span>
                       </div>
                     );
                     return (
@@ -2104,7 +2104,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => commit([...rows, { w: '', d: '', h: '', note: '' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크기 추가
                           </button>
@@ -2137,7 +2137,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   className={`w-full h-[42px] border border-line rounded-none pl-3 ${unit ? 'pr-9' : 'pr-3'} py-2 focus:outline-none focus:border-fg`}
                                 />
                                 {unit && (
-                                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-xs pointer-events-none">{unit}</span>
+                                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-12 pointer-events-none">{unit}</span>
                                 )}
                               </div>
                               <span className="text-muted">×</span>
@@ -2166,7 +2166,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => commit([...rows, { value: '', note: '' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> {f.label} 추가
                           </button>
@@ -2263,7 +2263,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setCrossoverValues((prev) => [...prev, { value: '', unit: 'Hz' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크로스오버 추가
                           </button>
@@ -2347,7 +2347,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setTubeRows((prev) => [...prev, { role: '', type: '', qty: '' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 진공관 추가
                           </button>
@@ -2409,7 +2409,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setCustomSpecs((rows) => [...rows, { title: '', value: '' }])}
-                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-14 text-fg font-bold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 사양 추가
                           </button>
@@ -2428,7 +2428,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           type="button"
                           onClick={() => setDetailExpanded((v) => !v)}
                           aria-expanded={detailExpanded}
-                          className="w-full flex items-center justify-between border border-line rounded-none px-4 h-[42px] text-sm font-semibold text-fg bg-surface hover:border-fg"
+                          className="w-full flex items-center justify-between border border-line rounded-none px-4 h-[42px] text-14 font-bold text-fg bg-surface hover:border-fg"
                         >
                           <span>상세 사양 ({detailCount})</span>
                           <ChevronDown className={`w-4 h-4 text-muted ${detailExpanded ? 'rotate-180' : ''}`} />
@@ -2465,25 +2465,25 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             )}
           </section>
 
-          <h2 className="text-2xl font-bold pl-2 pt-2">사진 및 설명</h2>
+          <h2 className="text-24 font-bold pl-2 pt-2">사진 및 설명</h2>
 
           <section
             id="section-photos"
             className="bg-bg border border-line rounded-none p-6"
           >
             <div className="flex items-baseline justify-between mb-1">
-              <h3 className="text-xl font-bold">
+              <h3 className="text-20 font-bold">
                 장비 사진을 업로드하세요 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
               </h3>
             </div>
-            <p className="text-sm text-fg mb-5">
+            <p className="text-14 text-fg mb-5">
               다른 사이트나 제조업체에서 가져온 스크린샷이나 사진은 허용되지 않습니다. 620×620px 이상의 정사각형 사진이 가장 좋습니다.
             </p>
 
             <div className="mb-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-fg">예시</p>
-                <button className="text-xs text-muted hover:text-fg">숨김</button>
+                <p className="text-14 font-bold text-fg">예시</p>
+                <button className="text-12 text-muted hover:text-fg">숨김</button>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {PHOTO_EXAMPLES.map((ex) => (
@@ -2491,12 +2491,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     <div className="aspect-square rounded-none overflow-hidden bg-bg border border-line mb-1">
                       <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
                     </div>
-                    <p className="text-xs text-fg">{ex.label}</p>
+                    <p className="text-12 text-fg">{ex.label}</p>
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
-              <button className="text-sm text-fg hover:text-fg font-semibold mt-3 inline-flex items-center gap-1">
+              <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
+              <button className="text-14 text-fg hover:text-fg font-bold mt-3 inline-flex items-center gap-1">
                 최고 품질의 사진을 위한 팁 <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -2518,33 +2518,33 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             >
               <button
                 type="button"
-                className="px-4 py-2 border border-muted rounded-full bg-bg hover:bg-surface font-semibold text-sm flex items-center gap-1.5 mb-3"
+                className="px-4 py-2 border border-muted rounded-full bg-bg hover:bg-surface font-bold text-14 flex items-center gap-1.5 mb-3"
               >
                 <Plus className="w-4 h-4" />
                 사진 업로드
               </button>
               <Upload className="w-5 h-5 text-muted mb-1" />
-              <p className="text-sm text-fg">
-                또는 대표 이미지 포함 최대 <span className="font-semibold">{MAX_IMAGES}장</span>까지 드래그 앤 드롭하세요.
+              <p className="text-14 text-fg">
+                또는 대표 이미지 포함 최대 <span className="font-bold">{MAX_IMAGES}장</span>까지 드래그 앤 드롭하세요.
               </p>
             </div>
             {/* 업로드 중 / 에러 표시 */}
             {uploadingCount > 0 && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-fg">
+              <div className="mt-3 flex items-center gap-2 text-14 text-fg">
                 <span className="inline-block w-4 h-4 border-2 border-line border-t-fg rounded-full animate-spin" />
                 업로드 중… ({uploadingCount}장 처리 중)
               </div>
             )}
             {uploadError && (
-              <div className="mt-3 rounded-none border border-line bg-bg px-4 py-2 text-sm text-danger">
+              <div className="mt-3 rounded-none border border-line bg-bg px-4 py-2 text-14 text-danger">
                 {uploadError}
               </div>
             )}
 
             {images.length > 0 && (
               <div className="mt-6">
-                <p className="font-semibold mb-3 pb-2 border-b border-line">사진</p>
-                <p className="text-xs font-semibold text-muted mb-2">대표</p>
+                <p className="font-bold mb-3 pb-2 border-b border-line">사진</p>
+                <p className="text-12 font-bold text-muted mb-2">대표</p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                   {images.map((img, idx) => (
                     <div
@@ -2553,7 +2553,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     >
                       <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
                       {idx === 0 && (
-                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-fg text-bg text-[10px] rounded">
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-fg text-bg text-12 rounded">
                           대표
                         </span>
                       )}
@@ -2572,10 +2572,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           <section className="bg-bg border border-line rounded-none p-6">
-            <h3 className="text-xl font-bold mb-4">항목을 설명하세요.</h3>
+            <h3 className="text-20 font-bold mb-4">항목을 설명하세요.</h3>
 
             <div>
-              <label className="block font-semibold mb-1">
+              <label className="block font-bold mb-1">
                 이 상품과 그 상태에 대해 설명해 주세요
               </label>
               <div className="border border-line rounded-none overflow-hidden focus-within:border-fg">
@@ -2598,7 +2598,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="w-full px-3 py-2 focus:outline-none resize-y"
                 />
               </div>
-              <p className="text-xs text-muted mt-1">{description.length}자 입력됨</p>
+              <p className="text-12 text-muted mt-1">{description.length}자 입력됨</p>
             </div>
 
             <div className="mt-4 pt-4 border-t border-line">
@@ -2610,8 +2610,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="mt-1 accent-fg w-4 h-4"
                 />
                 <div>
-                  <p className="font-semibold text-sm">이 상품은 "설명한 그대로" 판매됩니다.</p>
-                  <p className="text-xs text-muted mt-0.5">
+                  <p className="font-bold text-14">이 상품은 "설명한 그대로" 판매됩니다.</p>
+                  <p className="text-12 text-muted mt-0.5">
                     "설명대로" 판매한 상품은 설명 약관 정책에 따라 제외됩니다. 따라서 판매자는 정확하고 상세한 상품 설명을 작성하고, 좋은 사진을 제공하며, 설명된 상태 그대로 상품을 구매자에게 배송할 의무가 있습니다.
                   </p>
                 </div>
@@ -2621,7 +2621,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="mt-4 pt-4 border-t border-line">
               <button
                 onClick={() => setSkuOpen(!skuOpen)}
-                className="w-full flex items-center justify-between font-semibold"
+                className="w-full flex items-center justify-between font-bold"
               >
                 SKU
                 <ChevronDown
@@ -2644,11 +2644,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <section className="bg-bg border border-line rounded-none p-6">
             <div className="flex items-center gap-2 mb-4">
               <Youtube className="w-5 h-5 text-fg" />
-              <h3 className="text-xl font-bold">상품 목록에 YouTube 동영상을 삽입하세요</h3>
+              <h3 className="text-20 font-bold">상품 목록에 YouTube 동영상을 삽입하세요</h3>
             </div>
             <div className="space-y-3">
               <div>
-                <label className="block font-semibold mb-1">유튜브 영상 링크를 붙여넣으세요</label>
+                <label className="block font-bold mb-1">유튜브 영상 링크를 붙여넣으세요</label>
                 <input
                   value={youtubeLink}
                   onChange={(e) => setYoutubeLink(e.target.value)}
@@ -2657,7 +2657,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-1">유튜브 영상을 검색하세요</label>
+                <label className="block font-bold mb-1">유튜브 영상을 검색하세요</label>
                 <input
                   placeholder=""
                   className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
@@ -2666,14 +2666,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
           </section>
 
-          <h2 id="section-price" className="text-2xl font-bold pl-2 pt-2">
+          <h2 id="section-price" className="text-24 font-bold pl-2 pt-2">
             가격
           </h2>
           <section className="bg-bg border border-line rounded-none p-6">
             <div className="space-y-4">
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               <div className="max-w-[12rem]">
-                <label className="block font-semibold mb-1">통화</label>
+                <label className="block font-bold mb-1">통화</label>
                 {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
                 <ChoiceField
                   fieldKey="currency"
@@ -2700,7 +2700,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-semibold mb-1">
+                  <label className="block font-bold mb-1">
                     판매 가격 <span className="inline-block w-1.5 h-1.5 rounded-full bg-danger align-middle ml-1" aria-label="필수" />
                   </label>
                   <div className="relative">
@@ -2714,8 +2714,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   </div>
                 </div>
                 <div>
-                  <label className="block font-semibold mb-1">
-                    정가 <span className="text-muted font-normal">(선택)</span>
+                  <label className="block font-bold mb-1">
+                    정가 <span className="text-muted font-regular">(선택)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -2735,7 +2735,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   onChange={(e) => setAcceptOffers(e.target.checked)}
                   className="accent-fg w-4 h-4"
                 />
-                <span className="font-semibold">구매자의 가격 제안 받기</span>
+                <span className="font-bold">구매자의 가격 제안 받기</span>
               </label>
             </div>
           </section>
@@ -2754,8 +2754,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             if (!hasMarketData) {
               return (
                 <section className="bg-bg border border-line rounded-none p-6">
-                  <h3 className="text-xl font-bold mb-2">가격 변동 내역</h3>
-                  <p className="text-sm text-muted">
+                  <h3 className="text-20 font-bold mb-2">가격 변동 내역</h3>
+                  <p className="text-14 text-muted">
                     해당 제품의 시장 가격 데이터가 아직 없습니다.
                   </p>
                 </section>
@@ -2800,12 +2800,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             return (
               <section className="bg-bg border border-line rounded-none p-6">
-                <h3 className="text-xl font-bold mb-4">
+                <h3 className="text-20 font-bold mb-4">
                   이 제품은 <span className={zoneColor}>{zoneLabel}</span>이에요
                 </h3>
 
                 <div className="flex items-start gap-6">
-                  <div className="flex items-start gap-1.5 text-sm text-fg max-w-[160px] flex-shrink-0">
+                  <div className="flex items-start gap-1.5 text-14 text-fg max-w-[160px] flex-shrink-0">
                     <span>{zoneMessage}</span>
                     <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted" />
                   </div>
@@ -2815,7 +2815,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       {/* 현재 가격 말풍선 */}
                       {priceNum > 0 && (
                         <div
-                          className="absolute -top-9 -translate-x-1/2 px-3 py-1 bg-bg border border-line rounded-full shadow-sm font-bold whitespace-nowrap text-sm"
+                          className="absolute -top-9 -translate-x-1/2 px-3 py-1 bg-bg border border-line rounded-full shadow-sm font-bold whitespace-nowrap text-14"
                           style={{ left: `${positionPct}%` }}
                         >
                           {priceNum.toLocaleString()}원
@@ -2841,10 +2841,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
                       {/* 양 경계 가격 라벨 */}
                       <div className="relative h-5 mt-3">
-                        <span className="absolute left-[33.333%] -translate-x-1/2 text-sm text-muted">
+                        <span className="absolute left-[33.333%] -translate-x-1/2 text-14 text-muted">
                           {MARKET_MIN.toLocaleString()}원
                         </span>
-                        <span className="absolute left-[66.666%] -translate-x-1/2 text-sm text-muted">
+                        <span className="absolute left-[66.666%] -translate-x-1/2 text-14 text-muted">
                           {MARKET_MAX.toLocaleString()}원
                         </span>
                       </div>
@@ -2856,7 +2856,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             );
           })()}
 
-          <h2 id="section-shipping" className="text-2xl font-bold pl-2 pt-2">
+          <h2 id="section-shipping" className="text-24 font-bold pl-2 pt-2">
             배송
           </h2>
           <section className="bg-bg border border-line rounded-none p-6">
@@ -2883,15 +2883,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     className="mt-1 accent-fg"
                   />
                   <div>
-                    <p className="font-semibold">{opt.label}</p>
-                    <p className="text-sm text-fg">{opt.desc}</p>
+                    <p className="font-bold">{opt.label}</p>
+                    <p className="text-14 text-fg">{opt.desc}</p>
                   </div>
                 </label>
               ))}
             </div>
             {shippingType === 'flat' && (
               <div>
-                <label className="block font-semibold mb-1">고정 배송비</label>
+                <label className="block font-bold mb-1">고정 배송비</label>
                 <div className="relative max-w-xs">
                   <input
                     value={shippingCost}
@@ -2910,12 +2910,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 onChange={(e) => setLocalPickup(e.target.checked)}
                 className="accent-fg w-4 h-4"
               />
-              <span className="font-semibold">직거래 가능</span>
+              <span className="font-bold">직거래 가능</span>
             </label>
             {/* 국가 + 지역 — 선택 사항. 지역 선택지는 국가에 따라(한국 17개 시/도, 일본 47개 도도부현). DB location 칸 하나에 국가 접두 키로 저장(kr_seoul, jp_tokyo) */}
             <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
               <div>
-                <label className="block font-semibold mb-1">국가</label>
+                <label className="block font-bold mb-1">국가</label>
                 {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음). 지역은 17개, 47개라 드롭다운 그대로 */}
                 <ChoiceField
                   fieldKey="locationCountry"
@@ -2941,7 +2941,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
               <div>
-                <label className="block font-semibold mb-1">지역</label>
+                <label className="block font-bold mb-1">지역</label>
                 <div className="relative">
                   <select
                     value={location}
@@ -2968,8 +2968,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <Tag className="w-4 h-4 text-fg" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">Resonance 판매 수수료</p>
-                  <p className="text-xs text-fg">거래당 5% + 결제 수수료 2.7%</p>
+                  <p className="font-bold text-14">Resonance 판매 수수료</p>
+                  <p className="text-12 text-fg">거래당 5% + 결제 수수료 2.7%</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -2977,8 +2977,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <Truck className="w-4 h-4 text-fg" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">배송 라벨</p>
-                  <p className="text-xs text-fg">결제 시 할인된 배송비 이용 가능</p>
+                  <p className="font-bold text-14">배송 라벨</p>
+                  <p className="text-12 text-fg">결제 시 할인된 배송비 이용 가능</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
@@ -2986,25 +2986,25 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <HelpCircle className="w-4 h-4 text-fg" />
                 </div>
                 <div>
-                  <p className="font-semibold text-sm">등록 팁</p>
-                  <p className="text-xs text-fg">자세한 사진과 정확한 설명일수록 빠르게 판매됩니다.</p>
+                  <p className="font-bold text-14">등록 팁</p>
+                  <p className="text-12 text-fg">자세한 사진과 정확한 설명일수록 빠르게 판매됩니다.</p>
                 </div>
               </div>
             </div>
 
             {submitError && (
-              <div className="mb-3 rounded-none border border-line bg-bg px-4 py-3 text-sm text-danger">
+              <div className="mb-3 rounded-none border border-line bg-bg px-4 py-3 text-14 text-danger">
                 {submitError}
               </div>
             )}
-            <p className="text-xs text-muted mb-2">
+            <p className="text-12 text-muted mb-2">
               작성 중인 내용은 이 브라우저에 자동 저장돼요{draftSavedAt ? ` (${new Date(draftSavedAt).toLocaleTimeString('ko-KR')} 저장)` : ''}. 사진은 저장되지 않아요.
             </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-fg text-bg py-3 px-6 rounded-none font-semibold hover:bg-fg transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 bg-fg text-bg py-3 px-6 rounded-none font-bold hover:bg-fg transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
                 {submitting ? '등록 중…' : '상품 등록하기'}
@@ -3016,11 +3016,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (draftPrompt && draftJson === initialDraftJson.current) return; // 안내가 떠 있고 아무것도 안 쳤으면 예전 저장본을 지우지 않음
                   setDraftPrompt(null); setDraftReady(true); saveDraftNow(draftJson);
                 }}
-                className="flex-1 border-2 border-line text-fg py-3 px-6 rounded-none font-semibold hover:border-muted transition"
+                className="flex-1 border-2 border-line text-fg py-3 px-6 rounded-none font-bold hover:border-muted transition"
               >
                 임시 저장
               </button>
-              <button className="text-fg py-3 px-6 rounded-none font-semibold hover:text-fg transition">
+              <button className="text-fg py-3 px-6 rounded-none font-bold hover:text-fg transition">
                 취소
               </button>
             </div>

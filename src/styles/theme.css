@@ -31,15 +31,21 @@
   /* 간격 기준 4px (p-1 = 4px) */
   --spacing: 0.25rem;
 
-  /* 글자 크기 6단 — 새 클래스 text-12 ~ text-32 만 생김. 아직 강제하지 않음 */
+  /* 글자 크기 6단 (2026-11-10 적용: xs→12, sm→14, base→16, lg와 xl→20, 2xl→24, 3xl 이상→32). 줄 높이는 예전 Tailwind 짝과 같게 */
   --text-12: 0.75rem;
+  --text-12--line-height: calc(1 / 0.75);     /* 16px */
   --text-14: 0.875rem;
+  --text-14--line-height: calc(1.25 / 0.875); /* 20px */
   --text-16: 1rem;
+  --text-16--line-height: 1.5;                /* 24px */
   --text-20: 1.25rem;
+  --text-20--line-height: calc(1.75 / 1.25);  /* 28px */
   --text-24: 1.5rem;
+  --text-24--line-height: calc(2 / 1.5);      /* 32px */
   --text-32: 2rem;
+  --text-32--line-height: 1.25;               /* 40px */
 
-  /* 굵기 3 — font-regular(새 클래스), font-medium, font-bold (값은 Tailwind 기본과 같음) */
+  /* 굵기 3 — font-regular(예전 font-normal), font-medium, font-bold(예전 font-semibold 600 도 여기로) */
   --font-weight-regular: 400;
   --font-weight-medium: 500;
   --font-weight-bold: 700;
@@ -110,43 +116,43 @@
   }
 
   h1 {
-    font-size: var(--text-2xl);
+    font-size: var(--text-24);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   h2 {
-    font-size: var(--text-xl);
+    font-size: var(--text-20);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   h3 {
-    font-size: var(--text-lg);
+    font-size: var(--text-20);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   h4 {
-    font-size: var(--text-base);
+    font-size: var(--text-16);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   label {
-    font-size: var(--text-base);
+    font-size: var(--text-16);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   button {
-    font-size: var(--text-base);
+    font-size: var(--text-16);
     font-weight: var(--font-weight-medium);
     line-height: 1.5;
   }
 
   input {
-    font-size: var(--text-base);
+    font-size: var(--text-16);
     font-weight: var(--font-weight-normal);
     line-height: 1.5;
   }
@@ -177,8 +183,8 @@
 #section-info label {
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-14); /* 예전 13px → 6단 중 14 */
+  font-weight: var(--font-weight-bold); /* 예전 600 → 700 */
   color: var(--color-muted);
 }
 /* 제품 정보 입력: surface 채움, 무테두리 → 포커스 bg 바탕 + fg 외곽선 */
@@ -217,7 +223,7 @@
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: var(--text-14); /* 예전 13px → 6단 중 14 */
+  font-weight: var(--font-weight-bold); /* 예전 600 → 700 */
   color: var(--color-muted);
 }

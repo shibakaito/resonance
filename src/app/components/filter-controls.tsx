@@ -84,7 +84,7 @@ export function FilterSection({
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-between w-full text-left"
       >
-        <span className="text-sm font-semibold text-fg">{label}</span>
+        <span className="text-14 font-bold text-fg">{label}</span>
         {open ? (
           <ChevronUp className="w-4 h-4 text-fg" />
         ) : (
@@ -101,7 +101,7 @@ export function FilterSection({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="검색"
-                className="w-full pl-8 pr-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
+                className="w-full pl-8 pr-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
               />
             </div>
           )}
@@ -110,7 +110,7 @@ export function FilterSection({
             {visible.map((opt) => (
               <label
                 key={opt}
-                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-fg hover:text-fg"
+                className="flex items-center gap-2 py-1 cursor-pointer text-14 text-fg hover:text-fg"
               >
                 <input
                   type="checkbox"
@@ -120,7 +120,7 @@ export function FilterSection({
                 />
                 <span className="flex-1 truncate">{show(opt)}</span>
                 {counts && (
-                  <span className="text-xs text-muted">({counts[opt] ?? 0})</span>
+                  <span className="text-12 text-muted">({counts[opt] ?? 0})</span>
                 )}
               </label>
             ))}
@@ -130,7 +130,7 @@ export function FilterSection({
                 {hasMore && (
                   <button
                     onClick={showMore}
-                    className="text-xs font-medium text-fg hover:text-fg underline"
+                    className="text-12 font-medium text-fg hover:text-fg underline"
                   >
                     모두 보기
                   </button>
@@ -138,7 +138,7 @@ export function FilterSection({
                 {expanded && (
                   <button
                     onClick={collapse}
-                    className="text-xs font-medium text-fg hover:text-fg underline"
+                    className="text-12 font-medium text-fg hover:text-fg underline"
                   >
                     접기
                   </button>
@@ -207,7 +207,7 @@ export function RangeSection({
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-between w-full text-left"
       >
-        <span className="text-sm font-semibold text-fg">
+        <span className="text-14 font-bold text-fg">
           {label}{unit ? ` (${unit})` : ''}
         </span>
         {open ? (
@@ -230,7 +230,7 @@ export function RangeSection({
               }
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder={single ? singlePlaceholder : '최소'}
-              className="w-0 flex-1 px-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
+              className="w-0 flex-1 px-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
             />
             {!single && (
               <input
@@ -244,13 +244,13 @@ export function RangeSection({
                 }
                 onKeyDown={(e) => e.key === 'Enter' && apply()}
                 placeholder="최대"
-                className="w-0 flex-1 px-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
+                className="w-0 flex-1 px-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
               />
             )}
           </div>
           <button
             onClick={apply}
-            className="mt-2 w-full py-1.5 text-xs font-medium bg-fg text-bg rounded hover:bg-fg"
+            className="mt-2 w-full py-1.5 text-12 font-medium bg-fg text-bg rounded hover:bg-fg"
           >
             적용
           </button>
@@ -305,12 +305,12 @@ export function FilterDropdown({
 
   const isBox = variant === 'box';
   const triggerCls = isBox
-    ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
+    ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-14 bg-bg transition ${
         selected.size > 0 || open
           ? 'border-fg text-fg'
           : 'border-line text-fg hover:border-muted'
       }`
-    : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
+    : `flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
         selected.size > 0
           ? 'border-fg bg-surface text-fg'
           : 'border-line bg-bg text-fg hover:border-muted'
@@ -324,7 +324,7 @@ export function FilterDropdown({
       >
         <span>{label}</span>
         {selected.size > 0 && (
-          <span className="bg-fg text-bg text-xs rounded-full px-1.5 py-0.5 leading-none">
+          <span className="bg-fg text-bg text-12 rounded-full px-1.5 py-0.5 leading-none">
             {selected.size}
           </span>
         )}
@@ -353,7 +353,7 @@ export function FilterDropdown({
         const collapseBtn = hasMore && (
           <button
             onClick={() => setShowAll((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-sm font-medium text-fg hover:text-fg"
+            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-14 font-medium text-fg hover:text-fg"
           >
             {showAll ? (
               <>
@@ -378,7 +378,7 @@ export function FilterDropdown({
               {visible.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-sm text-fg"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-14 text-fg"
                 >
                   <input
                     type="checkbox"
@@ -448,12 +448,12 @@ export function PriceDropdown({
         onClick={() => setOpen((v) => !v)}
         className={
           fullWidth
-            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
+            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-14 bg-bg transition ${
                 active || open
                   ? 'border-fg text-fg'
                   : 'border-line text-fg hover:border-muted'
               }`
-            : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
+            : `flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
                 active
                   ? 'border-fg bg-surface text-fg'
                   : 'border-line bg-bg text-fg hover:border-muted'
@@ -465,7 +465,7 @@ export function PriceDropdown({
       </button>
       {open && (
         <div className={`absolute z-20 mt-2 bg-bg border border-line rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
-          <h3 className="font-semibold text-fg mb-3">가격</h3>
+          <h3 className="font-bold text-fg mb-3">가격</h3>
           <div className="flex items-stretch border border-line rounded-lg overflow-hidden focus-within:border-fg">
             <input
               type="text"
@@ -474,7 +474,7 @@ export function PriceDropdown({
               onChange={(e) => setMinInput(e.target.value.replace(/[^\d]/g, ''))}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최소"
-              className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
+              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
             />
             <span className="w-px bg-line" />
             <input
@@ -484,7 +484,7 @@ export function PriceDropdown({
               onChange={(e) => setMaxInput(e.target.value.replace(/[^\d]/g, ''))}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최대"
-              className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
+              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
             />
             <button
               onClick={apply}
@@ -550,12 +550,12 @@ export function LengthDropdown({
         onClick={() => setOpen((v) => !v)}
         className={
           fullWidth
-            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
+            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-14 bg-bg transition ${
                 active || open
                   ? 'border-fg text-fg'
                   : 'border-line text-fg hover:border-muted'
               }`
-            : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
+            : `flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
                 active
                   ? 'border-fg bg-surface text-fg'
                   : 'border-line bg-bg text-fg hover:border-muted'
@@ -567,7 +567,7 @@ export function LengthDropdown({
       </button>
       {open && (
         <div className={`absolute z-20 mt-2 bg-bg border border-line rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
-          <h3 className="font-semibold text-fg mb-3">길이 (m)</h3>
+          <h3 className="font-bold text-fg mb-3">길이 (m)</h3>
           <div className="flex items-stretch border border-line rounded-lg overflow-hidden focus-within:border-fg">
             <input
               type="number"
@@ -578,7 +578,7 @@ export function LengthDropdown({
               onChange={(e) => setMinInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최소"
-              className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
+              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
             />
             <span className="w-px bg-line" />
             <input
@@ -590,7 +590,7 @@ export function LengthDropdown({
               onChange={(e) => setMaxInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최대"
-              className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
+              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
             />
             <button
               onClick={apply}

@@ -46,7 +46,7 @@ function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabl
       aria-pressed={on}
       disabled={disabled}
       onClick={onClick}
-      className={`h-[42px] min-w-[64px] px-4 border rounded-none text-sm font-semibold whitespace-nowrap disabled:cursor-not-allowed ${
+      className={`h-[42px] min-w-[64px] px-4 border rounded-none text-14 font-bold whitespace-nowrap disabled:cursor-not-allowed ${
         on
           ? 'border-fg bg-fg text-bg'
           : 'border-line bg-bg text-fg hover:border-fg disabled:bg-surface disabled:text-muted disabled:hover:border-line'

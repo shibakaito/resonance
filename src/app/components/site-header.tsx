@@ -63,13 +63,13 @@ export function SiteHeader() {
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <button onClick={() => router.push('/')} className="text-2xl font-bold text-fg">Resonance</button>
+            <button onClick={() => router.push('/')} className="text-24 font-bold text-fg">Resonance</button>
 
             {/* Shop by Category 버튼 + 드롭다운 패널 (클릭으로 열림) */}
             <div>
               <button
                 onClick={() => (megaOpen && !megaClosing ? closeMega() : setMegaOpen(true))}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-14 font-medium transition ${
                   megaOpen && !megaClosing
                     ? 'border-fg bg-fg text-bg'
                     : 'border-line bg-bg text-fg hover:border-muted'
@@ -97,7 +97,7 @@ export function SiteHeader() {
                                   goBrowse(cat);
                                   setMegaOpen(false);
                                 }}
-                                className={`flex items-center justify-between w-full text-left px-6 py-3 text-sm transition ${
+                                className={`flex items-center justify-between w-full text-left px-6 py-3 text-14 transition ${
                                   isActive
                                     ? 'font-bold text-fg'
                                     : 'font-medium text-fg hover:bg-surface'
@@ -119,19 +119,19 @@ export function SiteHeader() {
                           {hoverCat && (
                             <>
                               <div className="flex items-center gap-3 mb-5 pb-3 border-b border-line">
-                                <h3 className="text-xl font-bold text-fg">{hoverCat}</h3>
+                                <h3 className="text-20 font-bold text-fg">{hoverCat}</h3>
                                 <button
                                   onClick={() => {
                                     goBrowse(hoverCat);
                                     setMegaOpen(false);
                                   }}
-                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-xs font-medium text-fg"
+                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-12 font-medium text-fg"
                                 >
                                   Shop All <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                               <div>
-                                <h4 className="text-sm font-bold text-fg uppercase tracking-wider mb-2">BY TYPE</h4>
+                                <h4 className="text-14 font-bold text-fg uppercase tracking-wider mb-2">BY TYPE</h4>
                                 <ul className="grid grid-cols-3 gap-x-6 gap-y-1.5">
                                   {subcategoriesFor(hoverCat).map((sub) => (
                                     <li key={sub}>
@@ -140,7 +140,7 @@ export function SiteHeader() {
                                           goBrowse(hoverCat, sub);
                                           setMegaOpen(false);
                                         }}
-                                        className="text-xs text-fg hover:opacity-60 transition text-left"
+                                        className="text-12 text-fg hover:opacity-60 transition text-left"
                                       >
                                         {sub}
                                       </button>
@@ -174,7 +174,7 @@ export function SiteHeader() {
                                 />
                               </div>
                               <div className="mt-3">
-                                <p className="text-xs text-muted leading-relaxed group-hover:text-fg transition-colors">
+                                <p className="text-12 text-muted leading-relaxed group-hover:text-fg transition-colors">
                                   {megaDesc(hoverCat)}
                                 </p>
                               </div>
@@ -199,10 +199,10 @@ export function SiteHeader() {
           </div>
 
           <nav className="flex gap-6 items-center">
-            <button onClick={() => router.push('/')} className={`hover:text-fg transition ${isHome ? 'text-fg font-semibold' : 'text-fg'}`}>홈</button>
+            <button onClick={() => router.push('/')} className={`hover:text-fg transition ${isHome ? 'text-fg font-bold' : 'text-fg'}`}>홈</button>
             <button
               onClick={() => router.push('/sell')}
-              className={`hover:text-fg transition ${isSell ? 'text-fg font-semibold' : 'text-fg'}`}
+              className={`hover:text-fg transition ${isSell ? 'text-fg font-bold' : 'text-fg'}`}
             >
               판매
             </button>

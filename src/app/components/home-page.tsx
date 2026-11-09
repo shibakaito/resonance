@@ -36,7 +36,7 @@ function Highlight({ text, query }: { text: string; query: string }) {
   const normQuery = query.toLowerCase().replace(/[\s&\-/]+/g, '');
   if (!normQuery) return <>{text}</>;
 
-  const HL = 'bg-line text-fg font-semibold';
+  const HL = 'bg-line text-fg font-bold';
 
   // 1) Direct (normalized) substring match in the displayed text
   let normText = '';
@@ -200,7 +200,7 @@ function Combobox({
         disabled ? 'border-line bg-surface' : 'border-line'
       }`}
     >
-      <p className={`text-xs ${disabled ? 'text-muted' : 'text-fg'}`}>{label}</p>
+      <p className={`text-12 ${disabled ? 'text-muted' : 'text-fg'}`}>{label}</p>
       <ChevronDown
         className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 transition-transform pointer-events-none ${
           disabled ? 'text-line' : 'text-muted'
@@ -238,7 +238,7 @@ function Combobox({
           className="absolute top-full left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-bg border border-line rounded-lg shadow-lg z-30"
         >
           {items.length === 0 ? (
-            <div className="px-3 py-2 text-sm text-muted">검색 결과 없음</div>
+            <div className="px-3 py-2 text-14 text-muted">검색 결과 없음</div>
           ) : (
             items.map((item, idx) => {
               const isActive = idx === activeIdx;
@@ -253,9 +253,9 @@ function Combobox({
                     setQuery('');
                     setOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm ${
+                  className={`w-full text-left px-3 py-2 text-14 ${
                     isActive ? 'bg-surface' : ''
-                  } ${value === item ? 'text-fg font-semibold' : 'text-fg'}`}
+                  } ${value === item ? 'text-fg font-bold' : 'text-fg'}`}
                 >
                   <Highlight text={item} query={query} />
                 </button>
@@ -510,23 +510,23 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         </div>
 
         {adminMode && panelOpen && (
-          <div className="absolute top-4 left-4 z-40 bg-bg/95 backdrop-blur rounded-xl shadow-xl p-4 text-sm space-y-3 w-72 border-2 border-fg">
+          <div className="absolute top-4 left-4 z-40 bg-bg/95 backdrop-blur rounded-xl shadow-xl p-4 text-14 space-y-3 w-72 border-2 border-fg">
             <div className="flex items-center justify-between">
               <h3 className="font-bold flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 text-[10px] bg-fg text-bg rounded">ADMIN</span>
+                <span className="px-1.5 py-0.5 text-12 bg-fg text-bg rounded">ADMIN</span>
                 이미지 편집
               </h3>
               <button
                 onClick={() => setPanelOpen(false)}
-                className="text-xs text-muted hover:text-fg"
+                className="text-12 text-muted hover:text-fg"
               >
                 접기
               </button>
             </div>
-            <p className="text-xs text-fg">원본 크기 이미지 위에 컨테이너 마스크로 잘라내요. 드래그로 이동, 슬라이더로 확대/축소.</p>
+            <p className="text-12 text-fg">원본 크기 이미지 위에 컨테이너 마스크로 잘라내요. 드래그로 이동, 슬라이더로 확대/축소.</p>
 
             <label className="block">
-              <span className="text-xs text-fg">확대 (scale) — 1.0 = 원본 크기</span>
+              <span className="text-12 text-fg">확대 (scale) — 1.0 = 원본 크기</span>
               <input
                 type="range"
                 min="0.1"
@@ -538,11 +538,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 }
                 className="w-full accent-fg"
               />
-              <span className="text-xs text-muted">{heroImg.scale.toFixed(2)}x</span>
+              <span className="text-12 text-muted">{heroImg.scale.toFixed(2)}x</span>
             </label>
 
             <label className="block">
-              <span className="text-xs text-fg">밝기 (brightness)</span>
+              <span className="text-12 text-fg">밝기 (brightness)</span>
               <input
                 type="range"
                 min="50"
@@ -554,11 +554,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 }
                 className="w-full accent-fg"
               />
-              <span className="text-xs text-muted">{heroImg.brightness}%</span>
+              <span className="text-12 text-muted">{heroImg.brightness}%</span>
             </label>
 
             <label className="block">
-              <span className="text-xs text-fg">좌우 이동 (px)</span>
+              <span className="text-12 text-fg">좌우 이동 (px)</span>
               <input
                 type="range"
                 min="-2000"
@@ -570,11 +570,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 }
                 className="w-full accent-fg"
               />
-              <span className="text-xs text-muted">{heroImg.tx}px</span>
+              <span className="text-12 text-muted">{heroImg.tx}px</span>
             </label>
 
             <label className="block">
-              <span className="text-xs text-fg">위아래 이동 (px)</span>
+              <span className="text-12 text-fg">위아래 이동 (px)</span>
               <input
                 type="range"
                 min="-1500"
@@ -586,17 +586,17 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 }
                 className="w-full accent-fg"
               />
-              <span className="text-xs text-muted">{heroImg.ty}px</span>
+              <span className="text-12 text-muted">{heroImg.ty}px</span>
             </label>
 
             <button
               onClick={() => setHeroImg((p) => ({ ...p, tx: 0, ty: 0, scale: 1 }))}
-              className="w-full text-xs py-1.5 border border-line rounded hover:bg-surface"
+              className="w-full text-12 py-1.5 border border-line rounded hover:bg-surface"
             >
               위치·확대 리셋
             </button>
 
-            <div className="bg-surface rounded p-2 font-mono text-[10px] leading-relaxed">
+            <div className="bg-surface rounded p-2 font-mono text-12 leading-relaxed">
               <div>scale: <b>{heroImg.scale.toFixed(2)}</b></div>
               <div>brightness: <b>{heroImg.brightness}%</b></div>
               <div>tx: <b>{heroImg.tx}px</b></div>
@@ -607,19 +607,19 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               onClick={() => {
                 navigator.clipboard?.writeText(JSON.stringify(heroImg, null, 2));
               }}
-              className="w-full bg-fg hover:bg-fg text-bg py-2 rounded font-semibold"
+              className="w-full bg-fg hover:bg-fg text-bg py-2 rounded font-bold"
             >
               📋 값 클립보드 복사
             </button>
 
             <button
               onClick={() => setAdminMode(false)}
-              className="w-full text-xs py-1.5 border border-line rounded hover:bg-surface text-fg"
+              className="w-full text-12 py-1.5 border border-line rounded hover:bg-surface text-fg"
             >
               관리자 모드 종료
             </button>
 
-            <p className="text-[10px] text-muted text-center pt-1 border-t">
+            <p className="text-12 text-muted text-center pt-1 border-t">
               단축키: Ctrl + Shift + A로 토글
             </p>
           </div>
@@ -628,7 +628,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         {adminMode && !panelOpen && (
           <button
             onClick={() => setPanelOpen(true)}
-            className="absolute top-4 left-4 z-40 bg-fg hover:bg-fg text-bg text-xs font-semibold px-3 py-2 rounded-lg shadow-lg"
+            className="absolute top-4 left-4 z-40 bg-fg hover:bg-fg text-bg text-12 font-bold px-3 py-2 rounded-lg shadow-lg"
           >
             🛠 관리자 패널
           </button>
@@ -637,13 +637,13 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         <div className="relative max-w-7xl mx-auto px-4 py-12 lg:py-16 grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-4">
             <div className="bg-bg rounded-xl p-4 lg:p-5 pt-7 lg:pt-8 shadow-xl text-fg min-h-[600px] lg:min-h-[640px] flex flex-col">
-              <h1 className="text-[26px] font-bold mb-6 leading-tight">
+              <h1 className="text-24 font-bold mb-6 leading-tight">
                 당신만의 사운드를 찾아보세요
               </h1>
               <div className="flex gap-6 border-b border-line mb-7">
                 <button
                   onClick={() => setHeroTab('shop')}
-                  className={`pb-2 font-semibold transition ${
+                  className={`pb-2 font-bold transition ${
                     heroTab === 'shop'
                       ? 'text-fg border-b-2 border-fg'
                       : 'text-muted hover:text-fg'
@@ -653,7 +653,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 </button>
                 <button
                   onClick={() => setHeroTab('sell')}
-                  className={`pb-2 font-semibold transition ${
+                  className={`pb-2 font-bold transition ${
                     heroTab === 'sell'
                       ? 'text-fg border-b-2 border-fg'
                       : 'text-muted hover:text-fg'
@@ -683,7 +683,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
                   <div className="flex items-center gap-3 mb-5">
                     <div className="flex-1 h-px bg-line" />
-                    <span className="text-xs text-fg">– 또는 조건으로 검색 –</span>
+                    <span className="text-12 text-fg">– 또는 조건으로 검색 –</span>
                     <div className="flex-1 h-px bg-line" />
                   </div>
 
@@ -792,14 +792,14 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                         region: regionKey || undefined,
                       })
                     }
-                    className="w-full bg-fg text-bg font-semibold py-2.5 rounded-lg hover:bg-fg transition mt-4"
+                    className="w-full bg-fg text-bg font-bold py-2.5 rounded-lg hover:bg-fg transition mt-4"
                   >
                     검색 결과 {filteredCount.toLocaleString('ko-KR')}건 보기
                   </button>
                 </>
               ) : (
                 <>
-                  <p className="text-sm text-fg mb-3">
+                  <p className="text-14 text-fg mb-3">
                     판매할 매물을 검색하면 카탈로그가 자동으로 매칭돼 빠르게 등록할 수 있어요.
                   </p>
                   <div className="relative mb-3">
@@ -817,7 +817,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                       <button
                         key={b}
                         onClick={() => setSellQuery(b)}
-                        className="text-xs px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface transition"
+                        className="text-12 px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface transition"
                       >
                         {b}
                       </button>
@@ -845,10 +845,10 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                               <img src={sellImgFor(r.model)} alt={r.model} className="w-full h-full object-contain" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm">
+                              <p className="font-bold text-14">
                                 {r.brand} {r.model}
                               </p>
-                              <p className="text-xs text-fg">
+                              <p className="text-12 text-fg">
                                 {r.year} · {r.category}
                               </p>
                             </div>
@@ -857,18 +857,18 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                         ))
                       ) : (
                         <div className="p-4">
-                          <p className="text-sm text-fg mb-2 text-center">
+                          <p className="text-14 text-fg mb-2 text-center">
                             카탈로그에 일치하는 모델이 없어요.
                           </p>
                           {sellBrandMatches.length > 0 && (
                             <div className="mb-3">
-                              <p className="text-xs font-semibold text-muted mb-1.5">관련 브랜드</p>
+                              <p className="text-12 font-bold text-muted mb-1.5">관련 브랜드</p>
                               <div className="flex flex-wrap gap-1.5">
                                 {sellBrandMatches.map((b) => (
                                   <button
                                     key={b.name}
                                     onClick={() => onSell({ title: b.name, brand: b.name })}
-                                    className="text-xs px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface font-semibold transition"
+                                    className="text-12 px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface font-bold transition"
                                   >
                                     {b.name}
                                   </button>
@@ -879,7 +879,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                           <div className="text-center">
                             <button
                               onClick={() => onSell({ title: sellQuery })}
-                              className="text-sm text-fg hover:text-fg font-semibold underline"
+                              className="text-14 text-fg hover:text-fg font-bold underline"
                             >
                               "{sellQuery}" 으로 직접 등록하기
                             </button>
@@ -891,7 +891,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
                   <button
                     onClick={() => onSell(sellQuery ? { title: sellQuery } : undefined)}
-                    className="w-full bg-fg text-bg font-semibold py-2.5 rounded-lg hover:bg-fg transition"
+                    className="w-full bg-fg text-bg font-bold py-2.5 rounded-lg hover:bg-fg transition"
                   >
                     {sellQuery ? '이 키워드로 등록 시작하기' : '등록 시작하기'}
                   </button>
@@ -899,7 +899,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   <div className="text-center mt-3">
                     <button
                       onClick={() => onSell()}
-                      className="text-sm text-muted hover:text-fg underline underline-offset-4"
+                      className="text-14 text-muted hover:text-fg underline underline-offset-4"
                     >
                       검색 없이 직접 등록하기
                     </button>
@@ -913,8 +913,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
       <section className="max-w-7xl mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold">관심 있게 본 매물</h2>
-          <button className="text-fg font-semibold hover:underline flex items-center gap-1">
+          <h2 className="text-24 font-bold">관심 있게 본 매물</h2>
+          <button className="text-fg font-bold hover:underline flex items-center gap-1">
             관심 매물 모두 보기 <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -944,7 +944,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                       </span>
                     </div>
                     <div className="p-3">
-                      <p className="font-semibold mb-1 line-clamp-1 group-hover:text-fg transition">
+                      <p className="font-bold mb-1 line-clamp-1 group-hover:text-fg transition">
                         {l.brand} {l.model}
                       </p>
                       <p className="font-bold text-fg">{fmtPrice(l.price, l.currency)}</p>
@@ -956,12 +956,12 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
           </div>
           <div className="lg:col-span-4">
             <div className="bg-surface border border-line rounded-xl p-5 h-full flex flex-col">
-              <p className="text-sm font-semibold text-fg mb-1">내 계정</p>
-              <h3 className="text-xl font-bold mb-2">가격 알림 받기</h3>
+              <p className="text-14 font-bold text-fg mb-1">내 계정</p>
+              <h3 className="text-20 font-bold mb-2">가격 알림 받기</h3>
               <p className="text-fg mb-4 flex-1">
                 관심 매물의 가격이 변동되면 바로 알려드릴게요.
               </p>
-              <button className="bg-fg text-bg font-semibold py-2 px-4 rounded-lg hover:bg-fg transition">
+              <button className="bg-fg text-bg font-bold py-2 px-4 rounded-lg hover:bg-fg transition">
                 관심 매물 관리
               </button>
             </div>
@@ -970,13 +970,13 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
       </section>
 
       <section className="max-w-7xl mx-auto px-4 py-10">
-        <h2 className="text-2xl font-bold text-center mb-6">인기 카테고리</h2>
+        <h2 className="text-24 font-bold text-center mb-6">인기 카테고리</h2>
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {CATEGORY_TABS.map((cat) => (
             <button
               key={cat}
               onClick={() => setActiveCat(cat)}
-              className={`px-4 py-2 rounded-full font-semibold border-2 transition ${
+              className={`px-4 py-2 rounded-full font-bold border-2 transition ${
                 activeCat === cat
                   ? 'bg-fg text-bg border-fg'
                   : 'bg-bg text-fg border-line hover:border-muted'
@@ -989,10 +989,10 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
         <div className="mb-4 flex items-end justify-between">
           <div>
-            <h3 className="text-xl font-bold">{activeCat} 추천 매물</h3>
+            <h3 className="text-20 font-bold">{activeCat} 추천 매물</h3>
             <p className="text-fg">인기 판매자가 엄선한 매물</p>
           </div>
-          <button className="text-fg font-semibold hover:underline hidden sm:flex items-center gap-1">
+          <button className="text-fg font-bold hover:underline hidden sm:flex items-center gap-1">
             {activeCat} 모두 보기 <ChevronRight className="w-4 h-4" />
           </button>
         </div>
@@ -1020,9 +1020,9 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 <div className="p-3">
                   {/* 상태 배지 (외관 등급, 작동 경고 — 둘러보기 카드와 같은 conditionBadge) */}
                   <div className="mb-1">
-                    <ConditionBadge listing={l} className="inline-block px-2 py-0.5 border border-line text-fg rounded text-xs font-semibold" />
+                    <ConditionBadge listing={l} className="inline-block px-2 py-0.5 border border-line text-fg rounded text-12 font-bold" />
                   </div>
-                  <p className="font-semibold mb-1 line-clamp-1 group-hover:text-fg transition">
+                  <p className="font-bold mb-1 line-clamp-1 group-hover:text-fg transition">
                     {l.brand} {l.model}
                   </p>
                   <p className="font-bold text-fg mb-1">{fmtPrice(l.price, l.currency)}</p>
@@ -1037,12 +1037,12 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div className="bg-bg border border-line rounded-xl p-6 flex gap-4 items-center">
             <div className="flex-1">
-              <p className="text-sm font-semibold text-fg mb-1">내 컬렉션</p>
-              <h3 className="text-xl font-bold mb-2">내 장비를 한 곳에서</h3>
+              <p className="text-14 font-bold text-fg mb-1">내 컬렉션</p>
+              <h3 className="text-20 font-bold mb-2">내 장비를 한 곳에서</h3>
               <p className="text-fg mb-4">
                 보유 · 판매 · 관심 매물을 한 번에 관리할 수 있어요.
               </p>
-              <button className="border-2 border-line text-fg font-semibold px-5 py-2 rounded-lg hover:border-muted transition">
+              <button className="border-2 border-line text-fg font-bold px-5 py-2 rounded-lg hover:border-muted transition">
                 컬렉션 만들기
               </button>
             </div>
@@ -1057,14 +1057,14 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
           <div className="bg-fg text-bg rounded-xl p-6 flex gap-4 items-center">
             <div className="flex-1">
-              <p className="text-sm font-semibold text-muted mb-1">매물 판매</p>
-              <h3 className="text-xl font-bold mb-2">원하는 방식으로 판매하세요</h3>
+              <p className="text-14 font-bold text-muted mb-1">매물 판매</p>
+              <h3 className="text-20 font-bold mb-2">원하는 방식으로 판매하세요</h3>
               <p className="text-line mb-4">
                 즉시 견적을 받거나 직접 등록할 수 있어요. 가격도, 조건도 직접 정합니다.
               </p>
               <button
                 onClick={() => onSell()}
-                className="bg-fg text-bg font-semibold px-5 py-2 rounded-lg hover:bg-fg transition"
+                className="bg-fg text-bg font-bold px-5 py-2 rounded-lg hover:bg-fg transition"
               >
                 매물 등록하기
               </button>
@@ -1089,7 +1089,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               </div>
               <div>
                 <p className="font-bold mb-1">무료 배송</p>
-                <p className="text-sm text-fg">엄선된 매물에 무료 배송을 제공해요.</p>
+                <p className="text-14 text-fg">엄선된 매물에 무료 배송을 제공해요.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -1098,7 +1098,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               </div>
               <div>
                 <p className="font-bold mb-1">최저가 보장</p>
-                <p className="text-sm text-fg">더 낮은 가격을 찾으셨다면 동일 가격에 맞춰드려요.</p>
+                <p className="text-14 text-fg">더 낮은 가격을 찾으셨다면 동일 가격에 맞춰드려요.</p>
               </div>
             </div>
             <div className="flex items-start gap-3">
@@ -1107,17 +1107,17 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               </div>
               <div>
                 <p className="font-bold mb-1">구매자 보호</p>
-                <p className="text-sm text-fg">모든 거래를 안심 보장으로 지켜드려요.</p>
+                <p className="text-14 text-fg">모든 거래를 안심 보장으로 지켜드려요.</p>
               </div>
             </div>
           </div>
 
-          <h2 className="text-xl font-bold mb-4">지금 인기 검색어</h2>
+          <h2 className="text-20 font-bold mb-4">지금 인기 검색어</h2>
           <div className="flex flex-wrap gap-2">
             {TRENDING.map((t) => (
               <button
                 key={t}
-                className="px-4 py-2 bg-bg border border-line rounded-full text-sm font-semibold text-fg hover:border-fg hover:text-fg transition"
+                className="px-4 py-2 bg-bg border border-line rounded-full text-14 font-bold text-fg hover:border-fg hover:text-fg transition"
               >
                 {t}
               </button>
