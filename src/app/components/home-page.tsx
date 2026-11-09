@@ -196,7 +196,7 @@ function Combobox({
 
   return (
     <div
-      className={`rounded-lg border px-3 py-1.5 mb-1.5 relative ${
+      className={`rounded-lg border px-3 py-2 mb-2 relative ${
         disabled ? 'border-line bg-surface' : 'border-line'
       }`}
     >
@@ -512,8 +512,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         {adminMode && panelOpen && (
           <div className="absolute top-4 left-4 z-40 bg-bg/95 backdrop-blur rounded-xl shadow-xl p-4 text-14 space-y-3 w-72 border-2 border-fg">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold flex items-center gap-1.5">
-                <span className="px-1.5 py-0.5 text-12 bg-fg text-bg rounded">ADMIN</span>
+              <h3 className="font-bold flex items-center gap-2">
+                <span className="px-2 py-1 text-12 bg-fg text-bg rounded">ADMIN</span>
                 이미지 편집
               </h3>
               <button
@@ -591,7 +591,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
             <button
               onClick={() => setHeroImg((p) => ({ ...p, tx: 0, ty: 0, scale: 1 }))}
-              className="w-full text-12 py-1.5 border border-line rounded hover:bg-surface"
+              className="w-full text-12 py-2 border border-line rounded hover:bg-surface"
             >
               위치·확대 리셋
             </button>
@@ -614,7 +614,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
             <button
               onClick={() => setAdminMode(false)}
-              className="w-full text-12 py-1.5 border border-line rounded hover:bg-surface text-fg"
+              className="w-full text-12 py-2 border border-line rounded hover:bg-surface text-fg"
             >
               관리자 모드 종료
             </button>
@@ -671,7 +671,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                       onChange={(e) => setQuery(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && handleHeroSearch()}
                       placeholder="무엇이든 검색하세요"
-                      className="w-full border border-line rounded-full pl-5 pr-10 py-2.5 focus:outline-none focus:border-fg"
+                      className="w-full border border-line rounded-full pl-5 pr-10 py-3 focus:outline-none focus:border-fg"
                     />
                     <button
                       onClick={handleHeroSearch}
@@ -792,7 +792,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                         region: regionKey || undefined,
                       })
                     }
-                    className="w-full bg-fg text-bg font-bold py-2.5 rounded-lg hover:bg-fg transition mt-4"
+                    className="w-full bg-fg text-bg font-bold py-3 rounded-lg hover:bg-fg transition mt-4"
                   >
                     검색 결과 {filteredCount.toLocaleString('ko-KR')}건 보기
                   </button>
@@ -812,12 +812,12 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     <Search className="w-4 h-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted" />
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 mb-4">
+                  <div className="flex flex-wrap gap-2 mb-4">
                     {POPULAR_BRANDS.map((b) => (
                       <button
                         key={b}
                         onClick={() => setSellQuery(b)}
-                        className="text-12 px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface transition"
+                        className="text-12 px-3 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface transition"
                       >
                         {b}
                       </button>
@@ -862,13 +862,13 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                           </p>
                           {sellBrandMatches.length > 0 && (
                             <div className="mb-3">
-                              <p className="text-12 font-bold text-muted mb-1.5">관련 브랜드</p>
-                              <div className="flex flex-wrap gap-1.5">
+                              <p className="text-12 font-bold text-muted mb-2">관련 브랜드</p>
+                              <div className="flex flex-wrap gap-2">
                                 {sellBrandMatches.map((b) => (
                                   <button
                                     key={b.name}
                                     onClick={() => onSell({ title: b.name, brand: b.name })}
-                                    className="text-12 px-2.5 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface font-bold transition"
+                                    className="text-12 px-3 py-1 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface font-bold transition"
                                   >
                                     {b.name}
                                   </button>
@@ -891,7 +891,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
                   <button
                     onClick={() => onSell(sellQuery ? { title: sellQuery } : undefined)}
-                    className="w-full bg-fg text-bg font-bold py-2.5 rounded-lg hover:bg-fg transition"
+                    className="w-full bg-fg text-bg font-bold py-3 rounded-lg hover:bg-fg transition"
                   >
                     {sellQuery ? '이 키워드로 등록 시작하기' : '등록 시작하기'}
                   </button>
@@ -1020,7 +1020,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 <div className="p-3">
                   {/* 상태 배지 (외관 등급, 작동 경고 — 둘러보기 카드와 같은 conditionBadge) */}
                   <div className="mb-1">
-                    <ConditionBadge listing={l} className="inline-block px-2 py-0.5 border border-line text-fg rounded text-12 font-bold" />
+                    <ConditionBadge listing={l} className="inline-block px-2 py-1 border border-line text-fg rounded text-12 font-bold" />
                   </div>
                   <p className="font-bold mb-1 line-clamp-1 group-hover:text-fg transition">
                     {l.brand} {l.model}

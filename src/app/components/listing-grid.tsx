@@ -83,7 +83,7 @@ export function ListingGrid({
             <h3 className="text-14 font-bold text-fg line-clamp-1 group-hover:text-fg transition">
               {l.model}
             </h3>
-            <p className="text-12 text-muted mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
+            <p className="text-12 text-muted mt-1 line-clamp-1">{yearText(l)} · {l.category}</p>
             <p className="text-16 font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
             <div className="flex items-center justify-between text-12 text-muted mt-1">
               {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}

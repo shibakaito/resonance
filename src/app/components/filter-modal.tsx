@@ -98,7 +98,7 @@ export function Section({
     <div className="border-b border-surface last:border-b-0">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between py-3.5"
+        className="w-full flex items-center justify-between py-4"
       >
         <h4 className="text-16 font-bold text-fg">{title}</h4>
         {open ? (
@@ -134,7 +134,7 @@ export function CheckGroup({
 
   return (
     <div>
-      <div className="grid grid-cols-2 gap-x-4 gap-y-1.5">
+      <div className="grid grid-cols-2 gap-x-4 gap-y-2">
         {visible.map((opt) => (
           <label
             key={opt}

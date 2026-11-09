@@ -271,7 +271,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   ))}
                 </Slider>
 
-                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-fg text-bg text-12 font-bold rounded-full pointer-events-none">
+                <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-fg text-bg text-12 font-bold rounded-full pointer-events-none">
                   3명의 장바구니에 담음
                 </div>
 
@@ -281,7 +281,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     setMainLiked((v) => !v);
                   }}
                   aria-label="좋아요"
-                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-line hover:border-muted shadow-sm rounded-full active:scale-95 transition"
+                  className="absolute top-3 right-3 z-10 flex items-center gap-2 px-3 py-2 bg-bg border border-line hover:border-muted shadow-sm rounded-full active:scale-95 transition"
                 >
                   <span className="text-14 font-bold text-fg">{mainLikeCount}</span>
                   <Heart
@@ -385,7 +385,7 @@ export function ListingDetail({ id }: { id?: string }) {
 
                 <div className="flex-1 mt-2 relative pt-14">
                   <div
-                    className="absolute top-0 -translate-x-1/2 px-4 py-1.5 bg-bg border border-line rounded-full shadow-sm text-16 font-bold whitespace-nowrap"
+                    className="absolute top-0 -translate-x-1/2 px-4 py-2 bg-bg border border-line rounded-full shadow-sm text-16 font-bold whitespace-nowrap"
                     style={{ left: '53.5%' }}
                   >
                     25,900,000원
@@ -393,7 +393,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   </div>
 
                   <div className="relative">
-                    <div className="flex h-1.5 gap-0.5">
+                    <div className="flex h-1.5 gap-1">
                       <div className="flex-1 bg-muted rounded-l-full"></div>
                       <div className="flex-[2] bg-muted"></div>
                       <div className="flex-1 bg-fg rounded-r-full"></div>
@@ -438,7 +438,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-14 py-3 border-t border-line items-center">
                       <div>2026/04/15</div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
                         가격 인하
                       </div>
@@ -446,7 +446,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     </div>
                     <div className="grid grid-cols-3 gap-4 text-14 py-3 border-t border-line items-center">
                       <div>2026/03/01</div>
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-2">
                         <Tag className="w-4 h-4" />
                         등록
                       </div>
@@ -948,10 +948,10 @@ export function ListingDetail({ id }: { id?: string }) {
                   <h1 className="text-32 font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
                   <div className="flex items-center gap-2 text-fg mb-2">
                     {listing?.handmade && (
-                      <span className="px-1.5 py-0.5 bg-fg text-bg rounded text-12 font-medium">수제품</span>
+                      <span className="px-2 py-1 bg-fg text-bg rounded text-12 font-medium">수제품</span>
                     )}
                     {/* 상태 배지 — 카드와 같은 conditionBadge (중고는 외관 등급, 작동 경고) */}
-                    {listing && <ConditionBadge listing={listing} className="px-1.5 py-0.5 border border-line text-fg rounded text-12" />}
+                    {listing && <ConditionBadge listing={listing} className="px-2 py-1 border border-line text-fg rounded text-12" />}
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
@@ -981,12 +981,12 @@ export function ListingDetail({ id }: { id?: string }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setMainLiked((v) => !v)}
-                    className="flex-1 border-2 border-line text-fg hover:border-muted py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 transition text-14"
+                    className="flex-1 border-2 border-line text-fg hover:border-muted py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition text-14"
                   >
                     <Heart className={`w-4 h-4 ${mainLiked ? 'fill-fg text-fg' : ''}`} />
                     관심 제품
                   </button>
-                  <button className="flex-1 border-2 border-line text-fg py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-1.5 hover:border-muted transition text-14">
+                  <button className="flex-1 border-2 border-line text-fg py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:border-muted transition text-14">
                     <MessageCircle className="w-4 h-4" />
                     가격 제안
                   </button>
@@ -1012,7 +1012,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     몽
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <span className="font-bold">몽키타르</span>
                       <div className="relative group/badge2 inline-block">
                         <BadgeCheck className="w-4 h-4 text-fg fill-surface cursor-help" />
@@ -1028,7 +1028,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <span className="text-14 text-fg">(245)</span>
                     </div>
-                    <div className="flex items-center gap-1 text-14 text-fg mt-0.5">
+                    <div className="flex items-center gap-1 text-14 text-fg mt-1">
                       <MapPin className="w-3.5 h-3.5" />
                       <span>{locationText(listing?.location)}</span>
                     </div>
@@ -1036,7 +1036,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button
                     onClick={() => setSellerSaved((v) => !v)}
                     aria-label="판매자 저장"
-                    className="flex items-center gap-1.5 px-3 py-2 border border-line hover:border-muted rounded-full text-14 font-bold text-fg active:scale-95 transition flex-shrink-0"
+                    className="flex items-center gap-2 px-3 py-2 border border-line hover:border-muted rounded-full text-14 font-bold text-fg active:scale-95 transition flex-shrink-0"
                   >
                     <Heart
                       className={`w-4 h-4 ${

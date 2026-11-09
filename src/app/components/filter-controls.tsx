@@ -92,7 +92,7 @@ export function FilterSection({
         )}
       </button>
       {open && (
-        <div className="mt-2.5 space-y-1">
+        <div className="mt-3 space-y-1">
           {searchable && (
             <div className="relative mb-2">
               <Search className="w-3.5 h-3.5 text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
@@ -101,7 +101,7 @@ export function FilterSection({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="검색"
-                className="w-full pl-8 pr-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
+                className="w-full pl-8 pr-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
               />
             </div>
           )}
@@ -217,8 +217,8 @@ export function RangeSection({
         )}
       </button>
       {open && (
-        <div className="mt-2.5">
-          <div className="flex items-stretch gap-1.5">
+        <div className="mt-3">
+          <div className="flex items-stretch gap-2">
             <input
               type={isInt ? 'text' : 'number'}
               inputMode={isInt ? 'numeric' : 'decimal'}
@@ -230,7 +230,7 @@ export function RangeSection({
               }
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder={single ? singlePlaceholder : '최소'}
-              className="w-0 flex-1 px-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
+              className="w-0 flex-1 px-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
             />
             {!single && (
               <input
@@ -244,13 +244,13 @@ export function RangeSection({
                 }
                 onKeyDown={(e) => e.key === 'Enter' && apply()}
                 placeholder="최대"
-                className="w-0 flex-1 px-2 py-1.5 text-14 border border-line rounded focus:outline-none focus:border-fg"
+                className="w-0 flex-1 px-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
               />
             )}
           </div>
           <button
             onClick={apply}
-            className="mt-2 w-full py-1.5 text-12 font-medium bg-fg text-bg rounded hover:bg-fg"
+            className="mt-2 w-full py-2 text-12 font-medium bg-fg text-bg rounded hover:bg-fg"
           >
             적용
           </button>
@@ -324,7 +324,7 @@ export function FilterDropdown({
       >
         <span>{label}</span>
         {selected.size > 0 && (
-          <span className="bg-fg text-bg text-12 rounded-full px-1.5 py-0.5 leading-none">
+          <span className="bg-fg text-bg text-12 rounded-full px-2 py-1 leading-none">
             {selected.size}
           </span>
         )}
@@ -353,7 +353,7 @@ export function FilterDropdown({
         const collapseBtn = hasMore && (
           <button
             onClick={() => setShowAll((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-14 font-medium text-fg hover:text-fg"
+            className="flex items-center gap-1 px-2 py-2 mt-1 text-14 font-medium text-fg hover:text-fg"
           >
             {showAll ? (
               <>
@@ -378,7 +378,7 @@ export function FilterDropdown({
               {visible.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-14 text-fg"
+                  className="flex items-center gap-2 px-2 py-2 rounded hover:bg-surface cursor-pointer text-14 text-fg"
                 >
                   <input
                     type="checkbox"
@@ -474,7 +474,7 @@ export function PriceDropdown({
               onChange={(e) => setMinInput(e.target.value.replace(/[^\d]/g, ''))}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최소"
-              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
+              className="flex-1 w-0 px-3 py-3 text-14 focus:outline-none"
             />
             <span className="w-px bg-line" />
             <input
@@ -484,7 +484,7 @@ export function PriceDropdown({
               onChange={(e) => setMaxInput(e.target.value.replace(/[^\d]/g, ''))}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최대"
-              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
+              className="flex-1 w-0 px-3 py-3 text-14 focus:outline-none"
             />
             <button
               onClick={apply}
@@ -578,7 +578,7 @@ export function LengthDropdown({
               onChange={(e) => setMinInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최소"
-              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
+              className="flex-1 w-0 px-3 py-3 text-14 focus:outline-none"
             />
             <span className="w-px bg-line" />
             <input
@@ -590,7 +590,7 @@ export function LengthDropdown({
               onChange={(e) => setMaxInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder="최대"
-              className="flex-1 w-0 px-3 py-2.5 text-14 focus:outline-none"
+              className="flex-1 w-0 px-3 py-3 text-14 focus:outline-none"
             />
             <button
               onClick={apply}

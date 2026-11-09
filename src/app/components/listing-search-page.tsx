@@ -45,7 +45,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-fg hover:bg-fg text-bg px-6 py-2.5 rounded-full font-bold transition"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-fg hover:bg-fg text-bg px-6 py-3 rounded-full font-bold transition"
         >
           검색
         </button>
@@ -115,7 +115,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                         <button
                           key={b.name}
                           onClick={() => onSelect({ title: b.name, brand: b.name })}
-                          className="px-3 py-1.5 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface text-14 font-bold transition"
+                          className="px-3 py-2 rounded-full border border-line hover:border-muted hover:text-fg hover:bg-surface text-14 font-bold transition"
                         >
                           {b.name}
                         </button>

@@ -69,7 +69,7 @@ export function SiteHeader() {
             <div>
               <button
                 onClick={() => (megaOpen && !megaClosing ? closeMega() : setMegaOpen(true))}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-14 font-medium transition ${
+                className={`flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
                   megaOpen && !megaClosing
                     ? 'border-fg bg-fg text-bg'
                     : 'border-line bg-bg text-fg hover:border-muted'
@@ -132,7 +132,7 @@ export function SiteHeader() {
                               </div>
                               <div>
                                 <h4 className="text-14 font-bold text-fg uppercase tracking-wider mb-2">BY TYPE</h4>
-                                <ul className="grid grid-cols-3 gap-x-6 gap-y-1.5">
+                                <ul className="grid grid-cols-3 gap-x-6 gap-y-2">
                                   {subcategoriesFor(hoverCat).map((sub) => (
                                     <li key={sub}>
                                       <button

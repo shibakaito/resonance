@@ -379,7 +379,7 @@ function MultiSelectDropdown({
       {selected.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2 items-center">
           {selected.map((o) => (
-            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-surface rounded-none text-14 text-fg">
+            <span key={o} className="inline-flex items-center gap-1 pl-3 pr-2 py-1 bg-surface rounded-none text-14 text-fg">
               {labelOf(o)}
               <button
                 type="button"
@@ -651,7 +651,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       {rows.map((row, i) => {
         const isCoax = row.type === '동축';
         return (
-          <div key={i} className="relative flex items-center gap-1.5">
+          <div key={i} className="relative flex items-center gap-2">
             {/* 종류 (항상 표시) — 빈 상태: 1줄 꽉(flex-1), 선택/서브우퍼: w-44로 줄고 나머지 칸 분할 */}
             <div className={`relative ${(subwoofer || row.type) ? 'w-44 flex-shrink-0' : 'flex-1 min-w-0'}`}>
               <select
@@ -679,7 +679,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
             {/* 구조, 재질(또는 담당 대역), 크기, 개수, 비고 — 종류 선택 시 표시(서브우퍼는 처음부터 항상 표시)
                 FEATURE_FLAGS.driverMaterialStructure 꺼짐(2026-11-10): 구조, 재질 칸 숨김 → [유닛][크기 + inch/mm][개수][비고]. 동축의 담당 대역은 way 계산(driverWays)에 쓰여 남김 */}
             {(subwoofer || row.type) && (
-            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-1 min-w-0">
               {FEATURE_FLAGS.driverMaterialStructure && (
               <div className="flex-1 min-w-0">
                 <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
@@ -734,7 +734,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 type="button"
                 aria-label="행 삭제"
                 onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-                className="absolute left-full ml-[10px] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-muted hover:text-fg rounded-full hover:bg-surface"
+                className="absolute left-full ml-3 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-muted hover:text-fg rounded-full hover:bg-surface"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -751,9 +751,9 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       </button>
       {/* 자동 요약 (읽기 전용) — 속성별 칩 [2-way][2-driver][12inch][우퍼 (1)][1inch][트위터 (1) (실크 돔)], X 없음. 재질, 구조 칩은 플래그 켜졌을 때만 */}
       {summary.length > 0 && (
-        <div className="flex flex-wrap gap-1.5">
+        <div className="flex flex-wrap gap-2">
           {summary.map((chip, idx) => (
-            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-surface rounded-none text-14 text-fg">{chip}</span>
+            <span key={idx} className="inline-flex items-center px-3 py-1 bg-surface rounded-none text-14 text-fg">{chip}</span>
           ))}
         </div>
       )}
@@ -774,7 +774,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
   return (
     <div className="space-y-2">
       {rows.map((row, i) => (
-        <div key={i} className="flex items-center gap-1.5 -mr-6">
+        <div key={i} className="flex items-center gap-2 -mr-6">
           {/* 앞칸: 드라이버 종류 (항상 표시) */}
           <div className="relative w-28 flex-shrink-0">
             <select
@@ -1247,7 +1247,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         <div className="mb-4 border border-fg bg-bg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
             <p className="font-bold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
-            <p className="text-12 text-muted mt-0.5">
+            <p className="text-12 text-muted mt-1">
               {new Date(draftPrompt.savedAt).toLocaleString('ko-KR')}에 저장됨. 사진은 저장되지 않아 다시 올려야 해요.
             </p>
           </div>
@@ -1869,7 +1869,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     return (
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
-                        <div className="flex gap-1.5 items-center -mr-6">
+                        <div className="flex gap-2 items-center -mr-6">
                           <div className="relative flex-[3_1_44px] min-w-0">
                             <input
                               value={specs[f.key] || ''}
@@ -1918,7 +1918,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {powerPairs.map((p, idx) => (
-                            <div key={idx} className="flex gap-1.5 items-center -mr-6">
+                            <div key={idx} className="flex gap-2 items-center -mr-6">
                               {/* 출력값: 남는 공간 전부 (flex-1) */}
                               <div className="relative flex-1 min-w-0">
                                 <input
@@ -2072,7 +2072,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
-                            <div key={i} className="flex gap-1.5 items-center -mr-6">
+                            <div key={i} className="flex gap-2 items-center -mr-6">
                               {dimInput(r.w, 'w', 'W', i)}
                               <span className="text-muted">×</span>
                               {dimInput(r.d, 'd', 'D', i)}
@@ -2127,7 +2127,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
-                            <div key={i} className="flex gap-1.5 items-center -mr-6">
+                            <div key={i} className="flex gap-2 items-center -mr-6">
                               {/* 값(kg) — 크기 W+D+H 3칸 + 그 사이 ×2개 폭(basis 44px=×2개분). 크기 행과 동일 컬럼 정렬 */}
                               <div className="relative flex-[3_1_44px] min-w-0">
                                 <input
@@ -2228,7 +2228,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <label>{f.label}</label>
                         <div className="space-y-2">
                           {crossoverValues.map((row, idx) => (
-                            <div key={idx} className="flex gap-1.5 items-center -mr-6">
+                            <div key={idx} className="flex gap-2 items-center -mr-6">
                               <input
                                 value={row.value}
                                 onChange={(e) => { const nv = numOnly(e.target.value); setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, value: nv } : x))); }}
@@ -2285,7 +2285,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               setSpecs({ ...specs, tubes: buildTubes(next) });
                             };
                             return (
-                              <div key={idx} className="flex gap-1.5 items-center -mr-6">
+                              <div key={idx} className="flex gap-2 items-center -mr-6">
                                 {/* 역할 — 변경 시 종류 리셋. 선택 시 우측 X(역할+종류 둘 다 초기화), ▼ 왼쪽 */}
                                 <div className="relative flex-1 min-w-0">
                                   <select
@@ -2381,7 +2381,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <div className="spec-field">
                         <div className="space-y-2">
                           {customSpecs.map((r, i) => (
-                            <div key={i} className="flex gap-1.5 items-center -mr-6">
+                            <div key={i} className="flex gap-2 items-center -mr-6">
                               <input
                                 value={r.title}
                                 onChange={(e) => updateRow(i, { title: e.target.value })}
@@ -2518,7 +2518,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             >
               <button
                 type="button"
-                className="px-4 py-2 border border-muted rounded-full bg-bg hover:bg-surface font-bold text-14 flex items-center gap-1.5 mb-3"
+                className="px-4 py-2 border border-muted rounded-full bg-bg hover:bg-surface font-bold text-14 flex items-center gap-2 mb-3"
               >
                 <Plus className="w-4 h-4" />
                 사진 업로드
@@ -2553,7 +2553,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     >
                       <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
                       {idx === 0 && (
-                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-fg text-bg text-12 rounded">
+                        <span className="absolute top-1 left-1 px-2 py-1 bg-fg text-bg text-12 rounded">
                           대표
                         </span>
                       )}
@@ -2579,7 +2579,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 이 상품과 그 상태에 대해 설명해 주세요
               </label>
               <div className="border border-line rounded-none overflow-hidden focus-within:border-fg">
-                <div className="flex gap-1 px-2 py-1.5 border-b border-line bg-surface">
+                <div className="flex gap-1 px-2 py-2 border-b border-line bg-surface">
                   <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-fg">
                     <Bold className="w-4 h-4" />
                   </button>
@@ -2611,7 +2611,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
                 <div>
                   <p className="font-bold text-14">이 상품은 "설명한 그대로" 판매됩니다.</p>
-                  <p className="text-12 text-muted mt-0.5">
+                  <p className="text-12 text-muted mt-1">
                     "설명대로" 판매한 상품은 설명 약관 정책에 따라 제외됩니다. 따라서 판매자는 정확하고 상세한 상품 설명을 작성하고, 좋은 사진을 제공하며, 설명된 상태 그대로 상품을 구매자에게 배송할 의무가 있습니다.
                   </p>
                 </div>
@@ -2805,9 +2805,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </h3>
 
                 <div className="flex items-start gap-6">
-                  <div className="flex items-start gap-1.5 text-14 text-fg max-w-[160px] flex-shrink-0">
+                  <div className="flex items-start gap-2 text-14 text-fg max-w-[160px] flex-shrink-0">
                     <span>{zoneMessage}</span>
-                    <Info className="w-4 h-4 mt-0.5 flex-shrink-0 text-muted" />
+                    <Info className="w-4 h-4 mt-1 flex-shrink-0 text-muted" />
                   </div>
 
                   <div className="flex-1 pt-10">

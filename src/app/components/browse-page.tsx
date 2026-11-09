@@ -665,7 +665,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="검색어 수정"
-                className="w-full border border-line rounded-full pl-5 pr-10 py-2.5 focus:outline-none focus:border-fg"
+                className="w-full border border-line rounded-full pl-5 pr-10 py-3 focus:outline-none focus:border-fg"
               />
               <button
                 type="submit"
@@ -706,12 +706,12 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                     전체 초기화
                   </button>
                 </div>
-                <div className="flex flex-col gap-1.5">
+                <div className="flex flex-col gap-2">
                   {activeChips.map((chip) => (
                     <button
                       key={chip.key}
                       onClick={chip.remove}
-                      className="inline-flex items-center justify-between gap-1 px-2.5 py-1 bg-surface text-fg border border-line rounded text-12 font-medium hover:bg-line text-left"
+                      className="inline-flex items-center justify-between gap-1 px-3 py-1 bg-surface text-fg border border-line rounded text-12 font-medium hover:bg-line text-left"
                     >
                       <span className="truncate">{chip.label}</span>
                       <X className="w-3 h-3 shrink-0" />
@@ -813,7 +813,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                     const sortedTerms = terminalsPrioritized([...subCategories]);
                     return (
                       <div className="border-b border-line py-3">
-                        <span className="block text-14 font-bold text-fg mb-2.5">입출력 단자</span>
+                        <span className="block text-14 font-bold text-fg mb-3">입출력 단자</span>
                         <div className="flex flex-col gap-2">
                           <FilterDropdown label={FL.terminalIn} options={sortedTerms} selected={filters.terminalIn} onToggle={toggleField('terminalIn')} onClear={() => setFilters((prev) => ({ ...prev, terminalIn: new Set() }))} counts={counts.terminalIn} scrollable variant="box" />
                           <FilterDropdown label={FL.terminalOut} options={sortedTerms} selected={filters.terminalOut} onToggle={toggleField('terminalOut')} onClear={() => setFilters((prev) => ({ ...prev, terminalOut: new Set() }))} counts={counts.terminalOut} scrollable variant="box" />
@@ -905,7 +905,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               <SlidersHorizontal className="w-4 h-4" />
               <span>필터</span>
               {filterCount > 0 && (
-                <span className="bg-fg text-bg text-12 rounded-full px-1.5 py-0.5 leading-none">
+                <span className="bg-fg text-bg text-12 rounded-full px-2 py-1 leading-none">
                   {filterCount}
                 </span>
               )}
