@@ -11,8 +11,8 @@
 //   · 최상위 컬럼 매핑은 src/lib/listings.ts 의 toListingRow 그대로 사용 (폼과 단일 출처)
 //   · kind별 분기 buildTechLikeForm 은 upload-page.tsx handleSubmit 의 분기와 거울 관계 ⚠️ 바꾸면 같이
 //   · 지역(location)은 행마다 labels.ts LABELS.location 키. 정비 이력(maintenance), 외관/작동(extras)은 폼처럼 새 제품 상태면 저장 안 함
-//   · 통화(currency)는 LABELS.currency 키(없으면 krw), 가격은 그 통화 단위. 구성품(components)은 SPEC_LABELS.components 키(폼처럼 목록 순서로 저장),
-//     연식 대략(yearApprox)은 연도가 있을 때만 specs.yearApprox = true (폼과 같음)
+//   · 통화(currency)는 LABELS.currency 키(없으면 krw), 가격은 그 통화 단위. 구성품(components)은 자유 글 한 칸(폼과 같음, specs.components = 글)
+//   · 연식 대략(yearApprox)은 FEATURE_FLAGS.yearApprox 가 켜져 있고 연도가 있을 때만 저장 (지금은 꺼져 있어 시드 행에도 없음)
 //   · description 은 "[테스트] " 접두 → 정리는 SQL 한 줄: delete from listings where description like '[테스트]%'
 //   · 키·URL 값은 절대 출력하지 않음
 // ============================================================================
@@ -21,6 +21,7 @@ import { resolve } from 'node:path';
 import type { CategorySpecField, SelectOption } from '@/app/data/category-specs';
 import type { PowerPair, DimRow, ValNoteRow, TubeRow, CrossoverRow, AmpPowerRow, DriverRow } from '@/lib/spec-builders';
 import type { ListingInput } from '@/lib/listings';
+import { FEATURE_FLAGS as F } from '@/app/data/feature-flags'; // 숨김 플래그 — 폼과 같은 저장 규칙 (env 의존 없어 정적 import)
 
 // ── 시드 한 행의 입력 초안 (폼의 상태 슬롯과 1:1) ──
 type Draft = {
@@ -45,8 +46,7 @@ type Seed = {
   country: string;          // 한글 (toListingRow 가 키로 변환) — 표에 없으면 ''
   ownership?: string;       // single_owner / multiple_owners / unknown
   yearApprox?: boolean;     // 출시 연도 '대략' → specs.yearApprox = true (표시 '약 1981년')
-  components?: string[];    // 구성품 (labels.ts SPEC_LABELS.components 키) → specs.components
-  componentsOther?: string; // 기타 구성품 자유 글 → specs.componentsOther
+  components?: string;      // 구성품 자유 글 → specs.components (체크 카드는 FEATURE_FLAGS.componentChecks 로 꺼 둠)
   finish?: string;          // 최상위 finish 컬럼 (스피커·소스기기는 tech.finish 에도 따로 넣음)
   description: string;      // "[테스트] " 접두는 스크립트가 붙임
   location: string;         // 지역 키 (labels.ts LABELS.location, 국가 접두 포함 예 'kr_seoul', 'jp_tokyo') → DB location 컬럼
@@ -65,7 +65,7 @@ const DR = (type: string, structure: string, material: string, size: string, cou
 // ── 시드 계획표 (앰프 7 / 스피커 6 / 턴테이블 4 / 카세트 4) ──
 const SEEDS: Seed[] = [
   // ── 앰프 ──
-  { category: '앰프', sub: '인티앰프', brand: 'Accuphase', model: 'E-380', year: '2019', condition: 'used_excellent', price: 4200000, country: '일본', ownership: 'single_owner', location: 'kr_seoul', components: ['original_box', 'remote'],
+  { category: '앰프', sub: '인티앰프', brand: 'Accuphase', model: 'E-380', year: '2019', condition: 'used_excellent', price: 4200000, country: '일본', ownership: 'single_owner', location: 'kr_seoul', components: '정품 박스, 리모컨',
     description: '정품 박스·리모컨 포함. 실사용 1년 미만, 잔기스 없음.', extras: { appearance: 'excellent', working: 'working' }, imageSlot: 0,
     draft: { values: { channel: 'stereo', device: 'solid_state', opClass: 'Class AB', thd: '0.05', snr: '105', damping: '400', phono: 'none', toneControl: 'yes', remote: 'yes', voltage: '220V' },
       powerPairs: [P('120', '8Ω'), P('170', '4Ω'), P('240', '2Ω')], ranges: { freqResponse: { low: '20', high: '20' } },
@@ -77,7 +77,7 @@ const SEEDS: Seed[] = [
       powerPairs: [P('120', '8Ω'), P('240', '4Ω')], ranges: { freqResponse: { low: '20', high: '100' } },
       multi: { impedance: ['4Ω', '8Ω'], inputs: ['RCA', 'XLR', 'Main In'], outputs: ['speaker_terminal', 'Pre Out', 'Tape/Rec Out', 'Headphone Out'] },
       dims: { dimensions: [D('440', '454', '193')] }, valNotes: { weight: [KG('29.4')] } } },
-  { category: '앰프', sub: '프리앰프', brand: 'Accuphase', model: 'C-2850', year: '2015', condition: 'used_excellent', price: 7800000, country: '일본', ownership: 'single_owner', location: 'kr_daegu', components: ['remote', 'original_box'],
+  { category: '앰프', sub: '프리앰프', brand: 'Accuphase', model: 'C-2850', year: '2015', condition: 'used_excellent', price: 7800000, country: '일본', ownership: 'single_owner', location: 'kr_daegu', components: '정품 박스, 리모컨',
     description: '풀밸런스 프리앰프. 리모컨·정품 박스 포함.',
     draft: { values: { channel: 'stereo', device: 'solid_state', thd: '0.005', snr: '118', phono: 'none', toneControl: 'no', remote: 'yes', voltage: '220V' },
       ranges: { freqResponse: { low: '3', high: '200' } }, multi: { inputs: ['RCA', 'XLR'], outputs: ['RCA Out', 'XLR Out'] },
@@ -108,7 +108,7 @@ const SEEDS: Seed[] = [
       multi: { impedance: ['4Ω', '8Ω', '16Ω'], inputs: ['RCA', 'XLR'], outputs: ['speaker_terminal'] },
       dims: { dimensions: [D('432', '305', '216')] }, valNotes: { weight: [KG('30.4')] } } },
   // ── 스피커 ──
-  { category: '스피커', sub: '북쉘프 스피커', brand: 'KEF', model: 'LS50 Meta', year: '2020', condition: 'used_excellent', price: 1350000, country: '영국', ownership: 'single_owner', location: 'kr_daejeon', finish: '카본 블랙', components: ['original_box'], componentsOther: '그릴 2개',
+  { category: '스피커', sub: '북쉘프 스피커', brand: 'KEF', model: 'LS50 Meta', year: '2020', condition: 'used_excellent', price: 1350000, country: '영국', ownership: 'single_owner', location: 'kr_daejeon', finish: '카본 블랙', components: '정품 박스, 그릴 2개',
     description: '페어. 정품 박스·그릴 포함. 스탠드 별매.', imageSlot: 2,
     draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '85', recPower: '100', finish: '카본 블랙', otherSpecs: 'MAT(메타머티리얼 흡음 기술) 적용 12세대 Uni-Q' },
       drivers: [DR('동축', 'Uni-Q', '', '5.25', '1', '우퍼 + 트위터')], ranges: { freqResponse: { low: '79', high: '28' } }, crossover: [{ value: '2200', unit: 'Hz' }],
@@ -125,7 +125,7 @@ const SEEDS: Seed[] = [
       drivers: [DR('우퍼', '콘 타입', '복합 소재', '7', '2'), DR('트위터', '돔 타입', '실크', '1.1', '1')],
       ranges: { freqResponse: { low: '36', high: '26' } }, crossover: [{ value: '2400', unit: 'Hz' }],
       dims: { dimensions: [D('200', '340', '1015')] }, valNotes: { weight: [KG('15.6')] } } },
-  { category: '스피커', sub: '북쉘프 스피커', brand: 'Genelec', model: '8040B', year: '2021', condition: 'used_excellent', price: 2100000, country: '', ownership: 'single_owner', location: 'kr_sejong', finish: '다크 그레이', components: ['power_cable'],
+  { category: '스피커', sub: '북쉘프 스피커', brand: 'Genelec', model: '8040B', year: '2021', condition: 'used_excellent', price: 2100000, country: '', ownership: 'single_owner', location: 'kr_sejong', finish: '다크 그레이', components: '전원 케이블 2개',
     description: '액티브 모니터 페어. 전원 케이블 2개 포함.',
     draft: { values: { speakerDetail: 'active', ampConfig: 'bi_amp', opClass: 'Class AB', crossoverType: 'active', enclosure: 'bass_reflex', finish: '다크 그레이', voltage: 'free_volt' },
       drivers: [DR('우퍼', '콘 타입', '폴리프로필렌', '6.5', '1'), DR('트위터', '돔 타입', '알루미늄', '0.75', '1')],
@@ -147,7 +147,7 @@ const SEEDS: Seed[] = [
     draft: { values: { ttType: 'hifi', driveType: 'belt_drive', motorType: '24V 저소음 싱크로너스', autoMode: 'manual', wowFlutter: '0.1% 이하', platterMaterial: 'glass', tonearmShape: 'straight', tonearm: 'included',
         headshellRemovable: 'no', trackingForceAdj: 'yes', antiSkating: 'yes', cartridge: 'included', cartType: 'MM', cartModel: 'Rega Elys 2', phonoBuiltIn: 'none', bluetooth: 'none', groundTerminal: 'yes', dustCover: 'yes', finish: '글로스 블랙', voltage: '220V' },
       multi: { speeds: ['33', '45'], outputs: ['RCA Out'] }, dims: { dimensions: [D('447', '360', '117')] }, valNotes: { weight: [KG('6')] } } },
-  { category: '소스기기', sub: '턴테이블', brand: 'Technics', model: 'SL-1200GR', year: '2017', condition: 'used_excellent', price: 1650000, country: '일본', ownership: 'single_owner', location: 'kr_gangwon', finish: '실버', components: ['original_box'], componentsOther: '헤드셸',
+  { category: '소스기기', sub: '턴테이블', brand: 'Technics', model: 'SL-1200GR', year: '2017', condition: 'used_excellent', price: 1650000, country: '일본', ownership: 'single_owner', location: 'kr_gangwon', finish: '실버', components: '정품 박스, 헤드셸',
     description: '카트리지 미포함(헤드셸만). 정품 박스 보관.',
     draft: { values: { ttType: 'hifi', driveType: 'direct_drive', motorType: '코어리스 다이렉트 드라이브', autoMode: 'manual', wowFlutter: '0.025% WRMS', snr: '78', platterMaterial: 'aluminum_diecast', tonearmShape: 's_shape', tonearm: 'included',
         headshellRemovable: 'yes', trackingForceAdj: 'yes', antiSkating: 'yes', cartridge: 'not_included', phonoBuiltIn: 'none', bluetooth: 'none', groundTerminal: 'yes', dustCover: 'yes', finish: '실버', voltage: '220V' },
@@ -168,13 +168,13 @@ const SEEDS: Seed[] = [
         levelMeter: 'fluorescent', pitchControl: 'no', headWear: 'good', recFunction: 'normal', finish: '블랙', voltage: '100V' },
       multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b', 'dolby_c'], inputs: ['RCA'], outputs: ['RCA Out', 'Headphone Out'] },
       ranges: { freqResponse: { low: '20', high: '20' } }, dims: { dimensions: [D('430', '300', '110')] }, valNotes: { weight: [KG('6.5')] } } },
-  { category: '소스기기', sub: '카세트 데크', brand: 'Nakamichi', model: 'ZX-7', year: '1981', yearApprox: true, condition: 'used_excellent', price: 1900000, country: '일본', ownership: 'multiple_owners', location: 'kr_jeonnam', maintenance: ['overhaul'], finish: '블랙',
+  { category: '소스기기', sub: '카세트 데크', brand: 'Nakamichi', model: 'ZX-7', year: '1981', condition: 'used_excellent', price: 1900000, country: '일본', ownership: 'multiple_owners', location: 'kr_jeonnam', maintenance: ['overhaul'], finish: '블랙',
     description: '3헤드 수동 캘리브레이션. 핀치롤러 교체·캘리브레이션 완료.',
     draft: { values: { headCount: 'three_head', deckCount: 'single', autoReverse: 'none', headMaterial: 'crystalloy', capstan: 'dual', transportDrive: 'direct', hxPro: 'no', bias: 'manual_cal', snr: '68', snrType: 'Dolby B', wowFlutter: '0.027', wowFlutterType: 'WRMS', thd: '0.8',
         levelMeter: 'fluorescent', pitchControl: 'yes', headWear: 'light_wear', recFunction: 'normal', finish: '블랙', voltage: '100V', otherSpecs: '아지머스 수동 조정 노브\n녹음 캘리브레이션용 테스트 톤 내장' },
       multi: { tapeTypeRec: ['type_1', 'type_2', 'type_4'], noiseReduction: ['dolby_b'], inputs: ['RCA', 'Mic In'], outputs: ['RCA Out', 'Headphone Out'] },
       ranges: { freqResponse: { low: '20', high: '20' } }, dims: { dimensions: [D('450', '300', '135')] }, valNotes: { weight: [KG('10.8')] } } },
-  { category: '소스기기', sub: '카세트 데크', brand: 'Akai', model: 'GX-R75', year: '1986', yearApprox: true, condition: 'used_fair', price: 280000, country: '일본', ownership: 'unknown', location: 'kr_gyeongbuk', finish: '블랙',
+  { category: '소스기기', sub: '카세트 데크', brand: 'Akai', model: 'GX-R75', year: '1986', condition: 'used_fair', price: 280000, country: '일본', ownership: 'unknown', location: 'kr_gyeongbuk', finish: '블랙',
     description: '오토리버스(녹음+재생). 전면 패널 스크래치, 도어 작동 원활.', extras: { appearance: 'fair', working: 'needs_inspection' },
     draft: { values: { headCount: 'two_head', deckCount: 'single', autoReverse: 'rec_play', reverseMethod: 'head_rotate', headMaterial: 'ferrite', capstan: 'dual', transportDrive: 'dc_servo', hxPro: 'yes', bias: 'fixed', snr: '58', snrType: 'NR Off', wowFlutter: '0.05', wowFlutterType: 'WRMS', thd: '1',
         levelMeter: 'fluorescent', pitchControl: 'no', headWear: 'good', recFunction: 'normal', finish: '블랙', voltage: '120V' },
@@ -291,9 +291,8 @@ function validateSeed(seed: Seed, fields: CategorySpecField[], S: typeof import(
   for (const m of seed.maintenance ?? []) if (!(m in L.SPEC_LABELS.maintenance)) errs.push(`${tag('maintenance')}: "${m}" 키 없음`);
   if (seed.currency && !(seed.currency in L.LABELS.currency)) errs.push(`${tag('currency')}: "${seed.currency}" 키 없음 [${Object.keys(L.LABELS.currency).join(' | ')}]`);
   if (!Number.isInteger(seed.price) || seed.price <= 0) errs.push(`${tag('price')}: 양의 정수 아님 (${seed.price})`);
-  for (const c of seed.components ?? []) if (!(c in L.SPEC_LABELS.components)) errs.push(`${tag('components')}: "${c}" 키 없음 [${Object.keys(L.SPEC_LABELS.components).join(' | ')}]`);
-  if (new Set(seed.components ?? []).size !== (seed.components ?? []).length) errs.push(`${tag('components')}: 같은 키가 두 번`);
   if (seed.yearApprox && !seed.year.trim()) errs.push(`${tag('yearApprox')}: 연도 없이 '대략' — 폼은 저장 안 함`);
+  if (seed.yearApprox && !F.yearApprox) errs.push(`${tag('yearApprox')}: FEATURE_FLAGS.yearApprox 가 꺼져 있음 — 폼은 저장 안 함`);
   if (L.NEW_CONDITION_KEYS.includes(seed.condition) && (seed.maintenance?.length || seed.extras?.appearance || seed.extras?.working)) errs.push(`${tag('condition')}: 새 제품 상태인데 중고 칸(외관, 작동, 정비 이력) 값이 있음 — 폼은 숨기고 저장 안 함`);
   if (seed.extras?.appearance && !(seed.extras.appearance in L.SPEC_LABELS.appearance)) errs.push(`${tag('appearance')}: 키 없음`);
   if (seed.extras?.working && !(seed.extras.working in L.SPEC_LABELS.working)) errs.push(`${tag('working')}: 키 없음`);
@@ -352,9 +351,8 @@ async function main() {
     if (usedOk && seed.extras?.appearance) specs.appearance = seed.extras.appearance;
     if (usedOk && seed.extras?.working) specs.working = seed.extras.working;
     if (usedOk && seed.maintenance?.length) tech.maintenance = seed.maintenance; // 폼 제품 정보 칸, 저장 자리 specs.tech.maintenance
-    if (seed.yearApprox && seed.year.trim()) specs.yearApprox = true; // 폼과 같음: 연도가 있을 때만
-    if (seed.components?.length) specs.components = L.COMPONENT_OPTS.map((o) => o.value).filter((k) => seed.components!.includes(k)); // 폼과 같음: 목록 순서대로
-    if (seed.componentsOther?.trim()) specs.componentsOther = seed.componentsOther.trim();
+    if (F.yearApprox && seed.yearApprox && seed.year.trim()) specs.yearApprox = true; // 폼과 같음: 플래그 켜짐 + 연도가 있을 때만
+    if (seed.components?.trim()) specs.components = seed.components.trim(); // 폼과 같음: 자유 글 한 칸
     if (Object.keys(tech).length > 0) specs.tech = tech;
     const input: ListingInput = {
       images: seed.imageSlot != null ? slots[seed.imageSlot] ?? [] : [],
@@ -378,8 +376,8 @@ async function main() {
     console.log('\n===== [요약] 전체 ' + rows.length + '행 =====');
     rows.forEach((r, i) => {
       const t = (r.specs as { tech?: Record<string, unknown> }).tech ?? {};
-      const sp = r.specs as { components?: string[]; componentsOther?: string; yearApprox?: boolean };
-      const extra = [sp.yearApprox ? '연식 대략' : '', sp.components?.length || sp.componentsOther ? `구성품 ${sp.components?.length ?? 0}${sp.componentsOther ? '+기타' : ''}` : ''].filter(Boolean).join(', ');
+      const sp = r.specs as { components?: string; yearApprox?: boolean };
+      const extra = [sp.yearApprox ? '연식 대략' : '', sp.components ? `구성품 "${sp.components}"` : ''].filter(Boolean).join(', ');
       console.log(`${String(i + 1).padStart(2)}. ${SEEDS[i].sub.padEnd(10)} | ${(SEEDS[i].brand + ' ' + SEEDS[i].model).padEnd(28)} | ${L.CURRENCY_SYMBOLS[r.currency] ?? r.currency}${r.price.toLocaleString('ko-KR').padStart(10)} | ${String(r.condition).padEnd(14)} | tech ${String(Object.keys(t).length).padStart(2)}키 | 이미지 ${r.images.length} | 지역 ${r.location}${extra ? ' | ' + extra : ''}`);
     });
     // 6) 폼으로 저장된 E-800 행과 키·값 형식 대조
