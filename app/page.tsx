@@ -28,6 +28,8 @@ export default function Page() {
         if (conds?.condition) qs.set('condition', conds.condition);
         if (conds?.brand) qs.set('brand', conds.brand);
         if (conds?.model) qs.set('model', conds.model);
+        if (conds?.locCountry) qs.set('loc_country', conds.locCountry);
+        if (conds?.region) qs.set('region', conds.region);
         const q = qs.toString();
         router.push(`${slug ? `/browse/${slug}` : '/browse'}${q ? `?${q}` : ''}`);
       }}

@@ -28,15 +28,26 @@ export const LABELS: Record<string, LabelMap> = {
     used_needs_service: { ko: '점검 필요' },
     used_not_working: { ko: '작동 불가' },
   },
-  // 지역 = 시/도 17개 (이 순서가 폼 선택지, 둘러보기 지역 필터 순서). DB location 컬럼엔 영문 키 저장
   // 상태 묶음 — 필터, 주소 파라미터의 '중고' 단축(used = 중고 등급 전체)
   conditionGroup: { used: { ko: '중고' } },
+  // 매물 위치의 국가 (지역 키 접두와 같음). 제조국(country)과 다른 칸
+  locationCountry: { kr: { ko: '한국' }, jp: { ko: '일본' } },
+  locationCountryFull: { kr: { ko: '대한민국' }, jp: { ko: '일본' } }, // 상세 페이지 판매자 위치 줄 ('대한민국 서울')
+  // 지역 = 국가 접두 + 시/도 (한국 17개 시/도, 일본 47개 도도부현). 이 순서가 폼 선택지, 둘러보기 지역 필터 순서. DB location 컬럼에 이 키 저장
   location: {
-    seoul: { ko: '서울' }, busan: { ko: '부산' }, daegu: { ko: '대구' }, incheon: { ko: '인천' },
-    gwangju: { ko: '광주' }, daejeon: { ko: '대전' }, ulsan: { ko: '울산' }, sejong: { ko: '세종' },
-    gyeonggi: { ko: '경기' }, gangwon: { ko: '강원' }, chungbuk: { ko: '충북' }, chungnam: { ko: '충남' },
-    jeonbuk: { ko: '전북' }, jeonnam: { ko: '전남' }, gyeongbuk: { ko: '경북' }, gyeongnam: { ko: '경남' },
-    jeju: { ko: '제주' },
+    kr_seoul: { ko: '서울' }, kr_busan: { ko: '부산' }, kr_daegu: { ko: '대구' }, kr_incheon: { ko: '인천' }, kr_gwangju: { ko: '광주' }, kr_daejeon: { ko: '대전' },
+    kr_ulsan: { ko: '울산' }, kr_sejong: { ko: '세종' }, kr_gyeonggi: { ko: '경기' }, kr_gangwon: { ko: '강원' }, kr_chungbuk: { ko: '충북' }, kr_chungnam: { ko: '충남' },
+    kr_jeonbuk: { ko: '전북' }, kr_jeonnam: { ko: '전남' }, kr_gyeongbuk: { ko: '경북' }, kr_gyeongnam: { ko: '경남' }, kr_jeju: { ko: '제주' },
+    jp_hokkaido: { ko: '홋카이도' }, jp_aomori: { ko: '아오모리현' }, jp_iwate: { ko: '이와테현' }, jp_miyagi: { ko: '미야기현' }, jp_akita: { ko: '아키타현' },
+    jp_yamagata: { ko: '야마가타현' }, jp_fukushima: { ko: '후쿠시마현' }, jp_ibaraki: { ko: '이바라키현' }, jp_tochigi: { ko: '도치기현' }, jp_gunma: { ko: '군마현' },
+    jp_saitama: { ko: '사이타마현' }, jp_chiba: { ko: '지바현' }, jp_tokyo: { ko: '도쿄도' }, jp_kanagawa: { ko: '가나가와현' }, jp_niigata: { ko: '니가타현' },
+    jp_toyama: { ko: '도야마현' }, jp_ishikawa: { ko: '이시카와현' }, jp_fukui: { ko: '후쿠이현' }, jp_yamanashi: { ko: '야마나시현' }, jp_nagano: { ko: '나가노현' },
+    jp_gifu: { ko: '기후현' }, jp_shizuoka: { ko: '시즈오카현' }, jp_aichi: { ko: '아이치현' }, jp_mie: { ko: '미에현' }, jp_shiga: { ko: '시가현' },
+    jp_kyoto: { ko: '교토부' }, jp_osaka: { ko: '오사카부' }, jp_hyogo: { ko: '효고현' }, jp_nara: { ko: '나라현' }, jp_wakayama: { ko: '와카야마현' },
+    jp_tottori: { ko: '돗토리현' }, jp_shimane: { ko: '시마네현' }, jp_okayama: { ko: '오카야마현' }, jp_hiroshima: { ko: '히로시마현' }, jp_yamaguchi: { ko: '야마구치현' },
+    jp_tokushima: { ko: '도쿠시마현' }, jp_kagawa: { ko: '가가와현' }, jp_ehime: { ko: '에히메현' }, jp_kochi: { ko: '고치현' }, jp_fukuoka: { ko: '후쿠오카현' },
+    jp_saga: { ko: '사가현' }, jp_nagasaki: { ko: '나가사키현' }, jp_kumamoto: { ko: '구마모토현' }, jp_oita: { ko: '오이타현' }, jp_miyazaki: { ko: '미야자키현' },
+    jp_kagoshima: { ko: '가고시마현' }, jp_okinawa: { ko: '오키나와현' },
   },
   country: {
     us: { ko: '미국' }, jp: { ko: '일본' }, uk: { ko: '영국' }, de: { ko: '독일' },
@@ -55,8 +66,15 @@ export const LABELS: Record<string, LabelMap> = {
   },
 };
 
-// 지역 선택지 (단일 출처) — 업로드 폼 배송 섹션 '지역' 칸과 둘러보기 지역 필터(browse-filters LOCATIONS)가 같이 씀
-export const LOCATION_OPTS = Object.entries(LABELS.location).map(([value, m]) => ({ value, label: m.ko ?? value }));
+// 지역 선택지 (단일 출처) — 업로드 폼 배송 섹션 '국가', '지역' 칸과 둘러보기, 홈 필터가 같이 씀
+export const LOCATION_COUNTRY_OPTS = Object.entries(LABELS.locationCountry).map(([value, m]) => ({ value, label: m.ko ?? value })); // kr / jp
+export const LOCATION_OPTS = Object.entries(LABELS.location).map(([value, m]) => ({ value, label: m.ko ?? value })); // 전 국가 지역 (한국 먼저)
+// 지역 키 → 국가 키 (kr_seoul → kr). 접두가 없는 옛 키는 ''
+export const locationCountryOf = (key: string | null | undefined): string => { const m = /^([a-z]{2})_/.exec(key ?? ''); return m ? m[1] : ''; };
+// 한 국가의 지역 선택지
+export const locationOptsFor = (country: string) => LOCATION_OPTS.filter((o) => locationCountryOf(o.value) === country);
+// 지역 키 → 위치 글자 ('대한민국 서울', '일본 도쿄도'). 접두 없는 옛 키는 지역 이름만
+export const locationText = (key: string | null | undefined): string => (key ? `${label('locationCountryFull', locationCountryOf(key))} ${label('location', key)}`.trim() : '');
 
 // 새 제품 상태 키 — 이 상태면 업로드 폼이 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장하지 않음 (시드도 같은 규칙)
 export const NEW_CONDITION_KEYS = ['new', 'unopened', 'nos'];

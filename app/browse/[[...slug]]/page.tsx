@@ -30,6 +30,8 @@ function BrowseInner() {
   const initialCondition = searchParams.get('condition') ?? undefined;
   const initialBrand = searchParams.get('brand') ?? undefined;
   const initialModel = searchParams.get('model') ?? undefined;
+  const initialLocCountry = searchParams.get('loc_country') ?? undefined; // 위치 국가 키 (kr / jp)
+  const initialRegion = searchParams.get('region') ?? undefined;          // 지역 키 (kr_seoul 등)
 
   return (
     <BrowsePage
@@ -41,6 +43,8 @@ function BrowseInner() {
       initialCondition={initialCondition}
       initialBrand={initialBrand}
       initialModel={initialModel}
+      initialLocCountry={initialLocCountry}
+      initialRegion={initialRegion}
       onSearch={(q) => router.push(`/browse?q=${encodeURIComponent(q)}`)}
     />
   );

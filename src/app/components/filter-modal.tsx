@@ -33,6 +33,10 @@ import {
   Filters,
   IMPEDANCE_OPTS,
   LOCATIONS,
+  LOCATION_COUNTRIES,
+  regionOptionsFor,
+  REGION_VISIBLE_ALL,
+  pruneRegions,
   Listing,
   OWNERSHIP_OPTS,
   PAIR_OPTS,
@@ -389,7 +393,7 @@ export function FilterModal({
   };
 
   const setFieldKeys: (keyof Filters)[] = [
-    'brand', 'model', 'condition', 'ownership', 'country', 'region',
+    'brand', 'model', 'condition', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
@@ -939,9 +943,19 @@ export function FilterModal({
               counts={counts.country}
             />
           </Section>
+          <Section title="국가">
+            <CheckGroup
+              options={LOCATION_COUNTRIES}
+              selected={draft.locationCountry}
+              getLabel={lab('locationCountry')}
+              onToggle={(v) => { const set = new Set(draft.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); setDraft(pruneRegions({ ...draft, locationCountry: set })); }}
+              counts={counts.locationCountry}
+            />
+          </Section>
           <Section title="지역">
             <CheckGroup
-              options={LOCATIONS}
+              options={regionOptionsFor(draft.locationCountry)}
+              maxVisible={draft.locationCountry.size ? undefined : REGION_VISIBLE_ALL}
               selected={draft.region}
                   getLabel={lab('region')}
               onToggle={toggleIn('region')}

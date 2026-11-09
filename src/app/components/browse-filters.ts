@@ -11,7 +11,7 @@
 // 필터 값은 언어 중립 키 — 저장값과 같은 영문 키(또는 MM, 8Ω 같은 중립 글자). 화면 글자는 filterLabel(필드, 값)로만.
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
-import { LABELS, LOCATION_OPTS, label } from '@/lib/labels';
+import { LABELS, LOCATION_OPTS, LOCATION_COUNTRY_OPTS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
 import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // 상태 = labels.ts condition 키. 중고 등급(used_*)은 '중고' 단축 키(used)가 전체를 매칭함
@@ -20,7 +20,14 @@ export const USED_GRADES = CONDITIONS.filter((k) => k.startsWith('used_'));     
 export const USED_ALL_KEY = 'used';                                               // '중고' 단축 키 (필터 값, 주소 파라미터 ?condition=used)
 export const USED_ALL = label('conditionGroup', USED_ALL_KEY);                    // '중고' 글자 — 홈 조건 검색 상태 칸이 아직 글자로 고름(다음 블록에서 정리)
 export const CONDITION_DISPLAY = [...CONDITIONS.filter((k) => !k.startsWith('used_')), USED_ALL_KEY, ...USED_GRADES]; // 사이드바: 새상품, 미개봉, NOS, 중고, 등급들
-export const LOCATIONS = LOCATION_OPTS.map((o) => o.value); // 지역 = 폼 '지역' 선택지와 같은 시/도 17개 키 (labels.ts LOCATION_OPTS)
+export const LOCATION_COUNTRIES = LOCATION_COUNTRY_OPTS.map((o) => o.value); // 국가 = 폼 '국가' 선택지: kr / jp
+export const LOCATIONS = LOCATION_OPTS.map((o) => o.value); // 지역 = 폼 '지역' 선택지 키 전부 (kr_seoul … jp_okinawa, labels.ts LOCATION_OPTS)
+// 지역 필터 선택지 — 국가를 고르면 그 나라 지역만, 안 고르면 전 국가(한국 먼저, 한국 시/도 개수만큼 펼쳐 보임)
+export const regionOptionsFor = (countries: Set<string>) => (countries.size ? LOCATIONS.filter((k) => countries.has(locationCountryOf(k))) : LOCATIONS);
+export const REGION_VISIBLE_ALL = locationOptsFor('kr').length;
+// 국가 선택을 바꾼 뒤, 고른 나라에 속하지 않는 지역 선택은 뺌 (일본만 고르면 서울 선택이 남지 않게)
+export const pruneRegions = (f: Filters): Filters =>
+  f.locationCountry.size === 0 ? f : { ...f, region: new Set([...f.region].filter((k) => f.locationCountry.has(locationCountryOf(k)))) };
 export const OWNERSHIP_OPTS = ['single_owner', 'multiple_owners'];
 export const COUNTRY_OPTS = ['us', 'jp', 'uk', 'de', 'fr', 'dk', 'ca', 'cn'];
 export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가격 높은순'];
@@ -56,6 +63,7 @@ export const DUSTCOVER_OPTS = optValues(TT_DUSTCOVER_OPTS); // yes / no / damage
 export function filterLabel(field: keyof Filters, v: string): string {
   switch (field) {
     case 'condition': return v === USED_ALL_KEY ? USED_ALL : label('condition', v);
+    case 'locationCountry': return label('locationCountry', v);
     case 'region': return label('location', v);
     case 'ownership': return label('ownership', v);
     case 'country': return label('country', v);
@@ -174,7 +182,8 @@ export type Listing = {
   working: string;           // 작동 등급 (한글 라벨, 없으면 '')
   workingDetail: string;     // 작동 자유 입력 (없으면 '')
   maintenance: string[];     // 정비 이력 (한글 라벨, 직접 입력 글은 그대로, 없으면 []) — specs.tech.maintenance
-  location: string;          // 지역 키 (seoul 등) — 필터 값과 같음. 화면 글자는 label('location')
+  location: string;          // 지역 키 (kr_seoul, jp_tokyo 등) — 필터 값과 같음. 화면 글자는 label('location'), 위치 줄은 locationText
+  locationCountry: string;   // 위치 국가 키 (kr / jp) — 지역 키 접두에서 뽑음
   ownership: string;         // 소유권 키 (single_owner 등)
   country: string;           // 제조국 키 (us 등)
   handmade: boolean;                   // 자작품(DIY) 태그
@@ -244,6 +253,7 @@ export type Filters = {
   yearMax: number | null;
   ownership: Set<string>;
   country: Set<string>;
+  locationCountry: Set<string>; // 위치 국가 (kr / jp)
   region: Set<string>;
   ampType: Set<string>;
   ampDetail: Set<string>;
@@ -299,6 +309,7 @@ export const emptyFilters = (): Filters => ({
   yearMax: null,
   ownership: new Set(),
   country: new Set(),
+  locationCountry: new Set(),
   region: new Set(),
   ampType: new Set(),
   ampDetail: new Set(),
@@ -350,6 +361,7 @@ export function cloneFilters(f: Filters): Filters {
     yearMax: f.yearMax,
     ownership: new Set(f.ownership),
     country: new Set(f.country),
+    locationCountry: new Set(f.locationCountry),
     region: new Set(f.region),
     ampType: new Set(f.ampType),
     ampDetail: new Set(f.ampDetail),
@@ -393,7 +405,7 @@ export function cloneFilters(f: Filters): Filters {
 
 export function countFilters(f: Filters): number {
   const setKeys: (keyof Filters)[] = [
-    'brand', 'model', 'condition', 'ownership', 'country', 'region',
+    'brand', 'model', 'condition', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
@@ -441,6 +453,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   if (f.yearMax != null) r = r.filter((l) => l.releaseYear <= f.yearMax!);
   if (f.ownership.size > 0) r = r.filter((l) => f.ownership.has(l.ownership));
   if (f.country.size > 0) r = r.filter((l) => f.country.has(l.country));
+  if (f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
   if (f.region.size > 0) r = r.filter((l) => f.region.has(l.location));
   if (isAmp) {
     if (f.ampType.size > 0) r = r.filter((l) => f.ampType.has(l.ampType));

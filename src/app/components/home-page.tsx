@@ -13,7 +13,7 @@ import {
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
 import { USED_GRADES, USED_ALL, USED_ALL_KEY } from './browse-filters';
-import { keyFor, label } from '@/lib/labels';
+import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -302,7 +302,7 @@ type SellData = {
 type HomePageProps = {
   onViewItem: (id: string) => void;
   // conds = 홈 조건 검색에서 고른 상태, 브랜드, 모델 (둘러보기 필터로 넘김)
-  onBrowse: (category: string | null, conds?: { condition?: string; brand?: string; model?: string }) => void;
+  onBrowse: (category: string | null, conds?: { condition?: string; brand?: string; model?: string; locCountry?: string; region?: string }) => void;
   onSell: (data?: SellData) => void;
   onSearch: (query: string) => void;
 };
@@ -331,6 +331,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   const [category, setCategory] = useState('----');
   const [brand, setBrand] = useState('----');
   const [model, setModel] = useState('----');
+  const [locCountry, setLocCountry] = useState('----'); // 위치 국가 (글자)
+  const [region, setRegion] = useState('----');         // 지역 (글자)
 
   const isReal = (v: string, allLabel: string) => v && v !== '----' && v !== allLabel;
 
@@ -344,6 +346,10 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   const isBrandSelected = isReal(brand, '전체 브랜드');
   const isModelSelected = isReal(model, '전체 모델');
   const isConditionSelected = isReal(condition, '전체');
+  const isLocCountrySelected = isReal(locCountry, '전체 국가');
+  const isRegionSelected = isReal(region, '전체 지역');
+  const locCountryKey = isLocCountrySelected ? keyFor('locationCountry', locCountry) ?? '' : ''; // 한국 → kr
+  const regionKey = isRegionSelected ? keyFor('location', region) ?? '' : '';                       // 서울 → kr_seoul
 
   // ── 조건 검색의 목록(브랜드, 카테고리, 모델)과 "검색 결과 N건"은 지금 판매중인 매물(dbListings)에서만 뽑음. 사전(CATALOG)은 안 읽음.
   //    dbListings 는 fetchListings 결과라 숨긴 카테고리 매물이 이미 빠져 있음(둘러보기와 같은 기준). 추가 요청 없음
@@ -370,13 +376,20 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         new Set(dbListings.filter((l) => l.brand === brand && (!isCategorySelected || inTop(l, category))).map((l) => l.model))
       ).sort((a, b) => a.localeCompare(b, undefined, { numeric: true }))
     : [];
-  // 검색 결과 N건 = 고른 조건(상태, 브랜드, 카테고리, 모델)에 맞는 실제 매물 수. 아무것도 안 골랐으면 전체 매물 수
+  // 국가 = 매물이 있는 나라, 지역 = 고른 나라에서 매물이 있는 지역 (둘러보기 국가 → 지역과 같은 구조)
+  const locCountryOptions = LOCATION_COUNTRY_OPTS.filter((o) => dbListings.some((l) => l.locationCountry === o.value)).map((o) => o.label);
+  const regionOptions = isLocCountrySelected
+    ? locationOptsFor(locCountryKey).filter((o) => dbListings.some((l) => l.location === o.value)).map((o) => o.label)
+    : [];
+  // 검색 결과 N건 = 고른 조건(상태, 브랜드, 카테고리, 모델, 국가, 지역)에 맞는 실제 매물 수. 아무것도 안 골랐으면 전체 매물 수
   const filteredCount = dbListings.filter(
     (l) =>
       matchesCondition(l) &&
       (!isBrandSelected || l.brand === brand) &&
       (!isCategorySelected || inTop(l, category)) &&
-      (!isModelSelected || l.model === model)
+      (!isModelSelected || l.model === model) &&
+      (!isLocCountrySelected || l.locationCountry === locCountryKey) &&
+      (!isRegionSelected || l.location === regionKey)
   ).length;
   const [sellQuery, setSellQuery] = useState('');
 
@@ -726,6 +739,28 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     }
                   />
 
+                  <Combobox
+                    label="국가"
+                    value={locCountry}
+                    onChange={(v) => {
+                      setLocCountry(v);
+                      setRegion('----');
+                    }}
+                    options={locCountryOptions}
+                    allLabel="전체 국가"
+                    searchable={false}
+                  />
+
+                  <Combobox
+                    label="지역"
+                    value={region}
+                    onChange={setRegion}
+                    options={regionOptions}
+                    allLabel="전체 지역"
+                    disabled={!isLocCountrySelected || regionOptions.length === 0}
+                    disabledHint={!isLocCountrySelected ? '먼저 국가를 선택하세요' : '이 국가에 등록된 매물이 없습니다'}
+                  />
+
                   <button
                     onClick={() =>
                       onBrowse(isCategorySelected ? category : null, {
@@ -733,6 +768,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                         condition: isConditionSelected ? (condition === USED_ALL ? USED_ALL_KEY : keyFor('condition', condition) ?? condition) : undefined,
                         brand: isBrandSelected ? brand : undefined,
                         model: isModelSelected ? model : undefined,
+                        locCountry: locCountryKey || undefined,
+                        region: regionKey || undefined,
                       })
                     }
                     className="w-full bg-[#000000] text-white font-semibold py-2.5 rounded-lg hover:bg-[#000000] transition mt-4"

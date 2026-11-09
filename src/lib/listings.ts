@@ -9,7 +9,7 @@ import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { isCategoryVisible } from '@/app/data/catalog';
-import { label, keyFor } from './labels';
+import { label, keyFor, locationCountryOf } from './labels';
 import { wooferBucket } from '@/app/data/category-specs';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
@@ -116,7 +116,8 @@ function mapRow(row: ListingRow): Listing {
     workingDetail: typeof s.workingDetail === 'string' ? s.workingDetail : '',
     // 정비 이력 (제품 정보 공통 칸, 저장 자리는 tech.maintenance) — 영문키는 한글 라벨로, 직접 입력 글은 그대로
     maintenance: techArr('maintenance').map((x) => label('maintenance', x)),
-    location: row.location ?? '',   // 지역 키 (seoul 등)
+    location: row.location ?? '',   // 지역 키 (kr_seoul, jp_tokyo 등)
+    locationCountry: locationCountryOf(row.location), // 위치 국가 키 (kr / jp) — 지역 키 접두
     ownership: row.ownership ?? '', // 소유권 키 (single_owner 등)
     // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스)
     // tech 중첩에 둔 이유: 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지
@@ -229,7 +230,7 @@ export type ListingInput = {
   shippingType: 'free' | 'flat' | 'calculated' | ''; // 빈 문자열 = 미선택
   shippingCost: string;
   localPickup: boolean;
-  location?: string;      // 지역 영문 키 (labels.ts LOCATION_OPTS, 예: 'seoul'). 빈 문자열·없음 = 미선택
+  location?: string;      // 지역 키 (국가 접두 포함, 예: 'kr_seoul', 'jp_tokyo'). 빈 문자열·없음 = 미선택
   specs?: Record<string, unknown>; // jsonb로 저장될 카테고리별 상세 스펙 (외관/작동 등)
 };
 

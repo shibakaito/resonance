@@ -17,6 +17,8 @@ interface BrowsePageProps {
   initialCondition?: string;
   initialBrand?: string;
   initialModel?: string;
+  initialLocCountry?: string; // ?loc_country=kr
+  initialRegion?: string;     // ?region=kr_seoul
 }
 
 // ── 분리: 필터 로직/데이터/타입은 browse-filters.ts로 이동했습니다 ──
@@ -42,6 +44,10 @@ import {
   Filters,
   IMPEDANCE_OPTS,
   LOCATIONS,
+  LOCATION_COUNTRIES,
+  regionOptionsFor,
+  REGION_VISIBLE_ALL,
+  pruneRegions,
   Listing,
   OWNERSHIP_OPTS,
   PAIR_OPTS,
@@ -92,7 +98,7 @@ const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
 
-export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialBrand, initialModel }: BrowsePageProps) {
+export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -291,6 +297,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       })(),
       ownership: countBy(categoryListings, (l) => l.ownership),
       country: countBy(categoryListings, (l) => l.country),
+      locationCountry: countBy(categoryListings, (l) => l.locationCountry),
       region: countBy(categoryListings, (l) => l.location),
       subcategory: subCatCounts,
       ampDetail: countBy(categoryListings, (l) => l.ampDetail),
@@ -369,11 +376,13 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     if (initialCondition) f.condition.add(initialCondition); // 주소의 키(used_good, 중고는 used) = 필터 값 그대로
     if (initialBrand) f.brand.add(initialBrand);
     if (initialModel) f.model.add(initialModel);
+    if (initialLocCountry) f.locationCountry.add(initialLocCountry);
+    if (initialRegion) f.region.add(initialRegion);
     return f;
   };
   const [filters, setFilters] = useState<Filters>(filtersFromHome);
   // 주소의 조건이 바뀌면(홈에서 다시 넘어오는 등) 그 조건으로 새로 시작
-  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialBrand, initialModel]);
+  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialBrand, initialModel, initialLocCountry, initialRegion]);
   const [modalOpen, setModalOpen] = useState(false);
   const [sort, setSort] = useState(SORT_OPTIONS[0]);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -433,6 +442,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'condition' },
       { key: 'ownership' },
       { key: 'country' },
+      { key: 'locationCountry' },
       { key: 'region' },
       { key: 'ampType', ampOnly: true },
       { key: 'ampDetail', ampOnly: true },
@@ -810,7 +820,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               <RangeSection label="출시 연도" noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
               <FilterSection label="소유권" options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />
               <FilterSection label="제조국" options={COUNTRY_OPTS} selected={filters.country} getLabel={lab('country')} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
-              <FilterSection label="지역" options={LOCATIONS} selected={filters.region} getLabel={lab('region')} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} />
+              {/* 국가 → 지역: 국가를 고르면 지역은 그 나라 것만 (안 고르면 전 국가, 한국 먼저 펼침) */}
+              <FilterSection label="국가" options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false} />
+              <FilterSection label="지역" options={regionOptionsFor(filters.locationCountry)} selected={filters.region} getLabel={lab('region')} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} maxVisible={filters.locationCountry.size ? undefined : REGION_VISIBLE_ALL} />
             </div>
           </div>
         </aside>
