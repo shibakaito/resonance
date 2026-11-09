@@ -12,7 +12,7 @@ import {
   subcategoriesFor
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
-import { USED_GRADES, USED_ALL, USED_ALL_KEY, fmtPrice } from './browse-filters';
+import { CONDITIONS, APPEARANCE_OPTS, WORKING_OPTS, fmtPrice } from './browse-filters';
 import { ConditionBadge } from './condition-badge';
 import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
@@ -302,8 +302,8 @@ type SellData = {
 
 type HomePageProps = {
   onViewItem: (id: string) => void;
-  // conds = 홈 조건 검색에서 고른 상태, 브랜드, 모델 (둘러보기 필터로 넘김)
-  onBrowse: (category: string | null, conds?: { condition?: string; brand?: string; model?: string; locCountry?: string; region?: string }) => void;
+  // conds = 홈 조건 검색에서 고른 상태, 외관, 작동, 브랜드, 모델 (둘러보기 필터로 넘김, 값은 키)
+  onBrowse: (category: string | null, conds?: { condition?: string; appearance?: string; working?: string; brand?: string; model?: string; locCountry?: string; region?: string }) => void;
   onSell: (data?: SellData) => void;
   onSearch: (query: string) => void;
 };
@@ -328,7 +328,9 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   const savedListings = useMemo(() => dbListings.slice(0, 4), [dbListings]);
   const [query, setQuery] = useState('');
   const [heroTab, setHeroTab] = useState<'shop' | 'sell'>('shop');
-  const [condition, setCondition] = useState('----');
+  const [condition, setCondition] = useState('----');   // 상태 (글자)
+  const [appearance, setAppearance] = useState('----'); // 외관 상태 (글자)
+  const [working, setWorking] = useState('----');       // 작동 상태 (글자)
   const [category, setCategory] = useState('----');
   const [brand, setBrand] = useState('----');
   const [model, setModel] = useState('----');
@@ -347,6 +349,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   const isBrandSelected = isReal(brand, '전체 브랜드');
   const isModelSelected = isReal(model, '전체 모델');
   const isConditionSelected = isReal(condition, '전체');
+  const isAppearanceSelected = isReal(appearance, '전체');
+  const isWorkingSelected = isReal(working, '전체');
+  const conditionKey = isConditionSelected ? keyFor('condition', condition) ?? '' : '';    // 중고 → used
+  const appearanceKey = isAppearanceSelected ? keyFor('appearance', appearance) ?? '' : ''; // 매우 좋음 → excellent
+  const workingKey = isWorkingSelected ? keyFor('working', working) ?? '' : '';             // 정상 작동 → working
   const isLocCountrySelected = isReal(locCountry, '전체 국가');
   const isRegionSelected = isReal(region, '전체 지역');
   const locCountryKey = isLocCountrySelected ? keyFor('locationCountry', locCountry) ?? '' : ''; // 한국 → kr
@@ -358,9 +365,11 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
     const subs = subcategoriesFor(top);
     return l.categories.some((c) => subs.includes(c));
   };
-  // 상태: '중고'는 중고 등급 전체(둘러보기 필터와 같은 규칙)
+  // 상태, 외관, 작동 — 둘러보기 필터와 같은 규칙 (매물 값은 키, 칸은 글자 → keyFor. 외관이나 작동을 비운 매물은 그 칸을 고르면 안 걸림)
   const matchesCondition = (l: Listing) =>
-    !isConditionSelected || (condition === USED_ALL ? USED_GRADES.includes(l.condition) : l.condition === keyFor('condition', condition)); // 매물 상태는 키, 상태 칸은 아직 글자
+    (!isConditionSelected || l.condition === conditionKey) &&
+    (!isAppearanceSelected || l.appearance === appearanceKey) &&
+    (!isWorkingSelected || l.working === workingKey);
   // 브랜드 = 매물 브랜드, 매물 많은 순(같으면 이름순)
   const brandOptions = useMemo(() => {
     const n = new Map<string, number>();
@@ -682,18 +691,26 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     label="상태"
                     value={condition}
                     onChange={setCondition}
-                    options={[
-                      '전체',
-                      '새상품',
-                      'NOS',
-                      '중고',
-                      '민트급',
-                      '매우 좋음',
-                      '좋음',
-                      '보통',
-                      '점검 필요',
-                      '작동 불가'
-                    ]}
+                    options={['전체', ...CONDITIONS.map((k) => label('condition', k))]}
+                    allLabel="전체"
+                    searchable={false}
+                    showAllOption={false}
+                  />
+                  {/* 외관 상태, 작동 상태 — 둘러보기 사이드바와 같은 세 묶음 (2026-11-10 상태 등급 재구성) */}
+                  <Combobox
+                    label="외관 상태"
+                    value={appearance}
+                    onChange={setAppearance}
+                    options={['전체', ...APPEARANCE_OPTS.map((k) => label('appearance', k))]}
+                    allLabel="전체"
+                    searchable={false}
+                    showAllOption={false}
+                  />
+                  <Combobox
+                    label="작동 상태"
+                    value={working}
+                    onChange={setWorking}
+                    options={['전체', ...WORKING_OPTS.map((k) => label('working', k))]}
                     allLabel="전체"
                     searchable={false}
                     showAllOption={false}
@@ -765,8 +782,10 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   <button
                     onClick={() =>
                       onBrowse(isCategorySelected ? category : null, {
-                        // 주소엔 언어 중립 키로 (좋음 → used_good, 중고 → used)
-                        condition: isConditionSelected ? (condition === USED_ALL ? USED_ALL_KEY : keyFor('condition', condition) ?? condition) : undefined,
+                        // 주소엔 언어 중립 키로 (중고 → used, 매우 좋음 → excellent, 정상 작동 → working)
+                        condition: conditionKey || undefined,
+                        appearance: appearanceKey || undefined,
+                        working: workingKey || undefined,
                         brand: isBrandSelected ? brand : undefined,
                         model: isModelSelected ? model : undefined,
                         locCountry: locCountryKey || undefined,

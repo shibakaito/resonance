@@ -27,7 +27,9 @@ function BrowseInner() {
   // 검색어(?q) — 홈 메인 검색에서 넘어옴
   const searchQuery = searchParams.get('q') ?? undefined;
   // 홈 조건 검색(검색 결과 N건 보기)에서 넘어온 조건 — 필터에 체크된 채로 시작
-  const initialCondition = searchParams.get('condition') ?? undefined;
+  const initialCondition = searchParams.get('condition') ?? undefined;   // 상태 키 (new / unopened / nos / used)
+  const initialAppearance = searchParams.get('appearance') ?? undefined; // 외관 키 (mint 등)
+  const initialWorking = searchParams.get('working') ?? undefined;       // 작동 키 (working 등)
   const initialBrand = searchParams.get('brand') ?? undefined;
   const initialModel = searchParams.get('model') ?? undefined;
   const initialLocCountry = searchParams.get('loc_country') ?? undefined; // 위치 국가 키 (kr / jp)
@@ -41,6 +43,8 @@ function BrowseInner() {
       initialSubCategory={initialSubCategory}
       searchQuery={searchQuery}
       initialCondition={initialCondition}
+      initialAppearance={initialAppearance}
+      initialWorking={initialWorking}
       initialBrand={initialBrand}
       initialModel={initialModel}
       initialLocCountry={initialLocCountry}

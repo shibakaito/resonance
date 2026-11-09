@@ -13,8 +13,10 @@ interface BrowsePageProps {
   initialSubCategory?: string | null;
   searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어
   onSearch?: (query: string) => void; // browse에서 검색어 수정·재검색
-  // 홈 조건 검색에서 넘어온 조건(주소 ?condition, ?brand, ?model) — 필터에 체크된 채로 시작
-  initialCondition?: string;
+  // 홈 조건 검색에서 넘어온 조건(주소 ?condition, ?appearance, ?working, ?brand, ?model) — 필터에 체크된 채로 시작
+  initialCondition?: string;  // ?condition=used (new / unopened / nos / used)
+  initialAppearance?: string; // ?appearance=excellent
+  initialWorking?: string;    // ?working=working
   initialBrand?: string;
   initialModel?: string;
   initialLocCountry?: string; // ?loc_country=kr
@@ -31,7 +33,8 @@ import {
   AUTO_OPTS,
   CARTRIDGE_OPTS,
   CONDITIONS,
-  CONDITION_DISPLAY,
+  APPEARANCE_OPTS,
+  WORKING_OPTS,
   CONDUCTOR_OPTS,
   COUNTRY_OPTS,
   CROSS_LISTING,
@@ -66,9 +69,6 @@ import {
   TONEARM_OPTS,
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
-  USED_ALL,
-  USED_ALL_KEY,
-  USED_GRADES,
   VOLTAGE_OPTS,
   WOOFER_SIZES,
   applyFilters,
@@ -99,7 +99,7 @@ const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
   BRAND_DIRECTORY.map((b) => [b.name, b.aliases])
 );
 
-export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
+export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -288,14 +288,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   const counts = useMemo<Counts>(
     () => ({
       brand: countBy(categoryListings, (l) => l.brand),
-      condition: (() => {
-        const c = countBy(categoryListings, (l) => l.condition);
-        // '중고' = 모든 중고 등급 매물 수 합계 (UI 단축키용)
-        c[USED_ALL_KEY] = Object.entries(c)
-          .filter(([k]) => USED_GRADES.includes(k))
-          .reduce((s, [, v]) => s + v, 0);
-        return c;
-      })(),
+      condition: countBy(categoryListings, (l) => l.condition),
+      appearance: countBy(categoryListings, (l) => l.appearance), // 비운 매물은 '' 키로 세어져 선택지에 안 보임
+      working: countBy(categoryListings, (l) => l.working),
       ownership: countBy(categoryListings, (l) => l.ownership),
       country: countBy(categoryListings, (l) => l.country),
       locationCountry: countBy(categoryListings, (l) => l.locationCountry),
@@ -374,7 +369,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   // 홈 조건 검색에서 넘어온 조건을 넣은 필터 (없으면 빈 필터)
   const filtersFromHome = (): Filters => {
     const f = emptyFilters();
-    if (initialCondition) f.condition.add(initialCondition); // 주소의 키(used_good, 중고는 used) = 필터 값 그대로
+    if (initialCondition) f.condition.add(initialCondition);    // 주소의 키(new / unopened / nos / used) = 필터 값 그대로
+    if (initialAppearance) f.appearance.add(initialAppearance); // 외관 키 (mint 등)
+    if (initialWorking) f.working.add(initialWorking);          // 작동 키 (working 등)
     if (initialBrand) f.brand.add(initialBrand);
     if (initialModel) f.model.add(initialModel);
     if (initialLocCountry) f.locationCountry.add(initialLocCountry);
@@ -383,7 +380,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   };
   const [filters, setFilters] = useState<Filters>(filtersFromHome);
   // 주소의 조건이 바뀌면(홈에서 다시 넘어오는 등) 그 조건으로 새로 시작
-  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialBrand, initialModel, initialLocCountry, initialRegion]);
+  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion]);
   const [modalOpen, setModalOpen] = useState(false);
   const [sort, setSort] = useState(SORT_OPTIONS[0]);
   const [liked, setLiked] = useState<Set<string>>(new Set());
@@ -441,6 +438,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'brand' },
       { key: 'model' },
       { key: 'condition' },
+      { key: 'appearance', prefix: '외관' },
+      { key: 'working' },
       { key: 'ownership' },
       { key: 'country' },
       { key: 'locationCountry' },
@@ -695,14 +694,16 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             )}
 
             <div className="flex flex-col">
+              {/* 상태(종류 4개) → 외관 상태 → 작동 상태 (2026-11-10 상태 등급 재구성). 외관, 작동은 중고 매물만 값이 있음 */}
               <FilterSection
                 label="상태"
-                options={CONDITION_DISPLAY}
+                options={CONDITIONS}
                 selected={filters.condition} getLabel={lab('condition')}
                 onToggle={toggleField('condition')}
                 counts={counts.condition}
-                maxVisible={3}
               />
+              <FilterSection label="외관 상태" options={APPEARANCE_OPTS} selected={filters.appearance} getLabel={lab('appearance')} onToggle={toggleField('appearance')} counts={counts.appearance} />
+              <FilterSection label="작동 상태" options={WORKING_OPTS} selected={filters.working} getLabel={lab('working')} onToggle={toggleField('working')} counts={counts.working} />
               {sidebarCategoryGroups.map((g) => (
                 <FilterSection
                   key={g.title}

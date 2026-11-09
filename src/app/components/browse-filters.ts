@@ -11,16 +11,14 @@
 // 필터 값은 언어 중립 키 — 저장값과 같은 영문 키(또는 MM, 8Ω 같은 중립 글자). 화면 글자는 filterLabel(필드, 값)로만.
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
-import { LABELS, LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
+import { LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, CONDITION_KEYS, SPEC_LABELS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
 import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
-// 상태 = labels.ts condition 키. 중고 등급(used_*)은 '중고' 단축 키(used)가 전체를 매칭함
-export const CONDITIONS = Object.keys(LABELS.condition);                          // new, unopened, nos, used_mint … used_not_working
-export const USED_GRADES = CONDITIONS.filter((k) => k.startsWith('used_'));       // NOS(New Old Stock), 미개봉은 중고 등급이 아니라 별도 항목
-export const USED_ALL_KEY = 'used';                                               // '중고' 단축 키 (필터 값, 주소 파라미터 ?condition=used)
-export const USED_ALL = label('conditionGroup', USED_ALL_KEY);                    // '중고' 글자 — 홈 조건 검색 상태 칸이 아직 글자로 고름(다음 블록에서 정리)
-export const CONDITION_DISPLAY = [...CONDITIONS.filter((k) => !k.startsWith('used_')), USED_ALL_KEY, ...USED_GRADES]; // 사이드바: 새상품, 미개봉, NOS, 중고, 등급들
+// 상태 = 종류 4개 (labels.ts CONDITION_KEYS: new / unopened / nos / used, 주소 ?condition=used). 중고의 등급은 외관, 작동 필터가 맡음 (2026-11-10 상태 등급 재구성)
+export const CONDITIONS = CONDITION_KEYS;
+export const APPEARANCE_OPTS = Object.keys(SPEC_LABELS.appearance); // 외관 상태: mint / excellent / good / fair (주소 ?appearance=)
+export const WORKING_OPTS = Object.keys(SPEC_LABELS.working);       // 작동 상태: working / needs_inspection / needs_repair (주소 ?working=)
 export const LOCATION_COUNTRIES = LOCATION_COUNTRY_OPTS.map((o) => o.value); // 국가 = 폼 '국가' 선택지: kr / jp
 export const LOCATIONS = LOCATION_OPTS.map((o) => o.value); // 지역 = 폼 '지역' 선택지 키 전부 (kr_seoul … jp_okinawa, labels.ts LOCATION_OPTS)
 // 지역 필터 선택지 — 국가를 고르면 그 나라 지역만, 안 고르면 전 국가(한국 먼저, 한국 시/도 개수만큼 펼쳐 보임)
@@ -63,7 +61,9 @@ export const DUSTCOVER_OPTS = optValues(TT_DUSTCOVER_OPTS); // yes / no / damage
 //   케이블 필터(숨긴 카테고리, 저장 데이터 없음)는 아직 글자 그대로라 여기 없음
 export function filterLabel(field: keyof Filters, v: string): string {
   switch (field) {
-    case 'condition': return v === USED_ALL_KEY ? USED_ALL : label('condition', v);
+    case 'condition': return label('condition', v);
+    case 'appearance': return label('appearance', v);
+    case 'working': return label('working', v);
     case 'locationCountry': return label('locationCountry', v);
     case 'region': return label('location', v);
     case 'ownership': return label('ownership', v);
@@ -196,7 +196,7 @@ export type Listing = {
   images: string[];           // Supabase Storage 공개 URL 목록 (대표=인덱스 0). 없으면 []
   price: number;
   currency: string;           // 통화 키 (krw / jpy) — 가격 표시 기호. 필터는 통화 구분 없이 숫자 비교
-  condition: string;         // 상태 키 (used_good 등, 화면은 label('condition'))
+  condition: string;         // 상태 키 (new / unopened / nos / used, 화면은 label('condition'))
   appearance: string;        // 외관 등급 키 (mint 등, 없으면 '')
   appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
   working: string;           // 작동 등급 키 (working 등, 없으면 '')
@@ -269,6 +269,8 @@ export type Filters = {
   brand: Set<string>;
   model: Set<string>; // 모델 — 사이드바 칸은 없고 홈 조건 검색에서 넘어올 때만 씀(활성 필터 칩으로 보임)
   condition: Set<string>;
+  appearance: Set<string>; // 외관 상태 키 — 비운 매물은 어느 값에도 안 걸림
+  working: Set<string>;    // 작동 상태 키 — 비운 매물은 '정상 작동'에도 안 걸림
   priceMin: number | null;
   priceMax: number | null;
   yearMin: number | null;
@@ -325,6 +327,8 @@ export const emptyFilters = (): Filters => ({
   brand: new Set(),
   model: new Set(),
   condition: new Set(),
+  appearance: new Set(),
+  working: new Set(),
   priceMin: null,
   priceMax: null,
   yearMin: null,
@@ -377,6 +381,8 @@ export function cloneFilters(f: Filters): Filters {
     brand: new Set(f.brand),
     model: new Set(f.model),
     condition: new Set(f.condition),
+    appearance: new Set(f.appearance),
+    working: new Set(f.working),
     priceMin: f.priceMin,
     priceMax: f.priceMax,
     yearMin: f.yearMin,
@@ -427,7 +433,7 @@ export function cloneFilters(f: Filters): Filters {
 
 export function countFilters(f: Filters): number {
   const setKeys: (keyof Filters)[] = [
-    'brand', 'model', 'condition', 'ownership', 'country', 'locationCountry', 'region',
+    'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
@@ -461,14 +467,10 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   let r = list;
   if (f.brand.size > 0) r = r.filter((l) => f.brand.has(l.brand));
   if (f.model.size > 0) r = r.filter((l) => f.model.has(l.model));
-  if (f.condition.size > 0) {
-    const usedAllSelected = f.condition.has(USED_ALL_KEY);
-    r = r.filter((l) => {
-      if (f.condition.has(l.condition)) return true;
-      if (usedAllSelected && USED_GRADES.includes(l.condition)) return true;
-      return false;
-    });
-  }
+  if (f.condition.size > 0) r = r.filter((l) => f.condition.has(l.condition));
+  // 외관, 작동 — 값을 비운 매물('')은 어떤 선택에도 안 걸림 (null 규칙: 작동을 안 고른 매물은 '정상 작동'에도 안 나옴)
+  if (f.appearance.size > 0) r = r.filter((l) => f.appearance.has(l.appearance));
+  if (f.working.size > 0) r = r.filter((l) => f.working.has(l.working));
   // ⚠️ 가격 필터는 통화를 가리지 않고 숫자만 비교함(베타 1은 전부 원화). 엔화 매물이 섞이면 같은 숫자라도 값어치가 달라 환산이 필요(베타 3)
   if (f.priceMin != null) r = r.filter((l) => l.price >= f.priceMin! * 10000);
   if (f.priceMax != null) r = r.filter((l) => l.price <= f.priceMax! * 10000);

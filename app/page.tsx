@@ -21,11 +21,13 @@ export default function Page() {
     <HomePage
       // 상품 카드 클릭 → 그 매물의 실제 id로 상세 페이지 이동
       onViewItem={(id) => router.push(`/listing/${id}`)}
-      // 카테고리 탐색 → /browse/{영문 슬러그}. 조건 검색이면 상태, 브랜드, 모델을 ?condition, ?brand, ?model 로 같이 넘김
+      // 카테고리 탐색 → /browse/{영문 슬러그}. 조건 검색이면 상태, 외관, 작동, 브랜드, 모델을 ?condition, ?appearance, ?working, ?brand, ?model 로 같이 넘김
       onBrowse={(cat, conds) => {
         const slug = categorySlug(cat);
         const qs = new URLSearchParams();
         if (conds?.condition) qs.set('condition', conds.condition);
+        if (conds?.appearance) qs.set('appearance', conds.appearance);
+        if (conds?.working) qs.set('working', conds.working);
         if (conds?.brand) qs.set('brand', conds.brand);
         if (conds?.model) qs.set('model', conds.model);
         if (conds?.locCountry) qs.set('loc_country', conds.locCountry);

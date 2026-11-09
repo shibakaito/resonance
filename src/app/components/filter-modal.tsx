@@ -21,7 +21,8 @@ import {
   AUTO_OPTS,
   CARTRIDGE_OPTS,
   CONDITIONS,
-  CONDITION_DISPLAY,
+  APPEARANCE_OPTS,
+  WORKING_OPTS,
   CONDUCTOR_OPTS,
   COUNTRY_OPTS,
   CROSS_LISTING,
@@ -56,7 +57,6 @@ import {
   TONEARM_OPTS,
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
-  USED_ALL,
   VOLTAGE_OPTS,
   WOOFER_SIZES,
   applyFilters,
@@ -394,13 +394,14 @@ export function FilterModal({
   };
 
   const setFieldKeys: (keyof Filters)[] = [
-    'brand', 'model', 'condition', 'ownership', 'country', 'locationCountry', 'region',
+    'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   const prefixFor: Partial<Record<keyof Filters, string>> = {
+    appearance: '외관',
     phono: '포노',
     toneControl: '톤 컨트롤',
     remote: '리모컨',
@@ -721,6 +722,7 @@ export function FilterModal({
               maxVisible={5}
             />
           </Section>
+          {/* 상태(종류 4개) → 외관 상태 → 작동 상태 (2026-11-10 상태 등급 재구성) */}
           <Section title="상태" defaultOpen>
             <CheckGroup
               options={CONDITIONS}
@@ -729,6 +731,12 @@ export function FilterModal({
               onToggle={toggleIn('condition')}
               counts={counts.condition}
             />
+          </Section>
+          <Section title="외관 상태" defaultOpen>
+            <CheckGroup options={APPEARANCE_OPTS} selected={draft.appearance} getLabel={lab('appearance')} onToggle={toggleIn('appearance')} counts={counts.appearance} />
+          </Section>
+          <Section title="작동 상태" defaultOpen>
+            <CheckGroup options={WORKING_OPTS} selected={draft.working} getLabel={lab('working')} onToggle={toggleIn('working')} counts={counts.working} />
           </Section>
           <Section title="가격" defaultOpen>
             <MinMaxRow
