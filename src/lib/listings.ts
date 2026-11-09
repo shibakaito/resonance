@@ -177,6 +177,7 @@ function mapRow(row: ListingRow): Listing {
     speeds: techArr('speeds'),         // ['33', '45']
     autoMode: techStr('autoMode'),
     dustCover: techStr('dustCover'),
+    phonoBuiltIn: techStr('phonoBuiltIn'), // 포노앰프 내장: built_in / none
     // 전원 장치
     ratedCapacity: s.ratedCapacity ?? 0,
     // 케이블

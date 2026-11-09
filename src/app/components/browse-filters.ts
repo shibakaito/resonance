@@ -12,7 +12,7 @@
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
 import { LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, CONDITION_KEYS, SPEC_LABELS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_IMPEDANCE_BUCKETS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_IMPEDANCE_BUCKETS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS, TT_PHONO_BUILTIN_OPTS } from '@/app/data/category-specs';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 상태 = 종류 4개 (labels.ts CONDITION_KEYS: new / unopened / nos / used, 주소 ?condition=used). 중고의 등급은 외관, 작동 필터가 맡음 (2026-11-10 상태 등급 재구성)
@@ -56,6 +56,7 @@ export const CARTRIDGE_OPTS = optValues(TT_CARTRIDGE_OPTS); // included / not_in
 export const SPEED_OPTS = optValues(TT_SPEED_OPTS);         // 33 / 45 / 78
 export const AUTO_OPTS = optValues(TT_AUTO_OPTS);           // full_auto / semi_auto / manual
 export const DUSTCOVER_OPTS = optValues(TT_DUSTCOVER_OPTS); // yes / no / damaged
+export const PHONO_BUILTIN_OPTS = optValues(TT_PHONO_BUILTIN_OPTS); // 포노앰프 내장: built_in / none (필터 글자는 있음 / 없음)
 
 // 필터 값(키) → 화면 글자. 사이드바, 필터 팝업, 활성 필터 칩이 같이 씀. 표에 없는 값(브랜드, 모델, 8Ω 같은 중립 글자, 카테고리 이름)은 그대로
 //   케이블 필터(숨긴 카테고리, 저장 데이터 없음)는 아직 글자 그대로라 여기 없음
@@ -85,6 +86,7 @@ export function filterLabel(field: keyof Filters, v: string): string {
     case 'speeds': return optLabel(TT_SPEED_OPTS, v);
     case 'autoMode': return optLabel(TT_AUTO_OPTS, v);
     case 'dustCover': return optLabel(TT_DUSTCOVER_OPTS, v);
+    case 'phonoBuiltIn': return v === 'built_in' ? '있음' : v === 'none' ? '없음' : v; // 필터 제목이 '포노앰프 내장'이라 있음 / 없음 (폼 글자는 내장 / 미내장)
     default: return v;
   }
 }
@@ -240,6 +242,7 @@ export type Listing = {
   speeds: string[];
   autoMode: string;
   dustCover: string;
+  phonoBuiltIn: string;      // 포노앰프 내장 키 (built_in / none, 없으면 '')
   // 전원 장치 전용
   ratedCapacity: number; // 정격 용량 (W)
   // 케이블 전용
@@ -310,6 +313,7 @@ export type Filters = {
   speeds: Set<string>;
   autoMode: Set<string>;
   dustCover: Set<string>;
+  phonoBuiltIn: Set<string>;
   // 전원 장치 전용
   ratedCapacityMin: number | null;
   ratedCapacityMax: number | null;
@@ -365,6 +369,7 @@ export const emptyFilters = (): Filters => ({
   speeds: new Set(),
   autoMode: new Set(),
   dustCover: new Set(),
+  phonoBuiltIn: new Set(),
   ratedCapacityMin: null,
   ratedCapacityMax: null,
   cableLengthMin: null,
@@ -419,6 +424,7 @@ export function cloneFilters(f: Filters): Filters {
     speeds: new Set(f.speeds),
     autoMode: new Set(f.autoMode),
     dustCover: new Set(f.dustCover),
+    phonoBuiltIn: new Set(f.phonoBuiltIn),
     ratedCapacityMin: f.ratedCapacityMin,
     ratedCapacityMax: f.ratedCapacityMax,
     cableLengthMin: f.cableLengthMin,
@@ -438,7 +444,7 @@ export function countFilters(f: Filters): number {
     'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
-    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
+    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   let n = 0;
@@ -493,8 +499,9 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
     if (FEATURE_FLAGS.toneControlFilter && f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl)); // 플래그 꺼짐: 톤 컨트롤 필터 없음
     if (FEATURE_FLAGS.remoteFilter && f.remote.size > 0) r = r.filter((l) => f.remote.has(l.remote)); // 플래그 꺼짐: 리모컨 필터 없음
-    if (f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
   }
+  // 전원 전압 — 앰프와 턴테이블 (2026-11-10 턴테이블 추가)
+  if ((isAmp || isTurntable) && f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
   if (isSpeaker) {
     if (f.speakerDetail.size > 0) r = r.filter((l) => f.speakerDetail.has(l.speakerDetail));
     if (f.driverConfig.size > 0) r = r.filter((l) => l.driverConfig.some((d) => f.driverConfig.has(d))); // 하나라도 맞으면 (지원 임피던스와 같음)
@@ -510,6 +517,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.cartridge.size > 0) r = r.filter((l) => f.cartridge.has(l.cartridge));
     if (f.speeds.size > 0) r = r.filter((l) => l.speeds.some((s) => f.speeds.has(s)));
     if (f.autoMode.size > 0) r = r.filter((l) => f.autoMode.has(l.autoMode));
+    if (f.phonoBuiltIn.size > 0) r = r.filter((l) => f.phonoBuiltIn.has(l.phonoBuiltIn)); // 비운 매물은 안 걸림
     if (FEATURE_FLAGS.dustCoverFilter && f.dustCover.size > 0) r = r.filter((l) => f.dustCover.has(l.dustCover)); // 플래그 꺼짐: 더스트 커버 필터 없음
   }
   if (isPowerDevice) {

@@ -70,6 +70,7 @@ import {
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
   VOLTAGE_OPTS,
+  PHONO_BUILTIN_OPTS,
   WOOFER_SIZES,
   applyFilters,
   filterLabel,
@@ -314,6 +315,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       speeds: countBy(categoryListings, (l) => l.speeds),
       autoMode: countBy(categoryListings, (l) => l.autoMode),
       dustCover: countBy(categoryListings, (l) => l.dustCover),
+      phonoBuiltIn: countBy(categoryListings, (l) => l.phonoBuiltIn),
       terminalIn: countBy(categoryListings, (l) => l.terminalIn),
       terminalOut: countBy(categoryListings, (l) => l.terminalOut),
       directional: countBy(categoryListings, (l) => l.directional),
@@ -451,7 +453,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'phono', prefix: '포노', ampOnly: true },
       { key: 'toneControl', prefix: '톤 컨트롤', ampOnly: true },
       { key: 'remote', prefix: '리모컨', ampOnly: true },
-      { key: 'voltage', ampOnly: true },
+      { key: 'voltage' }, // 앰프와 턴테이블 (아래에서 거름)
       { key: 'speakerDetail', speakerOnly: true },
       { key: 'driverConfig', speakerOnly: true },
       { key: 'enclosure', speakerOnly: true },
@@ -463,6 +465,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'speeds', turntableOnly: true },
       { key: 'autoMode', turntableOnly: true },
       { key: 'dustCover', prefix: '더스트 커버', turntableOnly: true },
+      { key: 'phonoBuiltIn', prefix: '포노앰프 내장', turntableOnly: true },
       { key: 'terminalIn', prefix: '입력', cableOnly: true },
       { key: 'terminalOut', prefix: '출력', cableOnly: true },
       { key: 'directional', prefix: '방향성', cableOnly: true },
@@ -493,6 +496,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (speakerOnly && !isSpeaker) continue;
       if (turntableOnly && !isTurntable) continue;
       if (cableOnly && !isCable) continue;
+      if (key === 'voltage' && !isAmp && !isTurntable) continue;
       if (combineTermActive && (key === 'terminalIn' || key === 'terminalOut')) continue;
       const useColon = key === 'terminalIn' || key === 'terminalOut';
       for (const v of filters[key] as Set<string>) {
@@ -804,11 +808,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {/* 턴테이블 전용 */}
               {isTurntable && (
                 <>
+                  {/* 순서: 구동 방식, 회전수, 조작 방식, 톤암, 카트리지, 포노앰프 내장, 전원 전압 (2026-11-10, 형식 필터는 없음) */}
                   <FilterSection label="구동 방식" options={DRIVE_TYPES} selected={filters.driveType} getLabel={lab('driveType')} onToggle={toggleField('driveType')} counts={counts.driveType} />
-                  <FilterSection label="톤암" options={TONEARM_OPTS} selected={filters.tonearm} getLabel={lab('tonearm')} onToggle={toggleField('tonearm')} counts={counts.tonearm} />
-                  <FilterSection label="카트리지" options={CARTRIDGE_OPTS} selected={filters.cartridge} getLabel={lab('cartridge')} onToggle={toggleField('cartridge')} counts={counts.cartridge} />
-                  <FilterSection label="회전수" options={SPEED_OPTS} selected={filters.speeds} getLabel={lab('speeds')} onToggle={toggleField('speeds')} counts={counts.speeds} defaultOpen={false} />
-                  <FilterSection label="조작 방식" options={AUTO_OPTS} selected={filters.autoMode} getLabel={lab('autoMode')} onToggle={toggleField('autoMode')} counts={counts.autoMode} defaultOpen={false} />
+                  <FilterSection label="회전수" options={SPEED_OPTS} selected={filters.speeds} getLabel={lab('speeds')} onToggle={toggleField('speeds')} counts={counts.speeds} />
+                  <FilterSection label="조작 방식" options={AUTO_OPTS} selected={filters.autoMode} getLabel={lab('autoMode')} onToggle={toggleField('autoMode')} counts={counts.autoMode} />
+                  <FilterSection label="톤암" options={TONEARM_OPTS} selected={filters.tonearm} getLabel={lab('tonearm')} onToggle={toggleField('tonearm')} counts={counts.tonearm} defaultOpen={false} />
+                  <FilterSection label="카트리지" options={CARTRIDGE_OPTS} selected={filters.cartridge} getLabel={lab('cartridge')} onToggle={toggleField('cartridge')} counts={counts.cartridge} defaultOpen={false} />
+                  <FilterSection label="포노앰프 내장" options={PHONO_BUILTIN_OPTS} selected={filters.phonoBuiltIn} getLabel={lab('phonoBuiltIn')} onToggle={toggleField('phonoBuiltIn')} counts={counts.phonoBuiltIn} defaultOpen={false} />
+                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                   {FEATURE_FLAGS.dustCoverFilter && <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />}
                 </>
               )}

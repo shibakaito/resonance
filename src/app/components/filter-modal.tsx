@@ -58,6 +58,7 @@ import {
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
   VOLTAGE_OPTS,
+  PHONO_BUILTIN_OPTS,
   WOOFER_SIZES,
   applyFilters,
   cloneFilters,
@@ -397,11 +398,12 @@ export function FilterModal({
     'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
     'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
-    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover',
+    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
   const prefixFor: Partial<Record<keyof Filters, string>> = {
     appearance: '외관',
+    phonoBuiltIn: '포노앰프 내장',
     phono: '포노',
     toneControl: '톤 컨트롤',
     remote: '리모컨',
@@ -876,6 +878,7 @@ export function FilterModal({
 
           {draftIsTurntable && (
             <>
+              {/* 순서: 구동 방식, 회전수, 조작 방식, 톤암, 카트리지, 포노앰프 내장, 전원 전압 (2026-11-10, 형식 필터는 없음) */}
               <Section title="구동 방식" defaultOpen>
                 <CheckGroup
                   options={DRIVE_TYPES}
@@ -883,6 +886,24 @@ export function FilterModal({
                   getLabel={lab('driveType')}
                   onToggle={toggleIn('driveType')}
                   counts={counts.driveType}
+                />
+              </Section>
+              <Section title="회전수" defaultOpen>
+                <CheckGroup
+                  options={SPEED_OPTS}
+                  selected={draft.speeds}
+                  getLabel={lab('speeds')}
+                  onToggle={toggleIn('speeds')}
+                  counts={counts.speeds}
+                />
+              </Section>
+              <Section title="조작 방식" defaultOpen>
+                <CheckGroup
+                  options={AUTO_OPTS}
+                  selected={draft.autoMode}
+                  getLabel={lab('autoMode')}
+                  onToggle={toggleIn('autoMode')}
+                  counts={counts.autoMode}
                 />
               </Section>
               <Section title="톤암" defaultOpen>
@@ -903,22 +924,22 @@ export function FilterModal({
                   counts={counts.cartridge}
                 />
               </Section>
-              <Section title="회전수" defaultOpen>
+              <Section title="포노앰프 내장" defaultOpen>
                 <CheckGroup
-                  options={SPEED_OPTS}
-                  selected={draft.speeds}
-                  getLabel={lab('speeds')}
-                  onToggle={toggleIn('speeds')}
-                  counts={counts.speeds}
+                  options={PHONO_BUILTIN_OPTS}
+                  selected={draft.phonoBuiltIn}
+                  getLabel={lab('phonoBuiltIn')}
+                  onToggle={toggleIn('phonoBuiltIn')}
+                  counts={counts.phonoBuiltIn}
                 />
               </Section>
-              <Section title="조작 방식" defaultOpen>
+              <Section title="전원 전압" defaultOpen>
                 <CheckGroup
-                  options={AUTO_OPTS}
-                  selected={draft.autoMode}
-                  getLabel={lab('autoMode')}
-                  onToggle={toggleIn('autoMode')}
-                  counts={counts.autoMode}
+                  options={VOLTAGE_OPTS}
+                  selected={draft.voltage}
+                  getLabel={lab('voltage')}
+                  onToggle={toggleIn('voltage')}
+                  counts={counts.voltage}
                 />
               </Section>
               {FEATURE_FLAGS.dustCoverFilter && (
