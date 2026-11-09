@@ -68,8 +68,14 @@ const CONDITIONS = [
   { value: 'used_not_working', label: '작동 불가' }
 ];
 
-// 사진 슬롯 안내 — 이 순서로 찍으면 구매자가 판단하기 좋음. 필수는 1장, 5장 이상 권장
-const PHOTO_SLOTS = ['정면', '뒷면 단자', '전원 켠 상태', '결함 근접', '구성품 한 장에'];
+const PHOTO_EXAMPLES = [
+  { label: '프론트', img: '/images/Front.png' },
+  { label: '레프트 사이드', img: '/images/Left Side.png' },
+  { label: '라이트 사이드', img: '/images/Right Side.png' },
+  { label: '탑', img: '/images/Top.png' },
+  { label: '백', img: '/images/Back.png' },
+  { label: '디테일', img: '/images/Detail.png' }
+];
 
 const STEPS = [
   { id: 'info', label: '제품 정보' },
@@ -2305,12 +2311,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <p className="text-sm font-semibold text-gray-700">예시</p>
                 <button className="text-xs text-gray-500 hover:text-gray-700">숨김</button>
               </div>
-              {/* 슬롯 안내 5개 (글자) */}
-              <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                {PHOTO_SLOTS.map((t, i) => (
-                  <div key={t} className="aspect-square rounded-none border border-dashed border-[#e0e0e0] bg-[#f7f7f7] flex flex-col items-center justify-center text-center p-2">
-                    <span className="text-xs text-gray-400">{i + 1}</span>
-                    <span className="text-sm text-gray-700">{t}</span>
+              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                {PHOTO_EXAMPLES.map((ex) => (
+                  <div key={ex.label} className="text-center">
+                    <div className="aspect-square rounded-none overflow-hidden bg-white border border-[#e0e0e0] mb-1">
+                      <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
+                    </div>
+                    <p className="text-xs text-gray-600">{ex.label}</p>
                   </div>
                 ))}
               </div>
