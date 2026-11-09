@@ -6,7 +6,7 @@
 //   · 기술 사양 — category-specs.ts(SPEC_FIELDS_BY_CATEGORY) × catalog.ts(CATEGORY_TREE) 하위 카테고리.
 //     하위마다 showWhen 을 실제로 돌려 폼에 보이는 칸을 고르고, "보이는 조건" 문구는 트리거 칸
 //     (형식·증폭 방식 같은 select)의 값을 바꿔 보며 자동으로 만든다. 스키마 없는 대분류는 spec-fields.ts 폴백.
-//   · 공통 항목·필수 표시 — upload-page.tsx 마크업(라벨·aria-label="필수")과 handleSubmit 검사에서 추출
+//   · 공통 항목·필수 표시 — upload-page.tsx 마크업(<Field label required>, 사진 제목의 <RequiredMark>)과 handleSubmit 검사에서 추출
 //   · 미완·보류 — 소스 주석, 정의 대비 사용처, mapRow 의 원천 없는 flat 키 등을 코드에서 계산
 // ⚠️ 폼이 스키마 밖에서 하는 처리(사운드바 형식 자동 액티브 등)는 FORM_OVERRIDES — upload-page.tsx 를 바꾸면 같이
 // ============================================================================
@@ -153,37 +153,77 @@ for (const { top, subs: nodes } of CATEGORY_TREE) {
 // ── 공통 항목 (upload-page.tsx 마크업에서) ─────────────────────────────────
 const UP = read('src/app/components/upload-page.tsx');
 const PAGE = UP.slice(UP.indexOf('export function UploadPage'));
-// 새 제품 상태(새상품, 미개봉, NOS)면 숨는 칸 — 폼의 {!usedFieldsHidden && ( 바로 뒤 첫 label (칸마다 따로 감쌈)
-const hiddenWhenNew = new Set<string>();
 const cleanJsx = (s: string) => {
   let t = s;
   for (let i = 0; i < 6; i++) t = t.replace(/\{[^{}]*\}/g, ' '); // JSX 식 {…} (중첩은 바깥까지 반복 제거)
   return t.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 };
-for (const m of PAGE.matchAll(/\{!usedFieldsHidden && \([\s\S]*?<label\b[^>]*>([\s\S]*?)<\/label>/g)) hiddenWhenNew.add(cleanJsx(m[1]));
+// 칸은 공통 부품 <Field label="…" required …> (2026-11-10 디자인 3a). 여는 태그 속성 안의 {…}(화살표 => 나 <span> 포함)를 건너뛰며 끝 > 를 찾음
+const openTag = (src: string, at: number): string => {
+  let depth = 0;
+  let q = '';
+  for (let i = at; i < src.length; i++) {
+    const c = src[i];
+    if (q) { if (c === q) q = ''; continue; }
+    if (depth === 0 && c === '"') { q = c; continue; }
+    if (c === '{') depth++;
+    else if (c === '}') depth--;
+    else if (c === '>' && depth === 0) return src.slice(at, i);
+  }
+  return src.slice(at);
+};
+// 속성 값 — name="…" 은 글 그대로, name={…} 은 괄호 짝을 맞춘 안쪽 (braced = true)
+const attrOf = (attrs: string, name: string): { value: string; braced: boolean } | undefined => {
+  const m = new RegExp(`(?:^|\\s)${name}=`).exec(attrs);
+  if (!m) return undefined;
+  const i = m.index + m[0].length;
+  if (attrs[i] === '"') return { value: attrs.slice(i + 1, attrs.indexOf('"', i + 1)), braced: false };
+  if (attrs[i] !== '{') return undefined;
+  for (let j = i, d = 0; j < attrs.length; j++) {
+    if (attrs[j] === '{') d++;
+    else if (attrs[j] === '}' && --d === 0) return { value: attrs.slice(i + 1, j), braced: true };
+  }
+  return undefined;
+};
+const stripBraces = (s: string) => { let t = s; for (let i = 0; i < 6; i++) t = t.replace(/\{[^{}]*\}/g, ' '); return t; };
+// Field 의 화면 이름 — label="카테고리" 또는 label={<>정가 <span>(선택)</span></>}. label={f.label} 같은 식(기술 사양 칸)은 ''(건너뜀)
+const fieldName = (attrs: string): string => {
+  const lab = attrOf(attrs, 'label');
+  if (!lab) return '';
+  if (!lab.braced) return lab.value;
+  return lab.value.trim().startsWith('<') ? cleanJsx(lab.value) : '';
+};
+const isRequired = (attrs: string) => /(?:^|\s)required(?=[\s=]|$)/.test(stripBraces(attrs));
+// 새 제품 상태(새상품, 미개봉, NOS)면 숨는 칸 — 폼의 {!usedFieldsHidden && ( 바로 뒤 <Field> (칸마다 따로 감쌈)
+const hiddenWhenNew = new Set<string>();
+for (const m of PAGE.matchAll(/\{!usedFieldsHidden && \(\s*<Field\b/g)) hiddenWhenNew.add(fieldName(openTag(PAGE, (m.index ?? 0) + m[0].length)));
+// 배송 방식 선택지 — SHIPPING_OPTS 의 label
+const shippingOpts = [...(/const SHIPPING_OPTS = \[([\s\S]*?)\];/.exec(UP)?.[1] ?? '').matchAll(/label: '([^']+)'/g)].map((x) => x[1]);
 type CommonRow = { section: string; label: string; required: boolean; note: string; boundVar?: string };
 const common: CommonRow[] = [];
 {
   let section = '';
-  const re = /<h2\b[^>]*>([\s\S]*?)<\/h2>|<label className=\{?[`"]block font-semibold mb-1([^>]*)>([\s\S]*?)<\/label>|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>|<h3\b[^>]*>([\s\S]*?)<\/h3>|name="(shipping)"/g;
+  const re = /<h2\b[^>]*>([\s\S]*?)<\/h2>|<Field\b|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>|<h3\b[^>]*>([\s\S]*?)<\/h3>/g;
   for (const m of PAGE.matchAll(re)) {
-    const [, h2, labAttr, lab, chk, h3, radio] = m;
-    const before = PAGE.slice(Math.max(0, (m.index ?? 0) - 300), m.index);
-    const after = PAGE.slice(m.index ?? 0, (m.index ?? 0) + 700);
+    const [whole, h2, chk, h3] = m;
+    const at = m.index ?? 0;
+    const before = PAGE.slice(Math.max(0, at - 300), at);
+    const after = PAGE.slice(at, at + 700);
     const bound = /value=\{\s*([A-Za-z_]\w*)/.exec(after)?.[1];
     if (h2 !== undefined) { section = cleanJsx(h2); continue; }
-    if (radio) { // 배송 방식 라디오 — 옵션 배열 { value, label } 에서 라벨
-      const opts = [...PAGE.slice(Math.max(0, (m.index ?? 0) - 1500), m.index).matchAll(/\{ value: '\w+', label: '([^']+)'/g)].map((x) => x[1]);
-      common.push({ section, label: '배송 방식', required: false, note: `라디오: ${opts.join(' · ')}` });
-      continue;
-    }
-    if (lab !== undefined) {
-      const note = hiddenWhenNew.has(cleanJsx(lab)) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함' : /condition === 'used'/.test(labAttr) ? '중고 상태일 때 활성' : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
-      common.push({ section, label: cleanJsx(lab), required: /aria-label="필수"/.test(lab), note, boundVar: bound });
+    if (whole === '<Field') {
+      const attrs = openTag(PAGE, at + whole.length);
+      const name = fieldName(attrs);
+      if (!name) continue; // 기술 사양 칸(label={f.label}) — 아래 카테고리별 표에서
+      const note = name === '배송 방식' ? `선택 부품(버튼): ${shippingOpts.join(' · ')}`
+        : hiddenWhenNew.has(name) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함'
+        : /condition !== 'used'/.test(attrs) ? '중고 상태일 때 활성'
+        : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
+      common.push({ section, label: name, required: isRequired(attrs), note, boundVar: bound });
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);
       common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: false, note: '체크박스' });
-    } else if (h3 !== undefined && /aria-label="필수"/.test(h3)) {
+    } else if (h3 !== undefined && /aria-label="필수"|<RequiredMark\b/.test(h3)) {
       common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: /사진/.test(cleanJsx(h3)) ? 'images' : bound }); // 사진 칸은 input value 가 없어 images 로
     }
   }

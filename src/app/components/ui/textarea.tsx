@@ -4,6 +4,7 @@
 // border-line, 흰 바탕, 세로로만 늘이기. 비활성은 bg-surface text-muted. 포커스는 theme.css 전역 규칙
 // ============================================================================
 import * as React from 'react';
+import { fieldClass } from './input';
 
 export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
   function Textarea({ className = '', rows = 4, ...rest }, ref) {
@@ -11,7 +12,11 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTML
       <textarea
         ref={ref}
         rows={rows}
-        className={`w-full min-w-0 border border-line bg-bg px-3 py-2 text-16 text-fg rounded-none resize-y placeholder:text-muted disabled:bg-surface disabled:text-muted ${className}`}
+        className={fieldClass(
+          { w: 'w-full', px: 'px-3', text: 'text-16', color: 'text-fg', bg: 'bg-bg' },
+          'min-w-0 border border-line py-2 rounded-none resize-y placeholder:text-muted disabled:bg-surface disabled:text-muted',
+          className,
+        )}
         {...rest}
       />
     );

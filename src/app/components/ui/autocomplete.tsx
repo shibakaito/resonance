@@ -10,14 +10,15 @@
 //   searchable = false  → 타이핑 없이 목록만 (홈 상태 칸)
 //   keyboardLayout      → 결과가 0건이면 한영 자판 오타로 다시 찾기 (예: 'akfksc' → '마란츠')
 //   hideUntilTyping     → 검색어가 있어야 목록을 보임 (브랜드처럼 목록이 큰 칸)
-// 찾기: 공백, -, &, / 를 무시하고 포함(또는 앞부분) + 별칭(getAliases) + 여러 단어 머리글자(예: 'bo' → Bang & Olufsen). filter 를 주면 그걸 씀
+//   matchInitials       → 여러 단어 머리글자로도 찾기 (예: 'bo' → Bang & Olufsen) — 홈. 등록 폼은 끔(예전 Typeahead 그대로)
+// 찾기: 공백, -, &, / 를 무시하고 포함(또는 앞부분) + 별칭(getAliases) + 머리글자(matchInitials). filter 를 주면 그걸 씀
 // 화면 읽기: input role="combobox" + 목록 role="listbox" / 항목 role="option" (aria-activedescendant 로 ↑↓ 위치 알림)
 // 높이 40px, border-line, 각진 모서리, 그림자, 애니메이션 없음. 맞은 글자는 굵게
 // ============================================================================
 import * as React from 'react';
 import { ChevronDown, X } from 'lucide-react';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
-import { INPUT_CLASS } from './input';
+import { fieldClass } from './input';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
 // 여러 단어 이름의 머리글자 (예: "Allen & Heath" → "ah"). 한 단어면 ''
@@ -76,6 +77,7 @@ export type AutocompleteProps = {
   filter?: (q: string, opts: string[]) => string[];
   getAliases?: (option: string) => string[];
   matchMode?: 'includes' | 'prefix';
+  matchInitials?: boolean;
   keyboardLayout?: boolean;
   hideUntilTyping?: boolean;
   searchable?: boolean;
@@ -100,6 +102,7 @@ export function Autocomplete({
   filter,
   getAliases,
   matchMode = 'includes',
+  matchInitials = false,
   keyboardLayout = false,
   hideUntilTyping = false,
   searchable = true,
@@ -124,7 +127,7 @@ export function Autocomplete({
     return options.filter((o) =>
       [o, ...(getAliases?.(o) ?? [])].some((h) => {
         const nh = norm(h);
-        const ini = initials(h);
+        const ini = matchInitials ? initials(h) : '';
         return matchMode === 'prefix' ? nh.startsWith(nq) || (!!ini && ini.startsWith(nq)) : nh.includes(nq) || (!!ini && ini.includes(nq));
       }),
     );
@@ -221,7 +224,11 @@ export function Autocomplete({
             setActive(-1);
           }
         }}
-        className={`${INPUT_CLASS} pr-16 ${!searchable && !disabled ? 'cursor-pointer' : ''}`}
+        className={fieldClass(
+          { w: 'w-full', h: 'h-10', px: 'pl-3 pr-16', text: 'text-16', color: 'text-fg', bg: 'bg-bg' },
+          'min-w-0 border border-line rounded-none placeholder:text-muted disabled:bg-surface disabled:text-muted disabled:cursor-not-allowed',
+          !searchable && !disabled ? 'cursor-pointer' : '',
+        )}
         {...aria}
       />
       {value && !disabled && (

@@ -12,6 +12,7 @@
 import * as React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { LABEL_CLASS } from './label';
+import { fieldClass } from './input';
 
 export type FieldIds = { id: string; labelId: string; describedBy?: string };
 
@@ -27,12 +28,12 @@ type FieldProps = {
   children: React.ReactElement | ((ids: FieldIds) => React.ReactNode);
 };
 
-// 필수 표시 — 점은 눈으로만, 화면 읽기에는 "필수"
-function RequiredMark() {
+// 필수 표시 — 점은 눈으로만, 화면 읽기에는 "필수". Field 밖 제목(예: 사진 칸)에도 씀
+export function RequiredMark() {
   return (
     <>
       <span aria-hidden className="ml-1 inline-block h-1.5 w-1.5 bg-danger align-middle" />
-      <span className="sr-only">(필수)</span>
+      <span className="sr-only"> (필수)</span>
     </>
   );
 }
@@ -53,8 +54,9 @@ export function Field({ label, required, hint, error, disabled, group, id: idPro
     </>
   );
 
+  const isFn = typeof children === 'function';
   let body: React.ReactNode;
-  if (typeof children === 'function') body = children(ids);
+  if (isFn) body = (children as (ids: FieldIds) => React.ReactNode)(ids); // 함수면 id 들을 받아 부르는 곳이 직접 연결 (group 이어도 감싸지 않음)
   else if (group) body = children;
   else
     body = React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
@@ -71,7 +73,7 @@ export function Field({ label, required, hint, error, disabled, group, id: idPro
       ) : (
         <label id={labelId} htmlFor={id} className={labelCls}>{name}</label>
       )}
-      {group ? (
+      {group && !isFn ? (
         <div role="group" aria-labelledby={labelId} aria-describedby={describedBy}>{body}</div>
       ) : (
         body
@@ -83,15 +85,20 @@ export function Field({ label, required, hint, error, disabled, group, id: idPro
 }
 
 // 네이티브 select — Field 안에 넣는 드롭다운 (높이 40px, border-line, 오른쪽 화살표)
-export const Select = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(function Select(
-  { className = '', children, ...rest },
-  ref,
-) {
+// wrapClassName = 바깥 칸(너비 등, 예: 'w-28 flex-shrink-0'), className = select 자체
+export const Select = React.forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement> & { wrapClassName?: string }
+>(function Select({ className = '', wrapClassName = '', children, ...rest }, ref) {
   return (
-    <div className="relative">
+    <div className={`relative ${wrapClassName}`}>
       <select
         ref={ref}
-        className={`h-10 w-full min-w-0 appearance-none border border-line bg-bg pl-3 pr-9 text-16 text-fg rounded-none disabled:bg-surface disabled:text-muted disabled:cursor-not-allowed ${className}`}
+        className={fieldClass(
+          { w: 'w-full', h: 'h-10', px: 'pl-3 pr-9', text: 'text-16', color: 'text-fg', bg: 'bg-bg' },
+          'min-w-0 appearance-none border border-line rounded-none disabled:bg-surface disabled:text-muted disabled:cursor-not-allowed',
+          className,
+        )}
         {...rest}
       >
         {children}
