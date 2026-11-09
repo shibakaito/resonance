@@ -61,8 +61,9 @@ type Seed = {
 const D = (w: string, d: string, h: string, note = ''): DimRow => ({ w, d, h, note });
 const KG = (value: string, note = ''): ValNoteRow => ({ value, note });
 const P = (w: string, ohm: string, note?: string): PowerPair => (note ? { w, ohm, note } : { w, ohm });
-const DR = (type: string, structure: string, material: string, size: string, count: string, band = ''): DriverRow =>
-  ({ type, structure, material, band, size, sizeUnit: 'inch', count });
+// 드라이버 한 줄 = 유닛, 크기(inch), 개수, 비고 (+ 동축 담당 대역). 구조, 재질은 FEATURE_FLAGS.driverMaterialStructure 꺼짐이라 비움 (2026-11-10)
+const DR = (type: string, size: string, count: string, note = '', band = ''): DriverRow =>
+  ({ type, structure: '', material: '', band, size, sizeUnit: 'inch', count, note });
 
 // ── 시드 계획표 (앰프 7 / 스피커 6 / 턴테이블 4 / 카세트 4) ──
 const SEEDS: Seed[] = [
@@ -112,31 +113,31 @@ const SEEDS: Seed[] = [
   { category: '스피커', sub: '북쉘프 스피커', brand: 'KEF', model: 'LS50 Meta', year: '2020', condition: 'used', price: 1350000, country: '영국', ownership: 'single_owner', location: 'kr_daejeon', finish: '카본 블랙', components: '정품 박스, 그릴 2개',
     description: '페어. 정품 박스·그릴 포함. 스탠드 별매.', imageSlot: 2,
     draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '85', recPower: '100' },
-      drivers: [DR('동축', 'Uni-Q', '', '5.25', '1', '우퍼 + 트위터')],
+      drivers: [DR('동축', '5.25', '1', 'Uni-Q', '우퍼 + 트위터')],
       customSpecs: [{ title: '주파수 응답', value: '79Hz~28kHz' }, { title: '크로스오버', value: '2.2kHz' }],
       dims: { dimensions: [D('200', '278', '302')] }, valNotes: { weight: [KG('7.8')] } } },
   { category: '스피커', sub: '플로어 스탠딩 스피커', brand: 'Focal', model: 'Aria 936', year: '2016', condition: 'used', price: 3200000, country: '프랑스', ownership: 'single_owner', location: 'kr_ulsan', finish: '월넛',
     description: '페어. 하단 스파이크·베이스 포함. 직거래만.',
     draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '8Ω', sensitivity: '92', recPower: '300' },
-      drivers: [DR('우퍼', '콘 타입', '복합 소재', '6.5', '3'), DR('미드레인지', '콘 타입', '복합 소재', '6.5', '1'), DR('트위터', '돔 타입', '알루미늄', '1', '1')],
+      drivers: [DR('우퍼', '6.5', '3'), DR('미드레인지', '6.5', '1'), DR('트위터', '1', '1', '알루미늄 역돔')],
       customSpecs: [{ title: '주파수 응답', value: '39Hz~28kHz' }, { title: '크로스오버', value: '260Hz / 2.8kHz' }],
       dims: { dimensions: [D('294', '371', '1150')] }, valNotes: { weight: [KG('31')] } } },
   { category: '스피커', sub: '톨보이 스피커', brand: 'DALI', model: 'Oberon 7', year: '2019', condition: 'used', price: 1100000, country: '덴마크', ownership: 'single_owner', location: 'kr_gyeonggi', finish: '라이트 오크',
     description: '페어. 그릴 포함, 사용감 적음.',
     draft: { values: { speakerDetail: 'passive', enclosure: 'bass_reflex', speakerImpedance: '6Ω', sensitivity: '88.5', recPower: '180', finish: '라이트 오크' },
-      drivers: [DR('우퍼', '콘 타입', '복합 소재', '7', '2'), DR('트위터', '돔 타입', '실크', '1.1', '1')],
+      drivers: [DR('우퍼', '7', '2'), DR('트위터', '1.1', '1', '실크 돔')],
       ranges: { freqResponse: { low: '36', high: '26' } }, crossover: [{ value: '2400', unit: 'Hz' }],
       dims: { dimensions: [D('200', '340', '1015')] }, valNotes: { weight: [KG('15.6')] } } },
   { category: '스피커', sub: '북쉘프 스피커', brand: 'Genelec', model: '8040B', year: '2021', condition: 'used', price: 2100000, country: '', ownership: 'single_owner', location: 'kr_sejong', finish: '다크 그레이', components: '전원 케이블 2개',
     description: '액티브 모니터 페어. 전원 케이블 2개 포함.',
     draft: { values: { speakerDetail: 'active', enclosure: 'bass_reflex', voltage: 'free_volt' },
-      drivers: [DR('우퍼', '콘 타입', '폴리프로필렌', '6.5', '1'), DR('트위터', '돔 타입', '알루미늄', '0.75', '1')],
+      drivers: [DR('우퍼', '6.5', '1'), DR('트위터', '0.75', '1')],
       customSpecs: [{ title: '앰프 출력', value: '우퍼 90W / 트위터 90W (바이앰프)' }, { title: '주파수 응답', value: '41Hz~21kHz' }, { title: '입력 단자', value: 'XLR' }],
       dims: { dimensions: [D('237', '223', '350')] }, valNotes: { weight: [KG('8.6')] } } },
   { category: '스피커', sub: '서브우퍼', brand: 'SVS', model: 'SB-2000 Pro', year: '2020', condition: 'used', price: 1050000, country: '미국', ownership: 'single_owner', location: 'kr_busan', finish: '블랙 애쉬',
     description: '밀폐형 12인치 서브우퍼. 앱 DSP 조절 가능.',
     draft: { values: { speakerDetail: 'active', ampPower: '550', ampPowerType: 'RMS', opClass: 'Class D', enclosure: 'sealed', firingDirection: 'front', phaseControl: 'variable_0_180', finish: '블랙 애쉬', voltage: 'free_volt' },
-      drivers: [DR('우퍼', '콘 타입', '복합 소재', '12', '1')], ranges: { freqResponse: { low: '19', high: '240' }, crossoverRange: { low: '30', high: '200' } },
+      drivers: [DR('우퍼', '12', '1')], ranges: { freqResponse: { low: '19', high: '240' }, crossoverRange: { low: '30', high: '200' } },
       multi: { inputs: ['RCA', 'XLR'], outputs: ['RCA Out'] }, dims: { dimensions: [D('372', '398', '400')] }, valNotes: { weight: [KG('17.6')] } } },
   { category: '스피커', sub: '사운드바', brand: 'Sonos', model: 'Arc + Sub (Gen 3)', year: '2020', condition: 'used', price: 1250000, country: '미국', ownership: 'single_owner', location: 'kr_incheon', finish: '블랙',
     description: 'Arc + Sub 세트. 벽걸이 브래킷 미포함.',
@@ -291,6 +292,7 @@ function validateSeed(seed: Seed, fields: CategorySpecField[], S: typeof import(
         if (r.structure && !(S.DRIVER_STRUCT[r.type] ?? []).includes(r.structure)) errs.push(`${tag('drivers')}: ${r.type} 구조 "${r.structure}" 없음 [${(S.DRIVER_STRUCT[r.type] ?? []).join(' | ')}]`);
         if (!isNum(r.size) || !isNum(r.count)) errs.push(`${tag('drivers')}: 크기/개수 숫자 아님`);
         if (!['inch', 'mm'].includes(r.sizeUnit)) errs.push(`${tag('drivers')}: 크기 단위 "${r.sizeUnit}"`);
+        if (!F.driverMaterialStructure && (r.structure || r.material)) errs.push(`${tag('drivers')}: 구조, 재질 값이 있음 — FEATURE_FLAGS.driverMaterialStructure 가 꺼져 있어 폼에 칸이 없음 (비고로)`);
       }
     }
     else if (inp.kind === 'ampPower') { for (const r of d.ampPower ?? []) if (!B.AMP_POWER_TYPES.includes(r.type)) errs.push(`${tag('ampPower')}: 종류 "${r.type}" 없음 [${B.AMP_POWER_TYPES.join(' | ')}]`); }
