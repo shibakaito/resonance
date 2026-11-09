@@ -18,8 +18,8 @@ export type ChoiceOption = string | { value: string; label: string };
 // 버튼으로 그릴 최대 선택지 수
 export const CHOICE_BUTTON_MAX = { single: 5, multi: 6 } as const;
 // 버튼 규칙의 예외 — 늘 드롭다운으로 그릴 칸 (저장 키 이름). 칸을 더하거나 빼려면 여기만
-//   condition(상태): 2026-11-10 드롭다운 유지 결정
-export const CHOICE_DROPDOWN_ONLY: ReadonlySet<string> = new Set(['condition']);
+//   상태 묶음 세 칸 — condition(상태), appearance(외관 상태), working(작동 상태): 2026-11-10 드롭다운 유지 결정
+export const CHOICE_DROPDOWN_ONLY: ReadonlySet<string> = new Set(['condition', 'appearance', 'working']);
 // 선택지 수(와 예외 목록) → 버튼으로 그릴지
 export const choiceAsButtons = (count: number, multiple: boolean, fieldKey?: string): boolean =>
   !(fieldKey && CHOICE_DROPDOWN_ONLY.has(fieldKey)) &&

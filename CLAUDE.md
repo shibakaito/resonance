@@ -14,7 +14,7 @@
 - 상세 사양은 보이는 카테고리 전부 자유 추가(customSpecs). 정해진 칸 정의는 남아 있고 DETAIL_MODE_BY_SUB로 복귀 가능 (category-specs.ts, 'custom' = 상세 칸 숨김 + [제목][내용] → specs.tech.customSpecs, 'fields' = 정해진 칸. 숨긴 카테고리는 'fields', 켤 때 'custom' 한 줄. 숨는 칸 목록은 docs/hidden.md)
 - 상태(condition)는 종류 4개(new / unopened / nos / used)만. 중고의 등급은 specs.appearance(외관 4)와 specs.working(작동 3), 새상품, 미개봉, NOS면 둘 다 숨김. 카드 배지는 browse-filters conditionBadge 한 함수(중고 = 외관 등급, 비면 '중고', 작동이 점검 필요나 수리 필요면 경고). 옛 used_* 키는 labels conditionKind가 used로 읽음 (2026-11-10)
 - 올인원은 턴테이블 아님, 별도 카테고리 '올인원 오디오'(소스기기, slug all-in-one-audio, 숨김). 턴테이블 형식 칸은 FEATURE_FLAGS.turntableType 으로 숨김 (2026-11-10)
-- 폼 선택 부품 규칙(choice-field.tsx ChoiceField): 하나 고르기는 선택지 5개 이하면 각진 버튼 한 줄, 6개 이상이면 드롭다운 / 여러 개 고르기는 6개 이하면 버튼 토글, 7개 이상이면 드롭다운. 그 순간의 선택지 수로 자동, 칸마다 손으로 정하지 않음. 예외 목록 있음(CHOICE_DROPDOWN_ONLY, 늘 드롭다운: 상태). 검색 + 직접 입력 칸(searchSelect, Typeahead)과 줄 빌더 안 작은 선택, 필터 체크박스는 대상 아님 (2026-11-10)
+- 폼 선택 부품 규칙(choice-field.tsx ChoiceField): 하나 고르기는 선택지 5개 이하면 각진 버튼 한 줄, 6개 이상이면 드롭다운 / 여러 개 고르기는 6개 이하면 버튼 토글, 7개 이상이면 드롭다운. 그 순간의 선택지 수로 자동, 칸마다 손으로 정하지 않음. 예외 목록 있음(CHOICE_DROPDOWN_ONLY, 늘 드롭다운: 상태, 외관 상태, 작동 상태). 검색 + 직접 입력 칸(searchSelect, Typeahead)과 줄 빌더 안 작은 선택, 필터 체크박스는 대상 아님 (2026-11-10)
 - src/lib/listings.ts mapRow는 specs.tech만 읽음. 필터 옵션 = 폼 옵션의 저장값(optValues, 영문 키), 화면 글자는 browse-filters filterLabel / labels.ts label, 숫자는 미입력 null, 파생 키는 빌더에서 생성
 - 선택형 저장값은 영문 키(MM, 220V, ARC 같은 중립 글자는 그대로), 한글은 labels.ts에만. 시드 검증이 한글 저장값을 막음. 빌더 조립 글(진공관, 드라이버, 앰프 출력)은 아직 한글 포함(보류)
 ## 검증

@@ -20,7 +20,7 @@ import {
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
-import { ChoiceField } from './choice-field'; // 선택 부품: 선택지 수로 버튼 / 드롭다운 자동 (하나 고르기 5개 이하, 여러 개 6개 이하면 버튼)
+import { ChoiceField, choiceAsButtons } from './choice-field'; // 선택 부품: 선택지 수로 버튼 / 드롭다운 자동 (하나 고르기 5개 이하, 여러 개 6개 이하면 버튼)
 import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, SPEC_LABELS, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
@@ -1555,41 +1555,55 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>외관 상태</label>
-                {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
-                <ChoiceField
-                  fieldKey="appearance"
-                  ariaLabel="외관 상태"
-                  options={APPEARANCE_OPTIONS}
-                  value={conditionAppearance}
-                  onChange={setConditionAppearance}
-                  disabled={condition !== 'used'}
-                  dropdown={
-                    <div className="relative">
-                      <select
+                {/* 선택 부품(ChoiceField): 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — 예전 모양 [드롭다운][자세히 칸] 한 줄.
+                    목록에서 빼면 선택지 수로 버튼이 되고, 그때 자세히 칸은 버튼 아래 줄로 */}
+                {(() => {
+                  const asButtons = choiceAsButtons(APPEARANCE_OPTIONS.length, false, 'appearance');
+                  const detailInput = (
+                    <input
+                      value={conditionAppearanceDetail}
+                      onChange={(e) => setConditionAppearanceDetail(e.target.value)}
+                      disabled={condition !== 'used'}
+                      placeholder=""
+                      aria-label="외관 상태 자세히"
+                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed`}
+                    />
+                  );
+                  return (
+                    <>
+                      <ChoiceField
+                        fieldKey="appearance"
+                        ariaLabel="외관 상태"
+                        options={APPEARANCE_OPTIONS}
                         value={conditionAppearance}
-                        onChange={(e) => setConditionAppearance(e.target.value)}
+                        onChange={setConditionAppearance}
                         disabled={condition !== 'used'}
-                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                          conditionAppearance ? '' : 'text-gray-400'
-                        }`}
-                      >
-                        <option value="" disabled>선택</option>
-                        {APPEARANCE_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                    </div>
-                  }
-                />
-                <input
-                  value={conditionAppearanceDetail}
-                  onChange={(e) => setConditionAppearanceDetail(e.target.value)}
-                  disabled={condition !== 'used'}
-                  placeholder=""
-                  aria-label="외관 상태 자세히"
-                  className="mt-2 w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
-                />
+                        dropdown={
+                          <div className="flex gap-2">
+                            <div className="relative w-36 flex-shrink-0">
+                              <select
+                                value={conditionAppearance}
+                                onChange={(e) => setConditionAppearance(e.target.value)}
+                                disabled={condition !== 'used'}
+                                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                                  conditionAppearance ? '' : 'text-gray-400'
+                                }`}
+                              >
+                                <option value="" disabled>선택</option>
+                                {APPEARANCE_OPTIONS.map((o) => (
+                                  <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            </div>
+                            {detailInput}
+                          </div>
+                        }
+                      />
+                      {asButtons && detailInput}
+                    </>
+                  );
+                })()}
                 {desc('appearance', conditionAppearance) && <p className="mt-1 text-xs text-gray-500">{desc('appearance', conditionAppearance)}</p>}
               </div>
               )}
@@ -1598,41 +1612,55 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {!usedFieldsHidden && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>작동 상태</label>
-                {/* 선택 부품(ChoiceField): 선택지 수로 버튼 / 드롭다운. 선택 사항이라 다시 누르면 해제. 자세한 글은 아래 칸 */}
-                <ChoiceField
-                  fieldKey="working"
-                  ariaLabel="작동 상태"
-                  options={WORKING_OPTIONS}
-                  value={conditionWorking}
-                  onChange={setConditionWorking}
-                  disabled={condition !== 'used'}
-                  dropdown={
-                    <div className="relative">
-                      <select
+                {/* 선택 부품(ChoiceField): 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — 예전 모양 [드롭다운][자세히 칸] 한 줄.
+                    목록에서 빼면 선택지 수로 버튼이 되고, 그때 자세히 칸은 버튼 아래 줄로 */}
+                {(() => {
+                  const asButtons = choiceAsButtons(WORKING_OPTIONS.length, false, 'working');
+                  const detailInput = (
+                    <input
+                      value={conditionWorkingDetail}
+                      onChange={(e) => setConditionWorkingDetail(e.target.value)}
+                      disabled={condition !== 'used'}
+                      placeholder=""
+                      aria-label="작동 상태 자세히"
+                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed`}
+                    />
+                  );
+                  return (
+                    <>
+                      <ChoiceField
+                        fieldKey="working"
+                        ariaLabel="작동 상태"
+                        options={WORKING_OPTIONS}
                         value={conditionWorking}
-                        onChange={(e) => setConditionWorking(e.target.value)}
+                        onChange={setConditionWorking}
                         disabled={condition !== 'used'}
-                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
-                          conditionWorking ? '' : 'text-gray-400'
-                        }`}
-                      >
-                        <option value="" disabled>선택</option>
-                        {WORKING_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
-                        ))}
-                      </select>
-                      <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
-                    </div>
-                  }
-                />
-                <input
-                  value={conditionWorkingDetail}
-                  onChange={(e) => setConditionWorkingDetail(e.target.value)}
-                  disabled={condition !== 'used'}
-                  placeholder=""
-                  aria-label="작동 상태 자세히"
-                  className="mt-2 w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
-                />
+                        dropdown={
+                          <div className="flex gap-2">
+                            <div className="relative w-36 flex-shrink-0">
+                              <select
+                                value={conditionWorking}
+                                onChange={(e) => setConditionWorking(e.target.value)}
+                                disabled={condition !== 'used'}
+                                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                                  conditionWorking ? '' : 'text-gray-400'
+                                }`}
+                              >
+                                <option value="" disabled>선택</option>
+                                {WORKING_OPTIONS.map((o) => (
+                                  <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                                ))}
+                              </select>
+                              <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                            </div>
+                            {detailInput}
+                          </div>
+                        }
+                      />
+                      {asButtons && detailInput}
+                    </>
+                  );
+                })()}
                 {desc('working', conditionWorking) && <p className="mt-1 text-xs text-gray-500">{desc('working', conditionWorking)}</p>}
               </div>
               )}
