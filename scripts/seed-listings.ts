@@ -65,7 +65,7 @@ const P = (w: string, ohm: string, note?: string): PowerPair => (note ? { w, ohm
 const DR = (type: string, size: string, count: string, note = '', band = ''): DriverRow =>
   ({ type, structure: '', material: '', band, size, sizeUnit: 'inch', count, note });
 
-// ── 시드 계획표 (앰프 7 / 스피커 6 / 턴테이블 4 / 카세트 4) ──
+// ── 시드 계획표 (앰프 7 / 스피커 6 / 턴테이블 3 + 올인원 오디오 1 / 카세트 4) ──
 const SEEDS: Seed[] = [
   // ── 앰프 ──
   { category: '앰프', sub: '인티앰프', brand: 'Accuphase', model: 'E-380', year: '2019', condition: 'used', price: 4200000, country: '일본', ownership: 'single_owner', location: 'kr_seoul', components: '정품 박스, 리모컨',
@@ -147,25 +147,24 @@ const SEEDS: Seed[] = [
   // ── 소스기기: 턴테이블 ──
   { category: '소스기기', sub: '턴테이블', brand: 'Rega', model: 'Planar 3', year: '2016', condition: 'used', extras: { appearance: 'excellent', working: 'working' }, price: 780000, country: '영국', ownership: 'single_owner', location: 'kr_gyeonggi', finish: '글로스 블랙',
     description: 'Elys 2 카트리지 장착. 벨트 교체 6개월 경과. 정비 이력: 벨트 교체.', imageSlot: 3,
-    draft: { values: { ttType: 'hifi', driveType: 'belt_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'included', phonoBuiltIn: 'none', voltage: '220V' },
+    draft: { values: { driveType: 'belt_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'included', phonoBuiltIn: 'none', voltage: '220V' },
       multi: { speeds: ['33', '45'] },
       customSpecs: [{ title: '카트리지 모델', value: 'Rega Elys 2 (MM)' }, { title: '모터', value: '24V 저소음 싱크로너스' }, { title: '플래터 재질', value: '유리' }],
       dims: { dimensions: [D('447', '360', '117')] }, valNotes: { weight: [KG('6')] } } },
   { category: '소스기기', sub: '턴테이블', brand: 'Technics', model: 'SL-1200GR', year: '2017', condition: 'used', extras: { appearance: 'excellent', working: 'working' }, price: 1650000, country: '일본', ownership: 'single_owner', location: 'kr_gangwon', finish: '실버', components: '정품 박스, 헤드셸',
     description: '카트리지 미포함(헤드셸만). 정품 박스 보관.',
-    draft: { values: { ttType: 'hifi', driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
+    draft: { values: { driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
       multi: { speeds: ['33', '45', '78'] },
       customSpecs: [{ title: '와우 앤 플러터', value: '0.025% WRMS' }, { title: '헤드셸 교체', value: '가능' }],
       dims: { dimensions: [D('453', '372', '173')] }, valNotes: { weight: [KG('11.2')] } } },
-  { category: '소스기기', sub: '턴테이블', brand: 'Sony', model: 'PS-LX310BT', year: '2019', condition: 'used', extras: { appearance: 'good', working: 'working' }, price: 180000, country: '일본', ownership: 'single_owner', location: 'kr_chungbuk', finish: '블랙',
+  { category: '소스기기', sub: '올인원 오디오', brand: 'Sony', model: 'PS-LX310BT', year: '2019', condition: 'used', extras: { appearance: 'good', working: 'working' }, price: 180000, country: '일본', ownership: 'single_owner', location: 'kr_chungbuk', finish: '블랙',
     description: '블루투스 송신 지원 올인원 턴테이블. 포노앰프 내장.',
-    draft: { values: { ttType: 'all_in_one', driveType: 'belt_drive', autoMode: 'full_auto', cartridge: 'included', phonoBuiltIn: 'built_in', voltage: '220V' },
-      multi: { speeds: ['33', '45'] },
-      customSpecs: [{ title: '블루투스', value: '송신' }, { title: '출력 단자', value: 'RCA Out, USB' }],
+    draft: { values: { voltage: '220V' }, // 올인원 오디오(숨김 카테고리, 2026-11-10) — 전용 칸 없이 전원, 크기, 무게 + 사양 추가
+      customSpecs: [{ title: '구동 방식', value: '벨트, 풀 오토' }, { title: '회전수', value: '33⅓, 45' }, { title: '포노앰프', value: '내장(카트리지 포함)' }, { title: '블루투스', value: '송신' }, { title: '출력 단자', value: 'RCA Out, USB' }],
       dims: { dimensions: [D('430', '367', '108')] }, valNotes: { weight: [KG('3.5')] } } },
   { category: '소스기기', sub: '턴테이블', brand: 'Pioneer', model: 'PLX-1000', year: '2015', condition: 'used', extras: { appearance: 'good', working: 'working' }, price: 620000, country: '일본', ownership: 'multiple_owners', location: 'kr_chungnam', finish: '블랙',
     description: 'DJ용 하이토크 DD. 더스트 커버 모서리 균열 있음.',
-    draft: { values: { ttType: 'dj', driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
+    draft: { values: { driveType: 'direct_drive', autoMode: 'manual', tonearm: 'included', cartridge: 'not_included', phonoBuiltIn: 'none', voltage: '220V' },
       multi: { speeds: ['33', '45'] },
       customSpecs: [{ title: '피치 조절 폭', value: '±8%, ±16%, ±50%' }, { title: '시작 토크', value: '4.5kg·cm' }, { title: '더스트 커버', value: '모서리 균열 있음' }],
       dims: { dimensions: [D('453', '353', '159')] }, valNotes: { weight: [KG('13.1')] } } },
