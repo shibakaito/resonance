@@ -13,6 +13,7 @@
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
 import { LABELS, LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
 import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 상태 = labels.ts condition 키. 중고 등급(used_*)은 '중고' 단축 키(used)가 전체를 매칭함
 export const CONDITIONS = Object.keys(LABELS.condition);                          // new, unopened, nos, used_mint … used_not_working
@@ -146,7 +147,7 @@ export const SHIELD_RELEVANT = ['RCA 케이블', 'XLR 케이블', '디지털 동
 // 가격 글자 — 통화 기호 + 천 단위 쉼표 (₩4,200,000 / ¥420,000). 환산 표시는 아직 없음(베타 3)
 // 출시 연도 글자 — '대략'이면 '약 1975년', 아니면 적힌 그대로
 export const yearText = (l: { year: string; yearApprox?: boolean }): string =>
-  l.yearApprox && l.year ? `약 ${l.year}${/년$/.test(l.year) ? '' : '년'}` : l.year;
+  FEATURE_FLAGS.yearApprox && l.yearApprox && l.year ? `약 ${l.year}${/년$/.test(l.year) ? '' : '년'}` : l.year;
 
 export function fmtPrice(v: number, currency: string = 'krw'): string {
   return (CURRENCY_SYMBOLS[currency] ?? '₩') + v.toLocaleString('ko-KR');

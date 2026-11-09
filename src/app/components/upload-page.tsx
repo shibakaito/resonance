@@ -1049,7 +1049,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
       }
       // 출시 연도 '대략' (모름이면 연도 자체를 비워 저장)
-      if (yearApprox && !yearUnknown && year.trim()) (specsToSave as Record<string, unknown>).yearApprox = true;
+      if (FEATURE_FLAGS.yearApprox && yearApprox && !yearUnknown && year.trim()) (specsToSave as Record<string, unknown>).yearApprox = true;
       // 구성품
       if (FEATURE_FLAGS.componentChecks) {
         if (components.length > 0) (specsToSave as Record<string, unknown>).components = COMPONENT_OPTS.map((o) => o.value).filter((k) => components.includes(k)); // 목록 순서대로
@@ -1129,7 +1129,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
       const id = await insertListing({
-        images, title, category, subcategory, brand, model, year: yearUnknown ? '' : year, finish, country,
+        images, title, category, subcategory, brand, model, year: FEATURE_FLAGS.yearApprox && yearUnknown ? '' : year, finish, country,
         handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency,
         acceptOffers, shippingType, shippingCost, localPickup, location,
         specs: specsToSave,
@@ -1362,9 +1362,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 3. 출시 연도 — '대략'이면 specs.yearApprox = true(표시 '약 1975년', 필터는 그 연도로 비교), '모름'이면 칸 비활성 + 비워 저장 */}
+              {/* 3. 출시 연도 — 플래그 켜짐: '대략'이면 specs.yearApprox = true(표시 '약 1975년', 필터는 그 연도로 비교), '모름'이면 칸 비활성 + 비워 저장
+                  플래그 꺼짐(FEATURE_FLAGS.yearApprox): 숫자 칸만 */}
               <div>
                 <label className="block font-semibold mb-1">출시 연도</label>
+                {FEATURE_FLAGS.yearApprox ? (
                 <div className="flex items-center gap-4">
                   <input
                     value={year}
@@ -1396,6 +1398,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     모름
                   </label>
                 </div>
+                ) : (
+                <input
+                  value={year}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder=""
+                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                />
+                )}
               </div>
 
               {/* 4. 제조국 */}
