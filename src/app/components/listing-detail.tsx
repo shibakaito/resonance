@@ -481,10 +481,16 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="font-bold">소유권</div>
                   <div className="break-words">{label('ownership', listing?.ownership)}</div>
 
-                  {listing?.components && (
+                  {/* 구성품 — 체크한 것만 나열, 기타 구성품은 글 그대로 */}
+                  {listing && (listing.components.length > 0 || listing.componentsOther) && (
                     <>
                       <div className="font-bold">구성품</div>
-                      <div className="break-words">{listing.components}</div>
+                      <div className="break-words">
+                        {listing.components.map((k) => label('components', k)).join(', ')}
+                        {listing.componentsOther && (
+                          <p className={listing.components.length > 0 ? 'mt-1 text-sm text-gray-600' : ''}>{listing.componentsOther}</p>
+                        )}
+                      </div>
                     </>
                   )}
 

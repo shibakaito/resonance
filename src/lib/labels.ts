@@ -145,6 +145,8 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   reverseMethod: { head_rotate: { ko: '헤드 회전' }, tape_flip: { ko: '테이프 물리 반전(UDAR)' }, naac: { ko: '자동 아지머스(NAAC)' } },
   // ── 카세트 3단계: 정비/상태 ──
   headWear: { good: { ko: '양호' }, light_wear: { ko: '미세 마모' }, relapped: { ko: '연마됨(리랩)' }, replaced: { ko: '교체됨' }, heavy_wear: { ko: '마모 심함' } },
+  // 구성품 공통 7개 (specs.components 키 배열) + 목록 밖은 specs.componentsOther 자유 글
+  components: { original_box: { ko: '원래 박스' }, manual: { ko: '설명서' }, power_cable: { ko: '전원 케이블' }, remote: { ko: '리모컨' }, warranty_receipt: { ko: '보증서나 영수증' }, service_record: { ko: '정비 명세서' }, cover: { ko: '덮개' } },
   maintenance: { recap: { ko: '리캡(콘덴서 교체)' }, belt: { ko: '벨트 교체' }, tube: { ko: '진공관 교체' }, edge: { ko: '엣지 교체' }, overhaul: { ko: '오버홀' }, none: { ko: '없음' } }, // 정비 이력 공통 목록 (직접 입력도 가능)
   recFunction: { normal: { ko: '정상' }, playback_only: { ko: '재생 전용' }, broken: { ko: '불가' } },
   conductor: { copper: { ko: '일반 구리' }, ofc: { ko: 'OFC' }, occ: { ko: 'OCC/PC-OCC' }, up_occ: { ko: 'UP-OCC' }, silver_plated_copper: { ko: '은도금 구리' }, pure_silver: { ko: '순은' }, hybrid: { ko: '하이브리드' }, other: { ko: '기타' } },
@@ -160,6 +162,9 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
 
 // ── 등급 정의 한 줄 (폼은 고른 선택지 아래, 상세는 등급 옆 작은 안내) ──
 //   작동 구분: 전 기능 정상 = 작동 상태 '정상 작동' / 일부 이상(설명 필수) = '수리 필요' / 동작 미확인 = '점검 필요' / 부품용 = 상태 '작동 불가'
+// 구성품 체크 선택지 (폼 체크 카드, 상세 나열)
+export const COMPONENT_OPTS = Object.entries(SPEC_LABELS.components).map(([value, m]) => ({ value, label: m.ko ?? value }));
+
 export const LABEL_DESC: Record<string, LabelMap> = {
   condition: {
     new: { ko: '포장을 열었지만 사용하지 않은 제품. 흠집과 사용 흔적이 없음.' },

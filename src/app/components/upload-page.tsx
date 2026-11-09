@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
-import { NEW_CONDITION_KEYS, desc, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
+import { NEW_CONDITION_KEYS, desc, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
@@ -890,7 +890,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   // 제품 정보 추가 필드
   const [ownership, setOwnership] = useState('');
-  const [components, setComponents] = useState('');
+  const [components, setComponents] = useState<string[]>([]); // 구성품 체크 (키 배열) → specs.components
+  const [componentsOther, setComponentsOther] = useState('');   // 기타 구성품 자유 글 → specs.componentsOther
   const [conditionAppearance, setConditionAppearance] = useState('');         // 드롭다운(등급)
   const [conditionAppearanceDetail, setConditionAppearanceDetail] = useState(''); // 자유 입력칸
   const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
@@ -980,7 +981,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       // 출시 연도 '대략' (모름이면 연도 자체를 비워 저장)
       if (yearApprox && !yearUnknown && year.trim()) (specsToSave as Record<string, unknown>).yearApprox = true;
       // 구성품
-      if (components) specsToSave.components = components;
+      if (components.length > 0) (specsToSave as Record<string, unknown>).components = COMPONENT_OPTS.map((o) => o.value).filter((k) => components.includes(k)); // 목록 순서대로
+      if (componentsOther.trim()) specsToSave.componentsOther = componentsOther.trim();
       // 기술 사양 → specs.tech 중첩 객체에 저장 (값/배열 있는 것만, 빈 값·빈 배열 제외).
       // ⚠️ 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지 위해 tech 네임스페이스 분리.
       // ⚠️ 카테고리별 스키마(앰프 등)가 있으면 그 필드를 kind별로 조립, 없으면 기존 SPEC_FIELDS 폴백(분기).
@@ -1310,14 +1312,33 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <Typeahead value={country} onChange={setCountry} options={COUNTRIES} />
               </div>
 
-              {/* 6. 구성품 */}
+              {/* 6. 구성품 — 공통 7개 체크 카드 + 기타 구성품 자유 글. 저장 specs.components(키 배열), specs.componentsOther(글) */}
               <div>
                 <label className="block font-semibold mb-1">구성품</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {COMPONENT_OPTS.map((o) => {
+                    const on = components.includes(o.value);
+                    return (
+                      <label
+                        key={o.value}
+                        className={`flex items-center gap-2 border rounded-none px-3 h-[42px] text-sm cursor-pointer ${on ? 'border-[#000000] bg-[#f7f7f7]' : 'border-[#e0e0e0] hover:border-gray-400'}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={on}
+                          onChange={() => setComponents((p) => (on ? p.filter((x) => x !== o.value) : [...p, o.value]))}
+                          className="accent-[#000000] w-4 h-4"
+                        />
+                        {o.label}
+                      </label>
+                    );
+                  })}
+                </div>
                 <input
-                  value={components}
-                  onChange={(e) => setComponents(e.target.value)}
-                  placeholder=""
-                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  value={componentsOther}
+                  onChange={(e) => setComponentsOther(e.target.value)}
+                  placeholder="기타 구성품 (예: 예비 진공관, 스파이크)"
+                  className="mt-2 w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
                 />
               </div>
 

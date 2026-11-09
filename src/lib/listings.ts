@@ -124,7 +124,8 @@ function mapRow(row: ListingRow): Listing {
     ownership: row.ownership ?? '', // 소유권 키 (single_owner 등)
     // 구성품 (자유 텍스트) + 기술 사양 (specs.tech 네임스페이스)
     // tech 중첩에 둔 이유: 옛 카탈로그 평면 키(phono/power/toneControl 등)와 충돌 방지
-    components: typeof s.components === 'string' ? s.components : '',
+    components: Array.isArray(s.components) ? s.components.filter((x: unknown): x is string => typeof x === 'string') : [], // 구성품 키 배열 (original_box 등)
+    componentsOther: typeof s.componentsOther === 'string' ? s.componentsOther : typeof s.components === 'string' ? s.components : '', // 기타 구성품 글 (옛 자유 글 구성품도 여기로)
     // specs.tech 의 값을 그대로 보존 (문자열 + 문자열 배열). 빈 값/빈 배열 제외.
     // 라벨·순서·표시는 상세 페이지가 카테고리별 스키마로 결정 (앰프는 배열도 포함).
     techSpecs: (() => {
