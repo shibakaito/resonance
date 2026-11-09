@@ -4,6 +4,7 @@ import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
 import { subcategoriesFor, BRAND_DIRECTORY, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES, isCategoryVisible } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
+import { label } from '@/lib/labels';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { metaFor } from '../data/category-meta';
 
@@ -61,6 +62,7 @@ import {
   TONE_OPTS,
   TT_ACCESSORY_GROUPS,
   USED_ALL,
+  USED_ALL_KEY,
   USED_GRADES,
   VOLTAGE_OPTS,
   WOOFER_SIZES,
@@ -364,7 +366,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   // 홈 조건 검색에서 넘어온 조건을 넣은 필터 (없으면 빈 필터)
   const filtersFromHome = (): Filters => {
     const f = emptyFilters();
-    if (initialCondition) f.condition.add(initialCondition);
+    if (initialCondition) f.condition.add(initialCondition === USED_ALL_KEY ? USED_ALL : label('condition', initialCondition)); // 주소의 키(used_good, used) → 필터 글자
     if (initialBrand) f.brand.add(initialBrand);
     if (initialModel) f.model.add(initialModel);
     return f;

@@ -10,7 +10,7 @@ import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { isCategoryVisible } from '@/app/data/catalog';
 import { label, keyFor } from './labels';
-import { optLabel, wooferBucket, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+import { optLabel, wooferBucket, AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -76,9 +76,10 @@ function mapRow(row: ListingRow): Listing {
   const s = row.specs ?? {};
   // 기술 사양 네임스페이스(specs.tech) — 판매 폼이 스펙을 저장하는 곳. 옛 flat 키는 읽지 않음(2026-09-30 재시드 완료).
   // 지금 tech 에서 읽는 필드: power(powerRated 파싱) · ampDetail(channel) · ampMethod(device) · impedances(impedance)
-  //   · phono · toneControl · remote · voltage (앰프 필터 옵션과 같은 문자열 그대로) · hpImpedance(hpImpedanceRange 파싱)
-  //   · 턴테이블 driveType · tonearm · cartridge · speeds · autoMode · dustCover (영문키 저장 → optLabel 로 폼 옵션의 한글 label)
-  //   · 스피커 speakerDetail(optLabel) · enclosure · speakerImpedance · sensitivity · recPower(techNum)
+  //   · phono · toneControl · remote · voltage · hpImpedance(hpImpedanceRange 파싱)
+  //   · 턴테이블 driveType · tonearm · cartridge · speeds · autoMode · dustCover
+  //   · 스피커 speakerDetail · enclosure · speakerImpedance · sensitivity · recPower(techNum)
+  //   선택형 값은 영문 키(또는 MM, 8Ω 같은 중립 글자) 저장 → optLabel 로 폼 옵션의 한글 label
   //     · driverConfig(driverWays) · wooferSize(wooferMaxInch 구간) ← 드라이버 빌더 파생 키 (spec-builders.ts driverDerived)
   // 값은 폼 상수(category-specs.ts)가 저장한 그대로이고 필터 옵션도 같은 상수(optLabels)를 쓰므로 정규화 없음 — optLabel 은 폼 옵션표 조회일 뿐.
   const tech: Record<string, unknown> =
@@ -142,19 +143,21 @@ function mapRow(row: ListingRow): Listing {
       : 0,
     // 앰프
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
-    ampDetail: techStr('channel'), // 채널: tech.channel — 필터 AMP_DETAILS(=폼 AMP_CHANNEL_OPTS)와 같은 값
-    ampMethod: techStr('device'),  // 증폭 방식: tech.device — 필터 AMP_METHODS(=폼 AMP_DEVICE_OPTS)와 같은 값
+    // 앰프 — 폼이 영문 키(또는 MM, 220V 같은 중립 글자) 저장 → optLabel 로 폼 옵션의 표시 글자 (= 필터 옵션 optLabels(같은 상수)).
+    //   옛 한글 저장값은 옵션표에 없어 그 글자 그대로 나오므로 표시 글자와 같음
+    ampDetail: optLabel([...AMP_CHANNEL_OPTS, ...PREAMP_CHANNEL_OPTS], techStr('channel')), // 채널: mono_block → 모노블록
+    ampMethod: optLabel(AMP_DEVICE_OPTS, techStr('device')),  // 증폭 방식: solid_state → 솔리드 스테이트(TR)
     power: parsePowerW(tech.powerRated), // 정격 출력(W): tech.powerRated 파싱. 미입력·해당없음 = null (범위 필터에서 제외)
     hpImpedance: parseSameUnitRange(tech.hpImpedanceRange), // 헤드폰 앰프 권장 헤드폰 임피던스 "16Ω~600Ω" → { min: 16, max: 600 }
     impedances: techArr('impedance'), // 지원 임피던스: tech.impedance — 필터 IMPEDANCE_OPTS(=폼 AMP_OHM_OPTS, '6Ω' 포함)와 같은 값
-    phono: techStr('phono'),             // 포노 입력: MM / MC / MM/MC / 없음 (= 폼 AMP_PHONO_OPTS)
-    toneControl: techStr('toneControl'), // 톤 컨트롤: 있음 / 없음 (= YES_NO_OPTS)
-    remote: techStr('remote'),           // 리모컨: 있음 / 없음
-    voltage: techStr('voltage'),         // 전원: 100V / 120V / 220V / 프리볼트 (= AMP_VOLTAGE_OPTS)
+    phono: optLabel(AMP_PHONO_OPTS, techStr('phono')),             // 포노 입력: MM / MC / MM/MC / none → 없음
+    toneControl: optLabel(YES_NO_OPTS, techStr('toneControl')),    // 톤 컨트롤: yes / no → 있음 / 없음
+    remote: optLabel(YES_NO_OPTS, techStr('remote')),              // 리모컨
+    voltage: optLabel(AMP_VOLTAGE_OPTS, techStr('voltage')),       // 전원 전압: 100V / 120V / 220V / free_volt → 프리볼트
     // 스피커 — tech 직결 (드라이버 구성·우퍼 크기는 드라이버 빌더가 같이 저장한 파생 키에서)
     speakerDetail: optLabel(SPEAKER_DETAIL_OPTS, techStr('speakerDetail')), // passive → 패시브
     driverConfig: techArr('driverWays').map((x) => optLabel(SPEAKER_DRIVER_OPTS, x)), // ['coaxial','2way'] → ['동축','2-way']
-    enclosure: techStr('enclosure'),               // 인클로저: 한글 저장 (= 폼 SPEAKER_ENCLOSURE_OPTS 12종)
+    enclosure: optLabel(SPEAKER_ENCLOSURE_OPTS, techStr('enclosure')), // 인클로저: bass_reflex → 베이스 리플렉스 (목록에 없는 글은 그대로)
     speakerImpedance: techStr('speakerImpedance'), // 임피던스: '8Ω' (= 폼 SPEAKER_OHM_OPTS)
     wooferSize: wooferBucket(techNum('wooferMaxInch')), // 우퍼 최대 크기(inch) → 구간 라벨 (SPEAKER_WOOFER_BUCKETS). 미입력 = ''
     sensitivity: techNum('sensitivity'), // 감도(dB). 패시브만 입력 → 액티브 등 미입력 = null (범위 필터에서 제외)

@@ -560,7 +560,7 @@ export function ListingDetail({ id }: { id?: string }) {
                 v: string | string[],
               ): string => {
                 if (Array.isArray(v)) return v.map((x) => optLabel(f.input?.options, x)).join(', ');
-                if (f.input?.kind === 'select') return optLabel(f.input.options, v);
+                if (f.input?.kind === 'select' || f.input?.kind === 'searchSelect') return optLabel(f.input.options, v); // 검색 드롭다운(인클로저 등)도 영문 키 저장 → 라벨
                 return v;
               };
               const rows = schema.filter((f) => {

@@ -61,13 +61,33 @@ export const NEW_CONDITION_KEYS = ['new', 'unopened', 'nos'];
 
 // ── specs(jsonb) 안의 선택지용 (key=코드 필드명) ──
 export const SPEC_LABELS: Record<string, LabelMap> = {
-  ampDetail: { monoblock: { ko: '모노블록' }, stereo: { ko: '스테레오' }, multichannel: { ko: '멀티채널' } },
-  ampMethod: { solid_state: { ko: '솔리드 스테이트(TR)' }, tube: { ko: '진공관' }, hybrid: { ko: '하이브리드' } },
-  phono: { none: { ko: '없음' }, mm: { ko: 'MM' }, mc: { ko: 'MC' }, mm_mc: { ko: 'MM/MC' } },
-  voltage: { '100v': { ko: '100V' }, '120v': { ko: '120V' }, '220v': { ko: '220V' }, free_voltage: { ko: '프리볼트' } },
+  // ── 기술 사양 선택지 (저장=영문 키, 표시=한글. category-specs.ts 의 옵션이 이 표를 씀) ──
+  //    섞인 목록(포노 입력, 전원 전압, ARC 등)은 한글 값만 이 표에 있고 MM, 220V, ARC 같은 중립 값은 그 글자 그대로 저장
+  // 앰프
+  channel: { mono_block: { ko: '모노블록' }, mono: { ko: '모노' }, stereo: { ko: '스테레오' }, multi_channel: { ko: '멀티채널' } }, // 파워 등은 mono_block, 프리앰프는 mono
+  device: { tube: { ko: '진공관' }, solid_state: { ko: '솔리드 스테이트(TR)' }, hybrid: { ko: '하이브리드' } },
+  phono: { none: { ko: '없음' } }, // + MM, MC, MM/MC
+  voltage: { free_volt: { ko: '프리볼트' } }, // + 100V, 120V, 220V
+  mcBoostMode: { active_head_amp: { ko: '능동 헤드앰프' }, built_in_sut: { ko: '내장 SUT' }, current_input: { ko: '전류입력' } },
+  sutCore: { permalloy: { ko: '퍼멀로이' }, mu_metal: { ko: '뮤메탈' }, amorphous_cobalt: { ko: '아몰퍼스 코발트' }, silicon_steel: { ko: '실리콘강' } },
+  terminal: { speaker_terminal: { ko: '스피커 터미널' }, line_out_70v_100v: { ko: '70V/100V 라인 출력' }, dual_3pin_xlr: { ko: '듀얼 3-pin XLR' } }, // 단자 목록 중 한글 이름만
+  arcSupport: { not_supported: { ko: '미지원' } }, // + ARC, eARC (AV 리시버, 사운드바 공용)
+  roomCal: { none: { ko: '없음' }, auto_mic: { ko: '자동(내장 마이크)' }, app_measure: { ko: '앱 측정(스마트폰)' } }, // AV 리시버는 none + 브랜드 이름, 사운드바는 셋 다
+  hpForm: { desktop: { ko: '데스크톱' }, portable_battery: { ko: '포터블(배터리)' }, usb_dongle: { ko: 'USB 동글' } },
+  // 스피커
+  ampConfig: { single_amp: { ko: '싱글앰프' }, bi_amp: { ko: '바이앰프' }, tri_amp: { ko: '트라이앰프' }, multi_amp: { ko: '멀티앰프' } },
+  crossoverType: { passive: { ko: '패시브 크로스오버' }, active: { ko: '액티브 크로스오버' }, dsp: { ko: 'DSP 크로스오버' } },
+  firingDirection: { front: { ko: '전면 방사' }, down: { ko: '하향 방사' }, side: { ko: '측면 방사' } },
+  phaseControl: { switch_0_180: { ko: '0°/180° 전환' }, variable_0_180: { ko: '0°~180° 연속 조절' }, variable_0_360: { ko: '0°~360° 연속 조절' } },
+  surroundType: { virtual: { ko: '없음(가상)' }, wired: { ko: '유선 포함' }, wireless: { ko: '무선 포함' } },
+  subIncluded: { none: { ko: '미포함' }, wireless: { ko: '무선 서브우퍼' }, wired: { ko: '유선 서브우퍼' } },
+  // 소스기기
+  cartType: { ceramic: { ko: '세라믹' } }, // + MM, MC
+  extraFeatures: { fm_am_radio: { ko: 'FM/AM 라디오' }, cassette: { ko: '카세트' }, usb_playback: { ko: 'USB 재생' }, recording: { ko: '녹음' } }, // + CD
+  headMaterial: { permalloy: { ko: '퍼멀로이' }, sendust: { ko: '센더스트' }, ferrite: { ko: '페라이트' }, amorphous: { ko: '아몰퍼스' }, crystalloy: { ko: '크리스탈로이' } },
   // 임피던스: 앰프 지원 임피던스 + 스피커 임피던스 공용
   impedance: { '2ohm': { ko: '2Ω' }, '4ohm': { ko: '4Ω' }, '6ohm': { ko: '6Ω' }, '8ohm': { ko: '8Ω' }, '16ohm': { ko: '16Ω' } },
-  // 있음/없음 공용 (toneControl, remote, directional)
+  // 있음/없음 공용 (톤 컨트롤, 리모컨 등 기술 사양 16칸 + 케이블 directional)
   yes_no: { yes: { ko: '있음' }, no: { ko: '없음' } },
   speakerDetail: { passive: { ko: '패시브' }, active: { ko: '액티브' } },
   driverConfig: { full_range: { ko: '풀레인지' }, coaxial: { ko: '동축' }, '2way': { ko: '2-way' }, '3way': { ko: '3-way' }, '4way_plus': { ko: '4-way 이상' } },

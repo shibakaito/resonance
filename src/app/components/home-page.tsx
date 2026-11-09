@@ -12,7 +12,8 @@ import {
   subcategoriesFor
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
-import { USED_GRADES, USED_ALL } from './browse-filters';
+import { USED_GRADES, USED_ALL, USED_ALL_KEY } from './browse-filters';
+import { keyFor } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -728,7 +729,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   <button
                     onClick={() =>
                       onBrowse(isCategorySelected ? category : null, {
-                        condition: isConditionSelected ? condition : undefined,
+                        // 주소엔 언어 중립 키로 (좋음 → used_good, 중고 → used)
+                        condition: isConditionSelected ? (condition === USED_ALL ? USED_ALL_KEY : keyFor('condition', condition) ?? condition) : undefined,
                         brand: isBrandSelected ? brand : undefined,
                         model: isModelSelected ? model : undefined,
                       })

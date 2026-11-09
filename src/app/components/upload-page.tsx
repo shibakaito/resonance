@@ -23,7 +23,7 @@ import { NEW_CONDITION_KEYS, LOCATION_OPTS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, optLabel, optLabels, optValue, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -1537,13 +1537,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           return opts.filter((o) => norm(o).includes(nq) || norm(aliases[o] || '').includes(nq));
                         }
                       : undefined;
+                    // 화면은 한글 라벨로 고르고, 저장은 목록 라벨과 같으면 영문 키(optValue) / 목록에 없는 글은 친 그대로
+                    const opts = f.input.options;
                     return (
                       <div key={f.key} className="spec-field">
                         <label>{f.label}</label>
                         <Typeahead
-                          value={specs[f.key] || ''}
-                          onChange={setSpec}
-                          options={f.input.options}
+                          value={optLabel(opts, specs[f.key] || '')}
+                          onChange={(text) => setSpec(optValue(opts, text))}
+                          options={optLabels(opts)}
                           filter={filterFn}
                           enableKeyboardLayout={f.input.keyboardLayout}
                           freeText
