@@ -14,6 +14,7 @@
 | 스피커: 톨보이 스피커, 센터 스피커, 사운드바 | 카테고리 | `catalog.ts` CATEGORY_TREE 잎마다 `hidden: true` | 2026-11-08 | 같음 |
 | 스피커: 서브우퍼 | 카테고리 | `catalog.ts` CATEGORY_TREE `hidden: true` | 2026-11-08 | 같음 |
 | 소스기기: 오픈릴 데크, CD 트랜스포트, SACD 플레이어, DAC, 네트워크 플레이어, 블루투스 리시버, FM 튜너, LD 플레이어, DVD 플레이어, 블루레이 플레이어 | 카테고리 | `catalog.ts` CATEGORY_TREE 잎마다 `hidden: true` | 2026-11-08 | 같음 |
+| 소스기기: 올인원 오디오 (2026-11-10 신설, slug all-in-one-audio) | 카테고리 | `catalog.ts` CATEGORY_TREE `{ name: '올인원 오디오', hidden: true }` | 2026-11-10 | 같음. 올인원은 턴테이블 아님, 별도 카테고리. 전용 칸 없이 공통 꼬리(전원, 크기, 무게) + 사양 추가(custom). 나중에 콘솔 전축, 미니 컴포넌트, 라디오 카세트도 여기로 |
 | 케이블 대분류 전체(하위 14개) | 카테고리 | `catalog.ts` CATEGORY_TREE `{ top: '케이블', hidden: true, … }` | 2026-11-08 | 대분류의 `hidden: true` 지우기 |
 | 케이블 필터 8개: 길이, 입력 단자, 출력 단자, 도체 재질, 커넥터 도금, 차폐 방식, 페어 여부, 방향성 | 필터 | 따로 플래그 없음. 케이블 대분류 숨김을 따라 안 보임(`browse-page.tsx` `isCable &&`) | 2026-11-08 | 케이블 대분류를 켜면 같이 보임 |
 | 전원 장치 필터: 정격 용량 | 필터 | 따로 플래그 없음. 액세서리 대분류가 CATEGORY_TREE에 없어서 안 보임(`browse-page.tsx` `isPowerDevice &&`) | 확인 안 됨(이번 블록 전부터) | 액세서리 대분류를 CATEGORY_TREE에 넣으면 보임 |

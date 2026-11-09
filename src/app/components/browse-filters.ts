@@ -92,6 +92,7 @@ export function filterLabel(field: keyof Filters, v: string): string {
 // 소스기기 카테고리: 모달에서만 그룹별로 표시
 export const SOURCE_GROUPS: { title: string; items: string[] }[] = [
   { title: '아날로그', items: ['턴테이블', '카세트 데크', '오픈릴 데크'] },
+  { title: '올인원', items: ['올인원 오디오'] }, // 숨긴 카테고리라 지금은 묶음째 안 보임
   { title: '디지털', items: ['CD 플레이어', 'CD 트랜스포트', 'SACD 플레이어', 'DAC', '네트워크 플레이어', '블루투스 리시버'] },
   { title: '튜너', items: ['FM 튜너', '튜너'] },
   { title: 'AV', items: ['LD 플레이어', 'DVD 플레이어', '블루레이 플레이어'] }

@@ -586,6 +586,8 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   // CD 플레이어, 튜너 — 원래 분리 없음(마감, 전원, 크기, 무게뿐). 2026-11-10 상세 모드 'custom'을 켜려고 전원 전압만 핵심으로
   'CD 플레이어': ['voltage'],
   튜너: ['voltage'],
+  // 올인원 오디오 (2026-11-10 신설, 숨김) — 전용 칸은 아직 없음. 공통 꼬리(전원, 크기, 무게) + 사양 추가
+  '올인원 오디오': ['voltage'],
 };
 
 // 하위 카테고리별 상세 모드 스위치 — 'fields'(기본) = 정해진 상세 칸 + '상세 사양 (N)' 버튼 + 기타 사양
@@ -605,6 +607,7 @@ export const DETAIL_MODE_BY_SUB: Record<string, DetailMode> = {
   '카세트 데크': 'custom',
   'CD 플레이어': 'custom',
   튜너: 'custom',
+  '올인원 오디오': 'custom', // 숨긴 카테고리지만 처음부터 사양 추가로 (2026-11-10)
 };
 export const detailModeOf = (sub: string): DetailMode => DETAIL_MODE_BY_SUB[sub] ?? 'fields';
 // 이 하위 카테고리에서 상세 모드 때문에 숨는 칸인가 (폼 그리기, 폼 저장, 상세 페이지 표시, 시드 조립과 검사가 같이 씀)

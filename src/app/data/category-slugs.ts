@@ -53,6 +53,7 @@ export const SUB_SLUGS: Record<string, string> = {
 
   // 소스기기
   '턴테이블': 'turntable',
+  '올인원 오디오': 'all-in-one-audio', // 2026-11-10 신설(숨김) — 올인원 턴테이블, 나중에 콘솔 전축, 미니 컴포넌트, 라디오 카세트
   '카세트 데크': 'cassette-deck',
   '오픈릴 데크': 'open-reel',
   'CD 플레이어': 'cd-player',
