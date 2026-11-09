@@ -14,7 +14,7 @@ import {
 import type { Listing } from './browse-filters';
 import { CONDITIONS, APPEARANCE_OPTS, WORKING_OPTS, fmtPrice } from './browse-filters';
 import { ConditionBadge } from './condition-badge';
-import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor } from '@/lib/labels';
+import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor, FILTER_LABELS as FL } from '@/lib/labels'; // FL = 칸 이름 (둘러보기 필터와 같은 표)
 import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -688,7 +688,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   </div>
 
                   <Combobox
-                    label="상태"
+                    label={FL.condition}
                     value={condition}
                     onChange={setCondition}
                     options={['전체', ...CONDITIONS.map((k) => label('condition', k))]}
@@ -698,7 +698,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
                   {/* 외관 상태, 작동 상태 — 둘러보기 사이드바와 같은 세 묶음 (2026-11-10 상태 등급 재구성) */}
                   <Combobox
-                    label="외관 상태"
+                    label={FL.appearance}
                     value={appearance}
                     onChange={setAppearance}
                     options={['전체', ...APPEARANCE_OPTS.map((k) => label('appearance', k))]}
@@ -707,7 +707,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     showAllOption={false}
                   />
                   <Combobox
-                    label="작동 상태"
+                    label={FL.working}
                     value={working}
                     onChange={setWorking}
                     options={['전체', ...WORKING_OPTS.map((k) => label('working', k))]}
@@ -717,7 +717,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
 
                   <Combobox
-                    label="브랜드"
+                    label={FL.brand}
                     value={brand}
                     onChange={(v) => {
                       setBrand(v);
@@ -731,7 +731,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
 
                   <Combobox
-                    label="카테고리"
+                    label={FL.category}
                     value={category}
                     onChange={(v) => {
                       setCategory(v);
@@ -744,7 +744,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
 
                   <Combobox
-                    label="모델"
+                    label={FL.model}
                     value={model}
                     onChange={setModel}
                     options={brandModels}
@@ -758,7 +758,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
 
                   <Combobox
-                    label="국가"
+                    label={FL.locationCountry}
                     value={locCountry}
                     onChange={(v) => {
                       setLocCountry(v);
@@ -770,7 +770,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
 
                   <Combobox
-                    label="지역"
+                    label={FL.region}
                     value={region}
                     onChange={setRegion}
                     options={regionOptions}

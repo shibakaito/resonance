@@ -106,7 +106,7 @@ export function filterLabel(field: keyof Filters, v: string): string {
     case 'noiseReduction': return optLabel(CAS_NR_OPTS, v);
     case 'tapeTypeRec': return optLabel(CAS_TAPE_TYPE_OPTS, v);
     case 'headWear': return optLabel(CAS_HEAD_WEAR_OPTS, v);
-    case 'phonoBuiltIn': return v === 'built_in' ? '있음' : v === 'none' ? '없음' : v; // 필터 제목이 '포노앰프 내장'이라 있음 / 없음 (폼 글자는 내장 / 미내장)
+    case 'phonoBuiltIn': return label('phonoBuiltInFilter', v); // 있음 / 없음 (labels.ts — 폼 글자 내장 / 미내장과 다름)
     default: return v;
   }
 }

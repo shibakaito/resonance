@@ -105,6 +105,7 @@ import { ListingGrid } from './listing-grid';
 // ── Supabase 연동: DB에서 실제 매물을 불러옴 ──
 import { fetchListings } from '@/lib/listings';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
+import { FILTER_LABELS as FL, FILTER_CHIP_PREFIX } from '@/lib/labels'; // 필터 칸 이름, 칩 접두 (labels.ts 한 곳)
 
 // 브랜드 영문명 → 한글 별칭 목록 (검색용). 홈 콤보박스와 동일하게 BRAND_DIRECTORY 재사용.
 const BRAND_ALIASES: Record<string, readonly string[]> = Object.fromEntries(
@@ -453,11 +454,11 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
   }
   {
     // 칩은 지금 보이는 칸(isFilterKeyVisible — filterVisibility 와 같은 규칙)의 값만
-    const setFieldKeys: { key: keyof Filters; prefix?: string }[] = [
+    const setFieldKeys: { key: keyof Filters }[] = [
       { key: 'brand' },
       { key: 'model' },
       { key: 'condition' },
-      { key: 'appearance', prefix: '외관' },
+      { key: 'appearance' },
       { key: 'working' },
       { key: 'ownership' },
       { key: 'country' },
@@ -467,9 +468,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'ampDetail' },
       { key: 'ampMethod' },
       { key: 'impedance' },
-      { key: 'phono', prefix: '포노' },
-      { key: 'toneControl', prefix: '톤 컨트롤' },
-      { key: 'remote', prefix: '리모컨' },
+      { key: 'phono' },
+      { key: 'toneControl' },
+      { key: 'remote' },
       { key: 'voltage' }, // 앰프와 턴테이블 (아래에서 거름)
       { key: 'speakerDetail' },
       { key: 'driverConfig' },
@@ -477,27 +478,27 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       { key: 'speakerImpedance' },
       { key: 'wooferSize' },
       { key: 'driveType' },
-      { key: 'tonearm', prefix: '톤암' },
-      { key: 'cartridge', prefix: '카트리지' },
+      { key: 'tonearm' },
+      { key: 'cartridge' },
       { key: 'speeds' },
       { key: 'autoMode' },
-      { key: 'dustCover', prefix: '더스트 커버' },
-      { key: 'phonoBuiltIn', prefix: '포노앰프 내장' },
-      { key: 'cdDigitalOut', prefix: '디지털 출력' },  // CD 플레이어 (아래에서 거름)
-      { key: 'cdAnalogOut', prefix: '아날로그 출력' },
+      { key: 'dustCover' },
+      { key: 'phonoBuiltIn' },
+      { key: 'cdDigitalOut' },  // CD 플레이어 (아래에서 거름)
+      { key: 'cdAnalogOut' },
       { key: 'tunerBand' },                            // 튜너
       { key: 'headCount' },                            // 카세트 데크 (2026-11-10)
-      { key: 'autoReverse', prefix: '오토리버스' },
+      { key: 'autoReverse' },
       { key: 'capstan' },
       { key: 'noiseReduction' },
       { key: 'tapeTypeRec' },
-      { key: 'headWear', prefix: '헤드 상태' },
-      { key: 'terminalIn', prefix: '입력' },
-      { key: 'terminalOut', prefix: '출력' },
-      { key: 'directional', prefix: '방향성' },
-      { key: 'conductor', prefix: '도체' },
-      { key: 'plating', prefix: '도금' },
-      { key: 'shield', prefix: '차폐' },
+      { key: 'headWear' },
+      { key: 'terminalIn' },
+      { key: 'terminalOut' },
+      { key: 'directional' },
+      { key: 'conductor' },
+      { key: 'plating' },
+      { key: 'shield' },
       { key: 'pair' },
     ];
     // 케이블: 입력/출력 둘 다 정확히 1개 선택된 경우 결합 칩으로 표시
@@ -508,7 +509,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       const tOut = [...filters.terminalOut][0];
       activeChips.push({
         key: `term-pair-${tIn}-${tOut}`,
-        label: `입력: ${tIn} → 출력: ${tOut}`,
+        label: `${FILTER_CHIP_PREFIX.terminalIn}: ${tIn} → ${FILTER_CHIP_PREFIX.terminalOut}: ${tOut}`,
         remove: () =>
           setFilters((prev) => ({
             ...prev,
@@ -517,7 +518,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           }))
       });
     }
-    for (const { key, prefix } of setFieldKeys) {
+    for (const { key } of setFieldKeys) {
+      const prefix = FILTER_CHIP_PREFIX[key]; // 칩 접두 (labels.ts, 모달과 같은 표)
       if (!isFilterKeyVisible(key, vis)) continue;
       if (combineTermActive && (key === 'terminalIn' || key === 'terminalOut')) continue;
       const useColon = key === 'terminalIn' || key === 'terminalOut';
@@ -534,14 +536,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     if (priceLabel)
       activeChips.push({
         key: 'price',
-        label: `가격: ${priceLabel}`,
+        label: `${FL.price}: ${priceLabel}`,
         remove: () => setFilters((prev) => ({ ...prev, priceMin: null, priceMax: null }))
       });
     const yearLabel = rangeChipLabel(filters.yearMin, filters.yearMax, '');
     if (yearLabel)
       activeChips.push({
         key: 'year',
-        label: `출시 연도: ${yearLabel}`,
+        label: `${FL.year}: ${yearLabel}`,
         remove: () => setFilters((prev) => ({ ...prev, yearMin: null, yearMax: null }))
       });
     {
@@ -549,13 +551,13 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (powerLabel)
         activeChips.push({
           key: 'power',
-          label: `정격 출력: ${powerLabel}`,
+          label: `${FL.power}: ${powerLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, powerMin: null, powerMax: null }))
         });
       if (vis.headphoneImp && filters.headphoneImp != null)
         activeChips.push({
           key: 'headphoneImp',
-          label: `내 헤드폰 임피던스: ${filters.headphoneImp}Ω`,
+          label: `${FL.headphoneImp}: ${filters.headphoneImp}Ω`,
           remove: () => setFilters((prev) => ({ ...prev, headphoneImp: null }))
         });
     }
@@ -564,7 +566,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (capLabel)
         activeChips.push({
           key: 'ratedCapacity',
-          label: `정격 용량: ${capLabel}`,
+          label: `${FL.ratedCapacity}: ${capLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, ratedCapacityMin: null, ratedCapacityMax: null }))
         });
     }
@@ -573,7 +575,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (lenLabel)
         activeChips.push({
           key: 'cableLength',
-          label: `길이: ${lenLabel}`,
+          label: `${FL.cableLength}: ${lenLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, cableLengthMin: null, cableLengthMax: null }))
         });
     }
@@ -582,14 +584,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
       if (sensLabel)
         activeChips.push({
           key: 'sensitivity',
-          label: `감도: ${sensLabel}`,
+          label: `${FL.sensitivity}: ${sensLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, sensitivityMin: null, sensitivityMax: null }))
         });
       const recLabel = rangeChipLabel(filters.recPowerMin, filters.recPowerMax, 'W');
       if (recLabel)
         activeChips.push({
           key: 'recPower',
-          label: `권장 앰프 출력: ${recLabel}`,
+          label: `${FL.recPower}: ${recLabel}`,
           remove: () => setFilters((prev) => ({ ...prev, recPowerMin: null, recPowerMax: null }))
         });
     }
@@ -722,14 +724,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             <div className="flex flex-col">
               {/* 상태(종류 4개) → 외관 상태 → 작동 상태 (2026-11-10 상태 등급 재구성). 외관, 작동은 중고 매물만 값이 있음 */}
               <FilterSection
-                label="상태"
+                label={FL.condition}
                 options={CONDITIONS}
                 selected={filters.condition} getLabel={lab('condition')}
                 onToggle={toggleField('condition')}
                 counts={counts.condition}
               />
-              <FilterSection label="외관 상태" options={APPEARANCE_OPTS} selected={filters.appearance} getLabel={lab('appearance')} onToggle={toggleField('appearance')} counts={counts.appearance} />
-              <FilterSection label="작동 상태" options={WORKING_OPTS} selected={filters.working} getLabel={lab('working')} onToggle={toggleField('working')} counts={counts.working} />
+              <FilterSection label={FL.appearance} options={APPEARANCE_OPTS} selected={filters.appearance} getLabel={lab('appearance')} onToggle={toggleField('appearance')} counts={counts.appearance} />
+              <FilterSection label={FL.working} options={WORKING_OPTS} selected={filters.working} getLabel={lab('working')} onToggle={toggleField('working')} counts={counts.working} />
               {sidebarCategoryGroups.map((g) => (
                 <FilterSection
                   key={g.title}
@@ -745,21 +747,21 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {isAmp && (
                 <>
                   {vis.channel && (
-                    <FilterSection label="채널" options={AMP_DETAILS} selected={filters.ampDetail} getLabel={lab('ampDetail')} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
+                    <FilterSection label={FL.ampDetail} options={AMP_DETAILS} selected={filters.ampDetail} getLabel={lab('ampDetail')} onToggle={toggleField('ampDetail')} counts={counts.ampDetail} />
                   )}
-                  <FilterSection label="증폭 방식" options={AMP_METHODS} selected={filters.ampMethod} getLabel={lab('ampMethod')} onToggle={toggleField('ampMethod')} counts={counts.ampMethod} />
+                  <FilterSection label={FL.ampMethod} options={AMP_METHODS} selected={filters.ampMethod} getLabel={lab('ampMethod')} onToggle={toggleField('ampMethod')} counts={counts.ampMethod} />
                   {/* 헤드폰 앰프: 정격 출력 대신 "내 헤드폰 임피던스" 한 칸 — 매물 권장 범위(하한 ≤ N ≤ 상한)에 들면 표시 */}
                   {vis.headphoneImp ? (
-                    <RangeSection label="내 헤드폰 임피던스" unit="Ω" single singlePlaceholder="예: 32" min={filters.headphoneImp} max={null} onApply={(n) => setFilters((prev) => ({ ...prev, headphoneImp: n }))} />
+                    <RangeSection label={FL.headphoneImp} unit="Ω" single singlePlaceholder="예: 32" min={filters.headphoneImp} max={null} onApply={(n) => setFilters((prev) => ({ ...prev, headphoneImp: n }))} />
                   ) : (
                     vis.power && (
-                      <RangeSection label="정격 출력 (W·8Ω)" min={filters.powerMin} max={filters.powerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, powerMin: m, powerMax: x }))} />
+                      <RangeSection label={`${FL.power} (W·8Ω)`} min={filters.powerMin} max={filters.powerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, powerMin: m, powerMax: x }))} />
                     )
                   )}
                 </>
               )}
               <FilterSection
-                label="브랜드"
+                label={FL.brand}
                 options={brandsByCount}
                 selected={filters.brand}
                 onToggle={toggleField('brand')}
@@ -769,7 +771,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 getAliases={(name) => BRAND_ALIASES[name] ?? []}
               />
               <RangeSection
-                label="가격"
+                label={FL.price}
                 min={filters.priceMin}
                 max={filters.priceMax}
                 onApply={(m, x) => setFilters((prev) => ({ ...prev, priceMin: m, priceMax: x }))}
@@ -779,51 +781,51 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {isAmp && (
                 <>
                   {vis.impedance && (
-                    <FilterSection label="지원 임피던스" options={IMPEDANCE_OPTS} selected={filters.impedance} onToggle={toggleField('impedance')} counts={counts.impedance} defaultOpen={false} />
+                    <FilterSection label={FL.impedance} options={IMPEDANCE_OPTS} selected={filters.impedance} onToggle={toggleField('impedance')} counts={counts.impedance} defaultOpen={false} />
                   )}
-                  <FilterSection label="포노 입력" options={PHONO_OPTS} selected={filters.phono} getLabel={lab('phono')} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
-                  {FEATURE_FLAGS.toneControlFilter && <FilterSection label="톤 컨트롤" options={TONE_OPTS} selected={filters.toneControl} getLabel={lab('toneControl')} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />}
-                  {FEATURE_FLAGS.remoteFilter && <FilterSection label="리모컨 포함" options={REMOTE_OPTS} selected={filters.remote} getLabel={lab('remote')} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />}
-                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
+                  <FilterSection label={FL.phono} options={PHONO_OPTS} selected={filters.phono} getLabel={lab('phono')} onToggle={toggleField('phono')} counts={counts.phono} defaultOpen={false} />
+                  {FEATURE_FLAGS.toneControlFilter && <FilterSection label={FL.toneControl} options={TONE_OPTS} selected={filters.toneControl} getLabel={lab('toneControl')} onToggle={toggleField('toneControl')} counts={counts.toneControl} defaultOpen={false} />}
+                  {FEATURE_FLAGS.remoteFilter && <FilterSection label={FL.remote} options={REMOTE_OPTS} selected={filters.remote} getLabel={lab('remote')} onToggle={toggleField('remote')} counts={counts.remote} defaultOpen={false} />}
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
 
               {/* 스피커 전용 */}
               {isSpeaker && (
                 <>
-                  <FilterSection label="형식" options={SPEAKER_DETAILS} selected={filters.speakerDetail} getLabel={lab('speakerDetail')} onToggle={toggleField('speakerDetail')} counts={counts.speakerDetail} />
-                  <FilterSection label="드라이버 구성" options={DRIVER_CONFIGS} selected={filters.driverConfig} getLabel={lab('driverConfig')} onToggle={toggleField('driverConfig')} counts={counts.driverConfig} defaultOpen={false} />
-                  <FilterSection label="우퍼 크기" options={WOOFER_SIZES} selected={filters.wooferSize} getLabel={lab('wooferSize')} onToggle={toggleField('wooferSize')} counts={counts.wooferSize} defaultOpen={false} />
-                  <FilterSection label="인클로저" options={ENCLOSURE_TYPES} selected={filters.enclosure} getLabel={lab('enclosure')} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
-                  <FilterSection label="임피던스" options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} getLabel={lab('speakerImpedance')} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
-                  <RangeSection label="감도" unit="dB" min={filters.sensitivityMin} max={filters.sensitivityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, sensitivityMin: m, sensitivityMax: x }))} defaultOpen={false} />
-                  {FEATURE_FLAGS.recPowerFilter && <RangeSection label="권장 앰프 출력" unit="W" min={filters.recPowerMin} max={filters.recPowerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, recPowerMin: m, recPowerMax: x }))} defaultOpen={false} />}
+                  <FilterSection label={FL.speakerDetail} options={SPEAKER_DETAILS} selected={filters.speakerDetail} getLabel={lab('speakerDetail')} onToggle={toggleField('speakerDetail')} counts={counts.speakerDetail} />
+                  <FilterSection label={FL.driverConfig} options={DRIVER_CONFIGS} selected={filters.driverConfig} getLabel={lab('driverConfig')} onToggle={toggleField('driverConfig')} counts={counts.driverConfig} defaultOpen={false} />
+                  <FilterSection label={FL.wooferSize} options={WOOFER_SIZES} selected={filters.wooferSize} getLabel={lab('wooferSize')} onToggle={toggleField('wooferSize')} counts={counts.wooferSize} defaultOpen={false} />
+                  <FilterSection label={FL.enclosure} options={ENCLOSURE_TYPES} selected={filters.enclosure} getLabel={lab('enclosure')} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
+                  <FilterSection label={FL.speakerImpedance} options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} getLabel={lab('speakerImpedance')} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
+                  <RangeSection label={FL.sensitivity} unit="dB" min={filters.sensitivityMin} max={filters.sensitivityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, sensitivityMin: m, sensitivityMax: x }))} defaultOpen={false} />
+                  {FEATURE_FLAGS.recPowerFilter && <RangeSection label={FL.recPower} unit="W" min={filters.recPowerMin} max={filters.recPowerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, recPowerMin: m, recPowerMax: x }))} defaultOpen={false} />}
                 </>
               )}
 
               {/* 케이블 전용 */}
               {isCable && (
                 <>
-                  <RangeSection label="길이" unit="m" step={0.5} min={filters.cableLengthMin} max={filters.cableLengthMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, cableLengthMin: m, cableLengthMax: x }))} />
+                  <RangeSection label={FL.cableLength} unit="m" step={0.5} min={filters.cableLengthMin} max={filters.cableLengthMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, cableLengthMin: m, cableLengthMax: x }))} />
                   {(() => {
                     const sortedTerms = terminalsPrioritized([...subCategories]);
                     return (
                       <div className="border-b border-[#e0e0e0] py-3">
                         <span className="block text-sm font-semibold text-[#000000] mb-2.5">입출력 단자</span>
                         <div className="flex flex-col gap-2">
-                          <FilterDropdown label="입력 단자" options={sortedTerms} selected={filters.terminalIn} onToggle={toggleField('terminalIn')} onClear={() => setFilters((prev) => ({ ...prev, terminalIn: new Set() }))} counts={counts.terminalIn} scrollable variant="box" />
-                          <FilterDropdown label="출력 단자" options={sortedTerms} selected={filters.terminalOut} onToggle={toggleField('terminalOut')} onClear={() => setFilters((prev) => ({ ...prev, terminalOut: new Set() }))} counts={counts.terminalOut} scrollable variant="box" />
+                          <FilterDropdown label={FL.terminalIn} options={sortedTerms} selected={filters.terminalIn} onToggle={toggleField('terminalIn')} onClear={() => setFilters((prev) => ({ ...prev, terminalIn: new Set() }))} counts={counts.terminalIn} scrollable variant="box" />
+                          <FilterDropdown label={FL.terminalOut} options={sortedTerms} selected={filters.terminalOut} onToggle={toggleField('terminalOut')} onClear={() => setFilters((prev) => ({ ...prev, terminalOut: new Set() }))} counts={counts.terminalOut} scrollable variant="box" />
                         </div>
                       </div>
                     );
                   })()}
-                  <FilterSection label="도체 재질" options={CONDUCTOR_OPTS} selected={filters.conductor} onToggle={toggleField('conductor')} counts={counts.conductor} defaultOpen={false} />
-                  <FilterSection label="커넥터 도금" options={PLATING_OPTS} selected={filters.plating} onToggle={toggleField('plating')} counts={counts.plating} defaultOpen={false} />
+                  <FilterSection label={FL.conductor} options={CONDUCTOR_OPTS} selected={filters.conductor} onToggle={toggleField('conductor')} counts={counts.conductor} defaultOpen={false} />
+                  <FilterSection label={FL.plating} options={PLATING_OPTS} selected={filters.plating} onToggle={toggleField('plating')} counts={counts.plating} defaultOpen={false} />
                   {[...subCategories].some((s) => SHIELD_RELEVANT.includes(s)) && (
-                    <FilterSection label="차폐 방식" options={SHIELD_OPTS} selected={filters.shield} onToggle={toggleField('shield')} counts={counts.shield} defaultOpen={false} />
+                    <FilterSection label={FL.shield} options={SHIELD_OPTS} selected={filters.shield} onToggle={toggleField('shield')} counts={counts.shield} defaultOpen={false} />
                   )}
-                  <FilterSection label="페어 여부" options={PAIR_OPTS} selected={filters.pair} onToggle={toggleField('pair')} counts={counts.pair} defaultOpen={false} />
-                  <FilterSection label="방향성" options={DIRECTIONALITY_OPTS} selected={filters.directional} onToggle={toggleField('directional')} counts={counts.directional} defaultOpen={false} />
+                  <FilterSection label={FL.pair} options={PAIR_OPTS} selected={filters.pair} onToggle={toggleField('pair')} counts={counts.pair} defaultOpen={false} />
+                  <FilterSection label={FL.directional} options={DIRECTIONALITY_OPTS} selected={filters.directional} onToggle={toggleField('directional')} counts={counts.directional} defaultOpen={false} />
                 </>
               )}
 
@@ -831,53 +833,53 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {isTurntable && (
                 <>
                   {/* 순서: 구동 방식, 회전수, 조작 방식, 톤암, 카트리지, 포노앰프 내장, 전원 전압 (2026-11-10, 형식 필터는 없음) */}
-                  <FilterSection label="구동 방식" options={DRIVE_TYPES} selected={filters.driveType} getLabel={lab('driveType')} onToggle={toggleField('driveType')} counts={counts.driveType} />
-                  <FilterSection label="회전수" options={SPEED_OPTS} selected={filters.speeds} getLabel={lab('speeds')} onToggle={toggleField('speeds')} counts={counts.speeds} />
-                  <FilterSection label="조작 방식" options={AUTO_OPTS} selected={filters.autoMode} getLabel={lab('autoMode')} onToggle={toggleField('autoMode')} counts={counts.autoMode} />
-                  <FilterSection label="톤암" options={TONEARM_OPTS} selected={filters.tonearm} getLabel={lab('tonearm')} onToggle={toggleField('tonearm')} counts={counts.tonearm} defaultOpen={false} />
-                  <FilterSection label="카트리지" options={CARTRIDGE_OPTS} selected={filters.cartridge} getLabel={lab('cartridge')} onToggle={toggleField('cartridge')} counts={counts.cartridge} defaultOpen={false} />
-                  <FilterSection label="포노앰프 내장" options={PHONO_BUILTIN_OPTS} selected={filters.phonoBuiltIn} getLabel={lab('phonoBuiltIn')} onToggle={toggleField('phonoBuiltIn')} counts={counts.phonoBuiltIn} defaultOpen={false} />
-                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
-                  {FEATURE_FLAGS.dustCoverFilter && <FilterSection label="더스트 커버" options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />}
+                  <FilterSection label={FL.driveType} options={DRIVE_TYPES} selected={filters.driveType} getLabel={lab('driveType')} onToggle={toggleField('driveType')} counts={counts.driveType} />
+                  <FilterSection label={FL.speeds} options={SPEED_OPTS} selected={filters.speeds} getLabel={lab('speeds')} onToggle={toggleField('speeds')} counts={counts.speeds} />
+                  <FilterSection label={FL.autoMode} options={AUTO_OPTS} selected={filters.autoMode} getLabel={lab('autoMode')} onToggle={toggleField('autoMode')} counts={counts.autoMode} />
+                  <FilterSection label={FL.tonearm} options={TONEARM_OPTS} selected={filters.tonearm} getLabel={lab('tonearm')} onToggle={toggleField('tonearm')} counts={counts.tonearm} defaultOpen={false} />
+                  <FilterSection label={FL.cartridge} options={CARTRIDGE_OPTS} selected={filters.cartridge} getLabel={lab('cartridge')} onToggle={toggleField('cartridge')} counts={counts.cartridge} defaultOpen={false} />
+                  <FilterSection label={FL.phonoBuiltIn} options={PHONO_BUILTIN_OPTS} selected={filters.phonoBuiltIn} getLabel={lab('phonoBuiltIn')} onToggle={toggleField('phonoBuiltIn')} counts={counts.phonoBuiltIn} defaultOpen={false} />
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
+                  {FEATURE_FLAGS.dustCoverFilter && <FilterSection label={FL.dustCover} options={DUSTCOVER_OPTS} selected={filters.dustCover} getLabel={lab('dustCover')} onToggle={toggleField('dustCover')} counts={counts.dustCover} defaultOpen={false} />}
                 </>
               )}
 
               {/* CD 플레이어 전용 (2026-11-10) */}
               {isCd && (
                 <>
-                  <FilterSection label="디지털 출력" options={CD_DIGITAL_OUTS} selected={filters.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleField('cdDigitalOut')} counts={counts.cdDigitalOut} />
-                  <FilterSection label="아날로그 출력" options={CD_ANALOG_OUTS} selected={filters.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleField('cdAnalogOut')} counts={counts.cdAnalogOut} />
+                  <FilterSection label={FL.cdDigitalOut} options={CD_DIGITAL_OUTS} selected={filters.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleField('cdDigitalOut')} counts={counts.cdDigitalOut} />
+                  <FilterSection label={FL.cdAnalogOut} options={CD_ANALOG_OUTS} selected={filters.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleField('cdAnalogOut')} counts={counts.cdAnalogOut} />
                 </>
               )}
               {/* 카세트 데크 전용 (2026-11-10) — 핵심 칸 6개 + 전원 전압 */}
               {vis.cassette && (
                 <>
-                  <FilterSection label="헤드 수" options={CAS_HEAD_COUNTS} selected={filters.headCount} getLabel={lab('headCount')} onToggle={toggleField('headCount')} counts={counts.headCount} />
-                  <FilterSection label="오토리버스" options={CAS_AUTOREVERSES} selected={filters.autoReverse} getLabel={lab('autoReverse')} onToggle={toggleField('autoReverse')} counts={counts.autoReverse} />
-                  <FilterSection label="캡스턴" options={CAS_CAPSTANS} selected={filters.capstan} getLabel={lab('capstan')} onToggle={toggleField('capstan')} counts={counts.capstan} />
-                  <FilterSection label="노이즈 리덕션" options={CAS_NRS} selected={filters.noiseReduction} getLabel={lab('noiseReduction')} onToggle={toggleField('noiseReduction')} counts={counts.noiseReduction} defaultOpen={false} />
-                  <FilterSection label="녹음 가능 테이프" options={CAS_TAPE_TYPES} selected={filters.tapeTypeRec} getLabel={lab('tapeTypeRec')} onToggle={toggleField('tapeTypeRec')} counts={counts.tapeTypeRec} defaultOpen={false} />
-                  <FilterSection label="헤드 상태" options={CAS_HEAD_WEARS} selected={filters.headWear} getLabel={lab('headWear')} onToggle={toggleField('headWear')} counts={counts.headWear} defaultOpen={false} />
-                  <FilterSection label="전원 전압" options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
+                  <FilterSection label={FL.headCount} options={CAS_HEAD_COUNTS} selected={filters.headCount} getLabel={lab('headCount')} onToggle={toggleField('headCount')} counts={counts.headCount} />
+                  <FilterSection label={FL.autoReverse} options={CAS_AUTOREVERSES} selected={filters.autoReverse} getLabel={lab('autoReverse')} onToggle={toggleField('autoReverse')} counts={counts.autoReverse} />
+                  <FilterSection label={FL.capstan} options={CAS_CAPSTANS} selected={filters.capstan} getLabel={lab('capstan')} onToggle={toggleField('capstan')} counts={counts.capstan} />
+                  <FilterSection label={FL.noiseReduction} options={CAS_NRS} selected={filters.noiseReduction} getLabel={lab('noiseReduction')} onToggle={toggleField('noiseReduction')} counts={counts.noiseReduction} defaultOpen={false} />
+                  <FilterSection label={FL.tapeTypeRec} options={CAS_TAPE_TYPES} selected={filters.tapeTypeRec} getLabel={lab('tapeTypeRec')} onToggle={toggleField('tapeTypeRec')} counts={counts.tapeTypeRec} defaultOpen={false} />
+                  <FilterSection label={FL.headWear} options={CAS_HEAD_WEARS} selected={filters.headWear} getLabel={lab('headWear')} onToggle={toggleField('headWear')} counts={counts.headWear} defaultOpen={false} />
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
               {/* 튜너 전용 (2026-11-10) */}
               {isTuner && (
-                <FilterSection label="수신 밴드" options={TUNER_BANDS} selected={filters.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleField('tunerBand')} counts={counts.tunerBand} />
+                <FilterSection label={FL.tunerBand} options={TUNER_BANDS} selected={filters.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleField('tunerBand')} counts={counts.tunerBand} />
               )}
 
               {/* 전원 장치 전용 */}
               {isPowerDevice && (
-                <RangeSection label="정격 용량" unit="W" min={filters.ratedCapacityMin} max={filters.ratedCapacityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, ratedCapacityMin: m, ratedCapacityMax: x }))} />
+                <RangeSection label={FL.ratedCapacity} unit="W" min={filters.ratedCapacityMin} max={filters.ratedCapacityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, ratedCapacityMin: m, ratedCapacityMax: x }))} />
               )}
 
               {/* 공통 */}
-              <RangeSection label="출시 연도" noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
-              {FEATURE_FLAGS.ownership && <FilterSection label="소유권" options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />}
-              <FilterSection label="제조국" options={COUNTRY_OPTS} selected={filters.country} getLabel={lab('country')} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
+              <RangeSection label={FL.year} noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
+              {FEATURE_FLAGS.ownership && <FilterSection label={FL.ownership} options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />}
+              <FilterSection label={FL.country} options={COUNTRY_OPTS} selected={filters.country} getLabel={lab('country')} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
               {/* 국가 → 지역: 국가를 고르면 지역은 그 나라 것만 (안 고르면 전 국가, 한국 먼저 펼침) */}
-              <FilterSection label="국가" options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false} />
-              <FilterSection label="지역" options={regionOptionsFor(filters.locationCountry)} selected={filters.region} getLabel={lab('region')} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} maxVisible={filters.locationCountry.size ? undefined : REGION_VISIBLE_ALL} />
+              <FilterSection label={FL.locationCountry} options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false} />
+              <FilterSection label={FL.region} options={regionOptionsFor(filters.locationCountry)} selected={filters.region} getLabel={lab('region')} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} maxVisible={filters.locationCountry.size ? undefined : REGION_VISIBLE_ALL} />
             </div>
           </div>
         </aside>

@@ -12,6 +12,7 @@ import { ChevronDown, ChevronUp, X, Plus, Minus } from 'lucide-react';
 import { FilterDropdown } from './filter-controls';
 import { terminalsPrioritized } from '../data/cable-terminals';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
+import { FILTER_LABELS as FL, FILTER_CHIP_PREFIX } from '@/lib/labels'; // 필터 칸 이름, 칩 접두 (labels.ts 한 곳)
 import {
   ACCESSORY_GROUPS,
   AMP_DETAILS,
@@ -422,23 +423,7 @@ export function FilterModal({
     'headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear',
     'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
   ];
-  const prefixFor: Partial<Record<keyof Filters, string>> = {
-    appearance: '외관',
-    phonoBuiltIn: '포노앰프 내장',
-    cdDigitalOut: '디지털 출력',
-    cdAnalogOut: '아날로그 출력',
-    autoReverse: '오토리버스',
-    headWear: '헤드 상태',
-    phono: '포노',
-    toneControl: '톤 컨트롤',
-    remote: '리모컨',
-    terminalIn: '입력',
-    terminalOut: '출력',
-    directional: '방향성',
-    conductor: '도체',
-    plating: '도금',
-    shield: '차폐'
-  };
+  const prefixFor: Partial<Record<keyof Filters, string>> = FILTER_CHIP_PREFIX; // 칩 접두 — labels.ts 한 표(사이드바 칩과 같음)
 
   const draftChips: { key: string; label: string; remove: () => void }[] = [];
   for (const sc of draftSubCategories) {
@@ -457,7 +442,7 @@ export function FilterModal({
     const tOut = [...draft.terminalOut][0];
     draftChips.push({
       key: `term-pair-${tIn}-${tOut}`,
-      label: `입력: ${tIn} → 출력: ${tOut}`,
+      label: `${FILTER_CHIP_PREFIX.terminalIn}: ${tIn} → ${FILTER_CHIP_PREFIX.terminalOut}: ${tOut}`,
       remove: () => setDraft({ ...draft, terminalIn: new Set(), terminalOut: new Set() })
     });
   }
@@ -479,7 +464,7 @@ export function FilterModal({
   if (priceLabel)
     draftChips.push({
       key: 'price',
-      label: `가격: ${priceLabel}`,
+      label: `${FL.price}: ${priceLabel}`,
       remove: () => {
         setPriceMinInput('');
         setPriceMaxInput('');
@@ -489,7 +474,7 @@ export function FilterModal({
   if (yearLabel)
     draftChips.push({
       key: 'year',
-      label: `출시 연도: ${yearLabel}`,
+      label: `${FL.year}: ${yearLabel}`,
       remove: () => {
         setYearMinInput('');
         setYearMaxInput('');
@@ -499,7 +484,7 @@ export function FilterModal({
   if (powerLabel)
     draftChips.push({
       key: 'power',
-      label: `정격 출력: ${powerLabel}`,
+      label: `${FL.power}: ${powerLabel}`,
       remove: () => {
         setPowerMinInput('');
         setPowerMaxInput('');
@@ -509,7 +494,7 @@ export function FilterModal({
   if (sensLabel)
     draftChips.push({
       key: 'sensitivity',
-      label: `감도: ${sensLabel}`,
+      label: `${FL.sensitivity}: ${sensLabel}`,
       remove: () => {
         setSensMinInput('');
         setSensMaxInput('');
@@ -519,7 +504,7 @@ export function FilterModal({
   if (recLabel)
     draftChips.push({
       key: 'recPower',
-      label: `권장 앰프 출력: ${recLabel}`,
+      label: `${FL.recPower}: ${recLabel}`,
       remove: () => {
         setRecMinInput('');
         setRecMaxInput('');
@@ -529,7 +514,7 @@ export function FilterModal({
   if (capLabel)
     draftChips.push({
       key: 'ratedCapacity',
-      label: `정격 용량: ${capLabel}`,
+      label: `${FL.ratedCapacity}: ${capLabel}`,
       remove: () => {
         setCapMinInput('');
         setCapMaxInput('');
@@ -539,7 +524,7 @@ export function FilterModal({
   if (lenLabel)
     draftChips.push({
       key: 'cableLength',
-      label: `길이: ${lenLabel}`,
+      label: `${FL.cableLength}: ${lenLabel}`,
       remove: () => {
         setLenMinInput('');
         setLenMaxInput('');
@@ -570,7 +555,7 @@ export function FilterModal({
         {/* 본문 (아코디언, 스크롤) */}
         <div className="min-h-0 px-5 overflow-y-auto">
           {categoryOptions.length > 0 && !isSource && !isAccessory && !isTtAccessory && (
-            <Section title="카테고리" defaultOpen>
+            <Section title={FL.category} defaultOpen>
               <CheckGroup
                 options={categoryOptions}
                 selected={draftSubCategories}
@@ -615,7 +600,7 @@ export function FilterModal({
               </Section>
             ))}
           {draftIsPowerDevice && (
-            <Section title="정격 용량 (W)" defaultOpen>
+            <Section title={`${FL.ratedCapacity} (W)`} defaultOpen>
               <MinMaxRow
                 minVal={capMinInput}
                 maxVal={capMaxInput}
@@ -626,7 +611,7 @@ export function FilterModal({
           )}
           {draftIsCable && (
             <>
-              <Section title="길이 (m)" defaultOpen>
+              <Section title={`${FL.cableLength} (m)`} defaultOpen>
                 <MinMaxRow
                   minVal={lenMinInput}
                   maxVal={lenMaxInput}
@@ -637,7 +622,7 @@ export function FilterModal({
               {(() => {
                 const sortedTerms = terminalsPrioritized([...draftSubCategories]);
                 return (
-                  <Section title="입출력 단자" defaultOpen>
+                  <Section title={FL.terminalInOut} defaultOpen>
                     <div className="flex items-stretch gap-2 max-w-xs">
                       <FilterDropdown
                         label="입력 단자"
@@ -663,7 +648,7 @@ export function FilterModal({
                   </Section>
                 );
               })()}
-              <Section title="도체 재질" defaultOpen>
+              <Section title={FL.conductor} defaultOpen>
                 <CheckGroup
                   options={CONDUCTOR_OPTS}
                   selected={draft.conductor}
@@ -671,7 +656,7 @@ export function FilterModal({
                   counts={counts.conductor}
                 />
               </Section>
-              <Section title="커넥터 도금" defaultOpen>
+              <Section title={FL.plating} defaultOpen>
                 <CheckGroup
                   options={PLATING_OPTS}
                   selected={draft.plating}
@@ -680,7 +665,7 @@ export function FilterModal({
                 />
               </Section>
               {[...draftSubCategories].some((s) => SHIELD_RELEVANT.includes(s)) && (
-                <Section title="차폐 방식" defaultOpen>
+                <Section title={FL.shield} defaultOpen>
                   <CheckGroup
                     options={SHIELD_OPTS}
                     selected={draft.shield}
@@ -689,7 +674,7 @@ export function FilterModal({
                   />
                 </Section>
               )}
-              <Section title="페어 여부" defaultOpen>
+              <Section title={FL.pair} defaultOpen>
                 <CheckGroup
                   options={PAIR_OPTS}
                   selected={draft.pair}
@@ -697,7 +682,7 @@ export function FilterModal({
                   counts={counts.pair}
                 />
               </Section>
-              <Section title="방향성" defaultOpen>
+              <Section title={FL.directional} defaultOpen>
                 <CheckGroup
                   options={DIRECTIONALITY_OPTS}
                   selected={draft.directional}
@@ -710,7 +695,7 @@ export function FilterModal({
           {isAmp && (
             <>
               {draftVis.channel && (
-              <Section title="채널" defaultOpen>
+              <Section title={FL.ampDetail} defaultOpen>
                 <CheckGroup
                   options={AMP_DETAILS}
                   selected={draft.ampDetail}
@@ -720,7 +705,7 @@ export function FilterModal({
                 />
               </Section>
               )}
-              <Section title="증폭 방식" defaultOpen>
+              <Section title={FL.ampMethod} defaultOpen>
                 <CheckGroup
                   options={AMP_METHODS}
                   selected={draft.ampMethod}
@@ -732,7 +717,7 @@ export function FilterModal({
             </>
           )}
           {isSpeaker && (
-            <Section title="형식" defaultOpen>
+            <Section title={FL.speakerDetail} defaultOpen>
               <CheckGroup
                 options={SPEAKER_DETAILS}
                 selected={draft.speakerDetail}
@@ -743,7 +728,7 @@ export function FilterModal({
             </Section>
           )}
 
-          <Section title="브랜드" defaultOpen>
+          <Section title={FL.brand} defaultOpen>
             <CheckGroup
               options={brandOptions}
               selected={draft.brand}
@@ -753,7 +738,7 @@ export function FilterModal({
             />
           </Section>
           {/* 상태(종류 4개) → 외관 상태 → 작동 상태 (2026-11-10 상태 등급 재구성) */}
-          <Section title="상태" defaultOpen>
+          <Section title={FL.condition} defaultOpen>
             <CheckGroup
               options={CONDITIONS}
               selected={draft.condition}
@@ -762,13 +747,13 @@ export function FilterModal({
               counts={counts.condition}
             />
           </Section>
-          <Section title="외관 상태" defaultOpen>
+          <Section title={FL.appearance} defaultOpen>
             <CheckGroup options={APPEARANCE_OPTS} selected={draft.appearance} getLabel={lab('appearance')} onToggle={toggleIn('appearance')} counts={counts.appearance} />
           </Section>
-          <Section title="작동 상태" defaultOpen>
+          <Section title={FL.working} defaultOpen>
             <CheckGroup options={WORKING_OPTS} selected={draft.working} getLabel={lab('working')} onToggle={toggleIn('working')} counts={counts.working} />
           </Section>
-          <Section title="가격" defaultOpen>
+          <Section title={FL.price} defaultOpen>
             <MinMaxRow
               minVal={priceMinInput}
               maxVal={priceMaxInput}
@@ -781,11 +766,11 @@ export function FilterModal({
           {isAmp && (
             <>
               {draftIsHeadphoneAmp ? (
-                <Section title="내 헤드폰 임피던스 (Ω)" defaultOpen>
+                <Section title={`${FL.headphoneImp} (Ω)`} defaultOpen>
                   <MinMaxRow minVal={hpImpInput} maxVal="" setMin={setHpImpInput} setMax={() => {}} minOnly minPlaceholder="예: 32" />
                 </Section>
               ) : draftVis.power && (
-                <Section title="정격 출력 (W)" defaultOpen>
+                <Section title={`${FL.power} (W)`} defaultOpen>
                   <MinMaxRow
                     minVal={powerMinInput}
                     maxVal={powerMaxInput}
@@ -795,7 +780,7 @@ export function FilterModal({
                 </Section>
               )}
               {draftVis.impedance && (
-              <Section title="지원 임피던스">
+              <Section title={FL.impedance}>
                 <CheckGroup
                   options={IMPEDANCE_OPTS}
                   selected={draft.impedance}
@@ -804,7 +789,7 @@ export function FilterModal({
                 />
               </Section>
               )}
-              <Section title="포노 입력">
+              <Section title={FL.phono}>
                 <CheckGroup
                   options={PHONO_OPTS}
                   selected={draft.phono}
@@ -814,7 +799,7 @@ export function FilterModal({
                 />
               </Section>
               {FEATURE_FLAGS.toneControlFilter && (
-              <Section title="톤 컨트롤">
+              <Section title={FL.toneControl}>
                 <CheckGroup
                   options={TONE_OPTS}
                   selected={draft.toneControl}
@@ -825,7 +810,7 @@ export function FilterModal({
               </Section>
               )}
               {FEATURE_FLAGS.remoteFilter && (
-              <Section title="리모컨 포함">
+              <Section title={FL.remote}>
                 <CheckGroup
                   options={REMOTE_OPTS}
                   selected={draft.remote}
@@ -835,7 +820,7 @@ export function FilterModal({
                 />
               </Section>
               )}
-              <Section title="전원 전압">
+              <Section title={FL.voltage}>
                 <CheckGroup
                   options={VOLTAGE_OPTS}
                   selected={draft.voltage}
@@ -849,7 +834,7 @@ export function FilterModal({
 
           {isSpeaker && (
             <>
-              <Section title="드라이버 구성">
+              <Section title={FL.driverConfig}>
                 <CheckGroup
                   options={DRIVER_CONFIGS}
                   selected={draft.driverConfig}
@@ -858,7 +843,7 @@ export function FilterModal({
                   counts={counts.driverConfig}
                 />
               </Section>
-              <Section title="우퍼 크기">
+              <Section title={FL.wooferSize}>
                 <CheckGroup
                   options={WOOFER_SIZES}
                   selected={draft.wooferSize}
@@ -867,7 +852,7 @@ export function FilterModal({
                   counts={counts.wooferSize}
                 />
               </Section>
-              <Section title="인클로저">
+              <Section title={FL.enclosure}>
                 <CheckGroup
                   options={ENCLOSURE_TYPES}
                   selected={draft.enclosure}
@@ -876,7 +861,7 @@ export function FilterModal({
                   counts={counts.enclosure}
                 />
               </Section>
-              <Section title="임피던스">
+              <Section title={FL.speakerImpedance}>
                 <CheckGroup
                   options={SPEAKER_IMPEDANCE}
                   selected={draft.speakerImpedance}
@@ -885,7 +870,7 @@ export function FilterModal({
                   counts={counts.speakerImpedance}
                 />
               </Section>
-              <Section title="감도 (dB)">
+              <Section title={`${FL.sensitivity} (dB)`}>
                 <MinMaxRow
                   minVal={sensMinInput}
                   maxVal={sensMaxInput}
@@ -894,7 +879,7 @@ export function FilterModal({
                 />
               </Section>
               {FEATURE_FLAGS.recPowerFilter && (
-              <Section title="권장 앰프 출력 (W)">
+              <Section title={`${FL.recPower} (W)`}>
                 <MinMaxRow
                   minVal={recMinInput}
                   maxVal={recMaxInput}
@@ -909,10 +894,10 @@ export function FilterModal({
           {/* CD 플레이어, 튜너 전용 (2026-11-10) */}
           {draftIsCd && (
             <>
-              <Section title="디지털 출력" defaultOpen>
+              <Section title={FL.cdDigitalOut} defaultOpen>
                 <CheckGroup options={CD_DIGITAL_OUTS} selected={draft.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleIn('cdDigitalOut')} counts={counts.cdDigitalOut} />
               </Section>
-              <Section title="아날로그 출력" defaultOpen>
+              <Section title={FL.cdAnalogOut} defaultOpen>
                 <CheckGroup options={CD_ANALOG_OUTS} selected={draft.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleIn('cdAnalogOut')} counts={counts.cdAnalogOut} />
               </Section>
             </>
@@ -920,31 +905,31 @@ export function FilterModal({
           {/* 카세트 데크 전용 (2026-11-10) — 핵심 칸 6개 + 전원 전압 */}
           {draftVis.cassette && (
             <>
-              <Section title="헤드 수" defaultOpen>
+              <Section title={FL.headCount} defaultOpen>
                 <CheckGroup options={CAS_HEAD_COUNTS} selected={draft.headCount} getLabel={lab('headCount')} onToggle={toggleIn('headCount')} counts={counts.headCount} />
               </Section>
-              <Section title="오토리버스" defaultOpen>
+              <Section title={FL.autoReverse} defaultOpen>
                 <CheckGroup options={CAS_AUTOREVERSES} selected={draft.autoReverse} getLabel={lab('autoReverse')} onToggle={toggleIn('autoReverse')} counts={counts.autoReverse} />
               </Section>
-              <Section title="캡스턴" defaultOpen>
+              <Section title={FL.capstan} defaultOpen>
                 <CheckGroup options={CAS_CAPSTANS} selected={draft.capstan} getLabel={lab('capstan')} onToggle={toggleIn('capstan')} counts={counts.capstan} />
               </Section>
-              <Section title="노이즈 리덕션" defaultOpen>
+              <Section title={FL.noiseReduction} defaultOpen>
                 <CheckGroup options={CAS_NRS} selected={draft.noiseReduction} getLabel={lab('noiseReduction')} onToggle={toggleIn('noiseReduction')} counts={counts.noiseReduction} />
               </Section>
-              <Section title="녹음 가능 테이프" defaultOpen>
+              <Section title={FL.tapeTypeRec} defaultOpen>
                 <CheckGroup options={CAS_TAPE_TYPES} selected={draft.tapeTypeRec} getLabel={lab('tapeTypeRec')} onToggle={toggleIn('tapeTypeRec')} counts={counts.tapeTypeRec} />
               </Section>
-              <Section title="헤드 상태" defaultOpen>
+              <Section title={FL.headWear} defaultOpen>
                 <CheckGroup options={CAS_HEAD_WEARS} selected={draft.headWear} getLabel={lab('headWear')} onToggle={toggleIn('headWear')} counts={counts.headWear} />
               </Section>
-              <Section title="전원 전압" defaultOpen>
+              <Section title={FL.voltage} defaultOpen>
                 <CheckGroup options={VOLTAGE_OPTS} selected={draft.voltage} getLabel={lab('voltage')} onToggle={toggleIn('voltage')} counts={counts.voltage} />
               </Section>
             </>
           )}
           {draftIsTuner && (
-            <Section title="수신 밴드" defaultOpen>
+            <Section title={FL.tunerBand} defaultOpen>
               <CheckGroup options={TUNER_BANDS} selected={draft.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleIn('tunerBand')} counts={counts.tunerBand} />
             </Section>
           )}
@@ -952,7 +937,7 @@ export function FilterModal({
           {draftIsTurntable && (
             <>
               {/* 순서: 구동 방식, 회전수, 조작 방식, 톤암, 카트리지, 포노앰프 내장, 전원 전압 (2026-11-10, 형식 필터는 없음) */}
-              <Section title="구동 방식" defaultOpen>
+              <Section title={FL.driveType} defaultOpen>
                 <CheckGroup
                   options={DRIVE_TYPES}
                   selected={draft.driveType}
@@ -961,7 +946,7 @@ export function FilterModal({
                   counts={counts.driveType}
                 />
               </Section>
-              <Section title="회전수" defaultOpen>
+              <Section title={FL.speeds} defaultOpen>
                 <CheckGroup
                   options={SPEED_OPTS}
                   selected={draft.speeds}
@@ -970,7 +955,7 @@ export function FilterModal({
                   counts={counts.speeds}
                 />
               </Section>
-              <Section title="조작 방식" defaultOpen>
+              <Section title={FL.autoMode} defaultOpen>
                 <CheckGroup
                   options={AUTO_OPTS}
                   selected={draft.autoMode}
@@ -979,7 +964,7 @@ export function FilterModal({
                   counts={counts.autoMode}
                 />
               </Section>
-              <Section title="톤암" defaultOpen>
+              <Section title={FL.tonearm} defaultOpen>
                 <CheckGroup
                   options={TONEARM_OPTS}
                   selected={draft.tonearm}
@@ -988,7 +973,7 @@ export function FilterModal({
                   counts={counts.tonearm}
                 />
               </Section>
-              <Section title="카트리지" defaultOpen>
+              <Section title={FL.cartridge} defaultOpen>
                 <CheckGroup
                   options={CARTRIDGE_OPTS}
                   selected={draft.cartridge}
@@ -997,7 +982,7 @@ export function FilterModal({
                   counts={counts.cartridge}
                 />
               </Section>
-              <Section title="포노앰프 내장" defaultOpen>
+              <Section title={FL.phonoBuiltIn} defaultOpen>
                 <CheckGroup
                   options={PHONO_BUILTIN_OPTS}
                   selected={draft.phonoBuiltIn}
@@ -1006,7 +991,7 @@ export function FilterModal({
                   counts={counts.phonoBuiltIn}
                 />
               </Section>
-              <Section title="전원 전압" defaultOpen>
+              <Section title={FL.voltage} defaultOpen>
                 <CheckGroup
                   options={VOLTAGE_OPTS}
                   selected={draft.voltage}
@@ -1016,7 +1001,7 @@ export function FilterModal({
                 />
               </Section>
               {FEATURE_FLAGS.dustCoverFilter && (
-              <Section title="더스트 커버" defaultOpen>
+              <Section title={FL.dustCover} defaultOpen>
                 <CheckGroup
                   options={DUSTCOVER_OPTS}
                   selected={draft.dustCover}
@@ -1029,7 +1014,7 @@ export function FilterModal({
             </>
           )}
 
-          <Section title="출시 연도">
+          <Section title={FL.year}>
             <MinMaxRow
               minVal={yearMinInput}
               maxVal={yearMaxInput}
@@ -1038,7 +1023,7 @@ export function FilterModal({
             />
           </Section>
           {FEATURE_FLAGS.ownership && (
-          <Section title="소유권">
+          <Section title={FL.ownership}>
             <CheckGroup
               options={OWNERSHIP_OPTS}
               selected={draft.ownership}
@@ -1048,7 +1033,7 @@ export function FilterModal({
             />
           </Section>
           )}
-          <Section title="제조국">
+          <Section title={FL.country}>
             <CheckGroup
               options={COUNTRY_OPTS}
               selected={draft.country}
@@ -1057,7 +1042,7 @@ export function FilterModal({
               counts={counts.country}
             />
           </Section>
-          <Section title="국가">
+          <Section title={FL.locationCountry}>
             <CheckGroup
               options={LOCATION_COUNTRIES}
               selected={draft.locationCountry}
@@ -1066,7 +1051,7 @@ export function FilterModal({
               counts={counts.locationCountry}
             />
           </Section>
-          <Section title="지역">
+          <Section title={FL.region}>
             <CheckGroup
               options={regionOptionsFor(draft.locationCountry)}
               maxVisible={draft.locationCountry.size ? undefined : REGION_VISIBLE_ALL}
