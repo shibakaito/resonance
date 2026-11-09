@@ -553,6 +553,8 @@ export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
 //   적용 안 된 하위 카테고리(공통 꼬리 5칸뿐인 소스기기 12종 등)와 케이블(폴백)은 지금처럼 전부 한 번에 표시.
 const AMP_CORE_7 = ['channel', 'device', 'powerRated', 'impedance', 'phono', 'voltage']; // 리모컨은 2026-11-09 핵심에서 빼 상세 사양으로 (앰프 하위 공통)
 const SPEAKER_CORE = ['speakerDetail', 'driverComposition', 'enclosure', 'speakerImpedance', 'sensitivity', 'recPower', 'voltage'];
+// 북쉘프, 플로어 스탠딩 — 권장 앰프 출력(recPower)은 2026-11-10 핵심에서 뺌 (상세 모드 'custom'이라 칸이 숨고 저장 안 함, 필요하면 사양 추가로)
+const SPEAKER_CORE_NO_REC = SPEAKER_CORE.filter((k) => k !== 'recPower');
 // 접기가 켜진 하위 카테고리(CORE_SPEC_KEYS)에서 늘 보이는 칸 — 핵심 칸 맨 아래(전원 다음), 그 밑에 '상세 사양' 버튼. 상세 개수에서 빠짐
 export const ALWAYS_SPEC_KEYS = ['dimensions', 'weight'];
 export const CORE_SPEC_KEYS: Record<string, string[]> = {
@@ -567,8 +569,8 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   '헤드폰 앰프': ['device', 'hpOutputs', 'hpImpedanceRange', 'hpForm', 'voltage'],
   'AV 리시버': ['avrChannels', 'powerRated', 'hdmiIn', 'videoPassthrough', 'arcSupport', 'audioFormats', 'voltage'],
   // 스피커 4종 — 감도, 권장 앰프 출력은 패시브만, 전원은 액티브만(기존 showWhen 그대로)
-  '북쉘프 스피커': SPEAKER_CORE,
-  '플로어 스탠딩 스피커': SPEAKER_CORE,
+  '북쉘프 스피커': SPEAKER_CORE_NO_REC,
+  '플로어 스탠딩 스피커': SPEAKER_CORE_NO_REC,
   '톨보이 스피커': SPEAKER_CORE,
   '센터 스피커': SPEAKER_CORE,
   사운드바: ['channelConfig', 'arcSupport', 'subIncluded', 'surroundType'],

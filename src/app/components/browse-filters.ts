@@ -501,7 +501,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
     if (f.speakerImpedance.size > 0) r = r.filter((l) => f.speakerImpedance.has(l.speakerImpedance));
     if (f.wooferSize.size > 0) r = r.filter((l) => f.wooferSize.has(l.wooferSize));
     if (f.sensitivityMin != null || f.sensitivityMax != null) r = r.filter((l) => inRange(l.sensitivity, f.sensitivityMin, f.sensitivityMax)); // 미입력(null — 액티브 등) 제외
-    if (f.recPowerMin != null || f.recPowerMax != null) r = r.filter((l) => inRange(l.recPower, f.recPowerMin, f.recPowerMax));
+    if (FEATURE_FLAGS.recPowerFilter && (f.recPowerMin != null || f.recPowerMax != null)) r = r.filter((l) => inRange(l.recPower, f.recPowerMin, f.recPowerMax)); // 플래그 꺼짐: 권장 앰프 출력 필터 없음
   }
   if (isTurntable) {
     if (f.driveType.size > 0) r = r.filter((l) => f.driveType.has(l.driveType));

@@ -861,6 +861,7 @@ export function FilterModal({
                   setMax={setSensMaxInput}
                 />
               </Section>
+              {FEATURE_FLAGS.recPowerFilter && (
               <Section title="권장 앰프 출력 (W)">
                 <MinMaxRow
                   minVal={recMinInput}
@@ -869,6 +870,7 @@ export function FilterModal({
                   setMax={setRecMaxInput}
                 />
               </Section>
+              )}
             </>
           )}
 
