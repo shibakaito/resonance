@@ -27,7 +27,8 @@ export function FilterSection({
   maxVisible,
   searchable = false,
   defaultOpen = true,
-  getAliases
+  getAliases,
+  getLabel
 }: {
   label: string;
   options: readonly string[];
@@ -38,7 +39,9 @@ export function FilterSection({
   searchable?: boolean;
   defaultOpen?: boolean;
   getAliases?: (opt: string) => readonly string[]; // 옵션의 검색용 별칭(예: 브랜드 한글명)
+  getLabel?: (opt: string) => string; // 옵션 값(언어 중립 키) → 화면 글자. 없으면 값 그대로 (browse-filters filterLabel)
 }) {
+  const show = (o: string) => (getLabel ? getLabel(o) : o);
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
   const [visibleCount, setVisibleCount] = useState(maxVisible ?? Infinity);
@@ -49,12 +52,12 @@ export function FilterSection({
     const q = normalizeSearch(query);
     if (!q) return options;
     return options.filter((o) => {
-      if (normalizeSearch(o).includes(q)) return true; // 옵션명(영문) 매칭
+      if (normalizeSearch(show(o)).includes(q)) return true; // 옵션 화면 글자 매칭
       // 별칭(예: '매킨토시') 매칭 — getAliases가 주어진 경우
       if (getAliases) return getAliases(o).some((a) => normalizeSearch(a).includes(q));
       return false;
     });
-  }, [options, searchable, query, getAliases]);
+  }, [options, searchable, query, getAliases, getLabel]);
 
   // 옵션/검색어 변경 시 표시 개수 초기화
   useEffect(() => {
@@ -115,7 +118,7 @@ export function FilterSection({
                   onChange={() => onToggle(opt)}
                   className="accent-[#000000] w-3.5 h-3.5"
                 />
-                <span className="flex-1 truncate">{opt}</span>
+                <span className="flex-1 truncate">{show(opt)}</span>
                 {counts && (
                   <span className="text-xs text-gray-400">({counts[opt] ?? 0})</span>
                 )}

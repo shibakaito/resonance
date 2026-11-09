@@ -19,6 +19,8 @@
 export type SelectOption = string | { value: string; label: string };
 // 옵션 배열 → 표시 문자열 목록 (문자열 옵션은 그대로, {value,label}은 label). 필터 옵션 상수를 폼 옵션에서 뽑을 때 사용.
 export const optLabels = (opts: SelectOption[]): string[] => opts.map((o) => (typeof o === 'string' ? o : o.label));
+// 옵션 배열 → 저장값 목록 (문자열 옵션은 그대로, {value,label}은 value). 필터 옵션(키) 목록을 폼 옵션에서 뽑을 때 사용.
+export const optValues = (opts: SelectOption[]): string[] => opts.map((o) => (typeof o === 'string' ? o : o.value));
 // 저장값 → 표시 문자열 (문자열 옵션이면 그대로, {value,label}이면 label 조회). 옵션에 없는 값은 그대로 돌려줌.
 //   mapRow(필터용 Listing 값)와 상세 페이지 기술 사양 표시가 같이 씀.
 export const optLabel = (opts: SelectOption[] | undefined, v: string): string => {
@@ -295,16 +297,17 @@ export const SPEAKER_DETAIL_OPTS = labelOpts('speakerDetail');                  
 export const SPEAKER_DRIVER_OPTS = labelOpts('driverConfig');                                   // full_range/coaxial/2way/3way/4way_plus
 // 우퍼 크기 필터 구간 — 드라이버 빌더 파생 키 wooferMaxInch(우퍼·미드우퍼 최대 크기, inch)를 묶음. max = 구간 상한(이하).
 //   경계는 흔한 규격 사이 중간값: 5.25" → 5인치 이하, 200mm(7.9") → 6~8인치, 250mm(9.8") → 10인치, 300mm(11.8") → 12인치
-export const SPEAKER_WOOFER_BUCKETS: { label: string; max: number }[] = [
-  { label: '5인치 이하', max: 5.5 },
-  { label: '6~8인치', max: 9 },
-  { label: '10인치', max: 11 },
-  { label: '12인치', max: 13.5 },
-  { label: '15인치 이상', max: Infinity },
-];
-// inch 값 → 구간 라벨. 미입력(null) = '' (우퍼 크기 필터에서 제외)
+//   key = 필터 값(언어 중립), label = labels.ts wooferSize 표
+export const SPEAKER_WOOFER_BUCKETS: { key: string; label: string; max: number }[] = [
+  { key: 'in_5_down', max: 5.5 },
+  { key: 'in_6_8', max: 9 },
+  { key: 'in_10', max: 11 },
+  { key: 'in_12', max: 13.5 },
+  { key: 'in_15_up', max: Infinity },
+].map((b) => ({ ...b, label: labelOpt('wooferSize', b.key).label }));
+// inch 값 → 구간 키. 미입력(null) = '' (우퍼 크기 필터에서 제외)
 export const wooferBucket = (inch: number | null): string =>
-  inch == null ? '' : SPEAKER_WOOFER_BUCKETS.find((b) => inch <= b.max)?.label ?? '';
+  inch == null ? '' : SPEAKER_WOOFER_BUCKETS.find((b) => inch <= b.max)?.key ?? '';
 export const SPEAKER_ENCLOSURE_OPTS = labelOpts('enclosure');                                 // 검색 드롭다운: 고르면 영문 키(bass_reflex 등) 저장, 표시는 한글
 // 인클로저 한글 라벨 → 영어 검색어 (labels.ts 영문키 기반: _ → 공백). 영어로도 검색되게.
 export const SPEAKER_ENCLOSURE_ALIASES: Record<string, string> = Object.fromEntries(

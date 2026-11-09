@@ -60,6 +60,7 @@ import {
   countBy,
   countFilters,
   emptyFilters,
+  filterLabel,
   fmtPrice,
   parseYear,
 } from './browse-filters';
@@ -99,13 +100,15 @@ export function CheckGroup({
   selected,
   onToggle,
   counts,
-  maxVisible
+  maxVisible,
+  getLabel
 }: {
   options: readonly string[];
   selected: Set<string>;
   onToggle: (v: string) => void;
   counts?: Record<string, number>;
   maxVisible?: number;
+  getLabel?: (opt: string) => string; // 옵션 값(언어 중립 키) → 화면 글자. 없으면 값 그대로
 }) {
   const [showAll, setShowAll] = useState(false);
   const hasMore = maxVisible != null && options.length > maxVisible;
@@ -125,7 +128,7 @@ export function CheckGroup({
               onChange={() => onToggle(opt)}
               className="accent-[#000000]"
             />
-            <span>{opt}</span>
+            <span>{getLabel ? getLabel(opt) : opt}</span>
             {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
           </label>
         ))}
@@ -238,6 +241,8 @@ export function FilterModal({
   onClose: () => void;
 }) {
   const [draft, setDraft] = useState<Filters>(() => cloneFilters(filters));
+  // 필터 값(키) → 화면 글자 (체크 칸, 칩 공용)
+  const lab = (k: keyof Filters) => (v: string) => filterLabel(k, v);
   const [draftSubCategories, setDraftSubCategories] = useState<Set<string>>(
     () => new Set(subCategories)
   );
@@ -428,9 +433,10 @@ export function FilterModal({
     for (const v of draft[key] as Set<string>) {
       const prefix = prefixFor[key];
       const useColon = key === 'terminalIn' || key === 'terminalOut';
+      const t = filterLabel(key, v); // 칩 글자 = 값(키)의 화면 글자
       draftChips.push({
         key: `${key}-${v}`,
-        label: prefix ? (useColon ? `${prefix}: ${v}` : `${prefix} ${v}`) : v,
+        label: prefix ? (useColon ? `${prefix}: ${t}` : `${prefix} ${t}`) : t,
         remove: () => toggleIn(key)(v)
       });
     }
@@ -673,6 +679,7 @@ export function FilterModal({
                 <CheckGroup
                   options={AMP_DETAILS}
                   selected={draft.ampDetail}
+                  getLabel={lab('ampDetail')}
                   onToggle={toggleIn('ampDetail')}
                   counts={counts.ampDetail}
                 />
@@ -681,6 +688,7 @@ export function FilterModal({
                 <CheckGroup
                   options={AMP_METHODS}
                   selected={draft.ampMethod}
+                  getLabel={lab('ampMethod')}
                   onToggle={toggleIn('ampMethod')}
                   counts={counts.ampMethod}
                 />
@@ -692,6 +700,7 @@ export function FilterModal({
               <CheckGroup
                 options={SPEAKER_DETAILS}
                 selected={draft.speakerDetail}
+                  getLabel={lab('speakerDetail')}
                 onToggle={toggleIn('speakerDetail')}
                 counts={counts.speakerDetail}
               />
@@ -711,6 +720,7 @@ export function FilterModal({
             <CheckGroup
               options={CONDITIONS}
               selected={draft.condition}
+                  getLabel={lab('condition')}
               onToggle={toggleIn('condition')}
               counts={counts.condition}
             />
@@ -753,6 +763,7 @@ export function FilterModal({
                 <CheckGroup
                   options={PHONO_OPTS}
                   selected={draft.phono}
+                  getLabel={lab('phono')}
                   onToggle={toggleIn('phono')}
                   counts={counts.phono}
                 />
@@ -761,6 +772,7 @@ export function FilterModal({
                 <CheckGroup
                   options={TONE_OPTS}
                   selected={draft.toneControl}
+                  getLabel={lab('toneControl')}
                   onToggle={toggleIn('toneControl')}
                   counts={counts.toneControl}
                 />
@@ -769,6 +781,7 @@ export function FilterModal({
                 <CheckGroup
                   options={REMOTE_OPTS}
                   selected={draft.remote}
+                  getLabel={lab('remote')}
                   onToggle={toggleIn('remote')}
                   counts={counts.remote}
                 />
@@ -777,6 +790,7 @@ export function FilterModal({
                 <CheckGroup
                   options={VOLTAGE_OPTS}
                   selected={draft.voltage}
+                  getLabel={lab('voltage')}
                   onToggle={toggleIn('voltage')}
                   counts={counts.voltage}
                 />
@@ -790,6 +804,7 @@ export function FilterModal({
                 <CheckGroup
                   options={DRIVER_CONFIGS}
                   selected={draft.driverConfig}
+                  getLabel={lab('driverConfig')}
                   onToggle={toggleIn('driverConfig')}
                   counts={counts.driverConfig}
                 />
@@ -798,6 +813,7 @@ export function FilterModal({
                 <CheckGroup
                   options={WOOFER_SIZES}
                   selected={draft.wooferSize}
+                  getLabel={lab('wooferSize')}
                   onToggle={toggleIn('wooferSize')}
                   counts={counts.wooferSize}
                 />
@@ -806,6 +822,7 @@ export function FilterModal({
                 <CheckGroup
                   options={ENCLOSURE_TYPES}
                   selected={draft.enclosure}
+                  getLabel={lab('enclosure')}
                   onToggle={toggleIn('enclosure')}
                   counts={counts.enclosure}
                 />
@@ -843,6 +860,7 @@ export function FilterModal({
                 <CheckGroup
                   options={DRIVE_TYPES}
                   selected={draft.driveType}
+                  getLabel={lab('driveType')}
                   onToggle={toggleIn('driveType')}
                   counts={counts.driveType}
                 />
@@ -851,6 +869,7 @@ export function FilterModal({
                 <CheckGroup
                   options={TONEARM_OPTS}
                   selected={draft.tonearm}
+                  getLabel={lab('tonearm')}
                   onToggle={toggleIn('tonearm')}
                   counts={counts.tonearm}
                 />
@@ -859,6 +878,7 @@ export function FilterModal({
                 <CheckGroup
                   options={CARTRIDGE_OPTS}
                   selected={draft.cartridge}
+                  getLabel={lab('cartridge')}
                   onToggle={toggleIn('cartridge')}
                   counts={counts.cartridge}
                 />
@@ -867,6 +887,7 @@ export function FilterModal({
                 <CheckGroup
                   options={SPEED_OPTS}
                   selected={draft.speeds}
+                  getLabel={lab('speeds')}
                   onToggle={toggleIn('speeds')}
                   counts={counts.speeds}
                 />
@@ -875,6 +896,7 @@ export function FilterModal({
                 <CheckGroup
                   options={AUTO_OPTS}
                   selected={draft.autoMode}
+                  getLabel={lab('autoMode')}
                   onToggle={toggleIn('autoMode')}
                   counts={counts.autoMode}
                 />
@@ -883,6 +905,7 @@ export function FilterModal({
                 <CheckGroup
                   options={DUSTCOVER_OPTS}
                   selected={draft.dustCover}
+                  getLabel={lab('dustCover')}
                   onToggle={toggleIn('dustCover')}
                   counts={counts.dustCover}
                 />
@@ -902,6 +925,7 @@ export function FilterModal({
             <CheckGroup
               options={OWNERSHIP_OPTS}
               selected={draft.ownership}
+                  getLabel={lab('ownership')}
               onToggle={toggleIn('ownership')}
               counts={counts.ownership}
             />
@@ -910,6 +934,7 @@ export function FilterModal({
             <CheckGroup
               options={COUNTRY_OPTS}
               selected={draft.country}
+                  getLabel={lab('country')}
               onToggle={toggleIn('country')}
               counts={counts.country}
             />
@@ -918,6 +943,7 @@ export function FilterModal({
             <CheckGroup
               options={LOCATIONS}
               selected={draft.region}
+                  getLabel={lab('region')}
               onToggle={toggleIn('region')}
               counts={counts.region}
             />

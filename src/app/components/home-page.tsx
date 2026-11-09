@@ -13,7 +13,7 @@ import {
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
 import { USED_GRADES, USED_ALL, USED_ALL_KEY } from './browse-filters';
-import { keyFor } from '@/lib/labels';
+import { keyFor, label } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -353,7 +353,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   };
   // 상태: '중고'는 중고 등급 전체(둘러보기 필터와 같은 규칙)
   const matchesCondition = (l: Listing) =>
-    !isConditionSelected || l.condition === condition || (condition === USED_ALL && USED_GRADES.includes(l.condition));
+    !isConditionSelected || (condition === USED_ALL ? USED_GRADES.includes(l.condition) : l.condition === keyFor('condition', condition)); // 매물 상태는 키, 상태 칸은 아직 글자
   // 브랜드 = 매물 브랜드, 매물 많은 순(같으면 이름순)
   const brandOptions = useMemo(() => {
     const n = new Map<string, number>();
@@ -962,7 +962,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                 </div>
                 <div className="p-3">
                   <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">
-                    {l.condition}
+                    {label('condition', l.condition)}
                   </span>
                   <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
                     {l.brand} {l.model}

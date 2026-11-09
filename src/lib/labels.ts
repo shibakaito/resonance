@@ -29,6 +29,8 @@ export const LABELS: Record<string, LabelMap> = {
     used_not_working: { ko: '작동 불가' },
   },
   // 지역 = 시/도 17개 (이 순서가 폼 선택지, 둘러보기 지역 필터 순서). DB location 컬럼엔 영문 키 저장
+  // 상태 묶음 — 필터, 주소 파라미터의 '중고' 단축(used = 중고 등급 전체)
+  conditionGroup: { used: { ko: '중고' } },
   location: {
     seoul: { ko: '서울' }, busan: { ko: '부산' }, daegu: { ko: '대구' }, incheon: { ko: '인천' },
     gwangju: { ko: '광주' }, daejeon: { ko: '대전' }, ulsan: { ko: '울산' }, sejong: { ko: '세종' },
@@ -84,6 +86,8 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   // 소스기기
   cartType: { ceramic: { ko: '세라믹' } }, // + MM, MC
   extraFeatures: { fm_am_radio: { ko: 'FM/AM 라디오' }, cassette: { ko: '카세트' }, usb_playback: { ko: 'USB 재생' }, recording: { ko: '녹음' } }, // + CD
+  // 우퍼 크기 필터 구간 (드라이버 빌더 파생 키 wooferMaxInch 를 묶은 값, 저장값 아님)
+  wooferSize: { in_5_down: { ko: '5인치 이하' }, in_6_8: { ko: '6~8인치' }, in_10: { ko: '10인치' }, in_12: { ko: '12인치' }, in_15_up: { ko: '15인치 이상' } },
   headMaterial: { permalloy: { ko: '퍼멀로이' }, sendust: { ko: '센더스트' }, ferrite: { ko: '페라이트' }, amorphous: { ko: '아몰퍼스' }, crystalloy: { ko: '크리스탈로이' } },
   // 임피던스: 앰프 지원 임피던스 + 스피커 임피던스 공용
   impedance: { '2ohm': { ko: '2Ω' }, '4ohm': { ko: '4Ω' }, '6ohm': { ko: '6Ω' }, '8ohm': { ko: '8Ω' }, '16ohm': { ko: '16Ω' } },

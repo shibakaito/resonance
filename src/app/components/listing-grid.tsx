@@ -12,6 +12,7 @@
 import type { MouseEvent } from 'react';
 import { Heart } from 'lucide-react';
 import { Listing, fmtPrice } from './browse-filters';
+import { label } from '@/lib/labels';
 
 export function ListingGrid({
   listings,      // 화면에 보여줄 매물 목록 (이미 필터·정렬 끝난 상태)
@@ -84,8 +85,9 @@ export function ListingGrid({
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{l.year} · {l.category}</p>
             <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price)}</p>
             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-              <span>{l.condition}</span>
-              <span>{l.location}</span>
+              {/* 매물의 상태, 지역은 키 → 화면 글자 */}
+              <span>{label('condition', l.condition)}</span>
+              <span>{label('location', l.location)}</span>
             </div>
           </div>
         </button>

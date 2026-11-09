@@ -19,6 +19,7 @@ import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
+import { label } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
@@ -474,10 +475,10 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="break-words">{listing?.year ?? ''}</div>
 
                   <div className="font-bold">제조국</div>
-                  <div className="break-words">{listing?.country ?? ''}</div>
+                  <div className="break-words">{label('country', listing?.country)}</div>
 
                   <div className="font-bold">소유권</div>
-                  <div className="break-words">{listing?.ownership ?? ''}</div>
+                  <div className="break-words">{label('ownership', listing?.ownership)}</div>
 
                   {listing?.components && (
                     <>
@@ -488,7 +489,7 @@ export function ListingDetail({ id }: { id?: string }) {
 
                   <div className="font-bold">상태</div>
                   <div className="break-words">
-                    {listing?.condition ?? ''}{' '}
+                    {label('condition', listing?.condition)}{' '}
                     <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
                       등급 기준 자세히 보기
                     </a>
@@ -683,7 +684,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     {listing?.location && (
                       <div className="flex items-center gap-2 text-sm text-gray-600 mt-1">
                         <MapPin className="w-4 h-4" />
-                        <span>대한민국 {listing.location}</span>
+                        <span>대한민국 {label('location', listing.location)}</span>
                       </div>
                     )}
                     <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
@@ -919,7 +920,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     {listing?.handmade && (
                       <span className="px-1.5 py-0.5 bg-[#000000] text-white rounded text-xs font-medium">수제품</span>
                     )}
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">{listing?.condition ?? ''}</span>
+                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">{label('condition', listing?.condition)}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
@@ -998,7 +999,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     </div>
                     <div className="flex items-center gap-1 text-sm text-gray-600 mt-0.5">
                       <MapPin className="w-3.5 h-3.5" />
-                      <span>{listing?.location ? `대한민국 ${listing.location}` : ''}</span>
+                      <span>{listing?.location ? `대한민국 ${label('location', listing.location)}` : ''}</span>
                     </div>
                   </div>
                   <button

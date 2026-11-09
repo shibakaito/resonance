@@ -8,48 +8,76 @@
 //   - emptyFilters/cloneFilters/countFilters 등 헬퍼
 // 화면 컴포넌트들은 이 파일에서 필요한 것을 import 해서 사용합니다.
 // ============================================================================
-// 앰프·스피커·턴테이블 필터 옵션은 판매 폼 상수(category-specs.ts)에서 가져옴 — 단일 출처, 정규화 없음.
-//   폼은 영문 키(또는 MM, 8Ω 같은 중립 글자) 저장 → 필터 옵션은 optLabels 로 표시 문자열 — mapRow 가 같은 옵션표의 optLabel 로 Listing 값을 만듦
-import { LOCATION_OPTS } from '@/lib/labels';
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabels, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+// 필터 값은 언어 중립 키 — 저장값과 같은 영문 키(또는 MM, 8Ω 같은 중립 글자). 화면 글자는 filterLabel(필드, 값)로만.
+//   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
+//   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
+import { LABELS, LOCATION_OPTS, label } from '@/lib/labels';
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
-// 중고 등급 (접두사 '중고 -' 없이). '중고' 단축키가 이 등급 전체를 매칭함.
-export const USED_GRADES = ['민트급', '매우 좋음', '좋음', '보통', '점검 필요', '작동 불가'];
-// NOS(New Old Stock) = 신품이지만 오래된 재고. 미개봉/NOS 모두 중고 등급이 아니라 별도 항목.
-export const CONDITIONS = ['새상품', '미개봉', 'NOS', ...USED_GRADES];
-// 사이드바용 표시 옵션 — '중고'는 UI 단축키 (선택 시 모든 중고 등급 매물 매칭)
-export const USED_ALL = '중고';
-export const USED_ALL_KEY = 'used'; // 주소 파라미터(?condition=used)용 '중고' 단축 키. 나머지 상태는 labels.ts condition 키(used_good 등)
-export const CONDITION_DISPLAY = ['새상품', '미개봉', 'NOS', USED_ALL, ...USED_GRADES];
-export const LOCATIONS = LOCATION_OPTS.map((o) => o.label); // 지역 = 폼 '지역' 선택지와 같은 시/도 17개 (labels.ts LOCATION_OPTS) — mapRow 가 label('location')로 같은 한글을 만듦
-export const OWNERSHIP_OPTS = ['1인 소유', '2인 이상 소유'];
-export const COUNTRY_OPTS = ['미국', '일본', '영국', '독일', '프랑스', '덴마크', '캐나다', '중국'];
+// 상태 = labels.ts condition 키. 중고 등급(used_*)은 '중고' 단축 키(used)가 전체를 매칭함
+export const CONDITIONS = Object.keys(LABELS.condition);                          // new, unopened, nos, used_mint … used_not_working
+export const USED_GRADES = CONDITIONS.filter((k) => k.startsWith('used_'));       // NOS(New Old Stock), 미개봉은 중고 등급이 아니라 별도 항목
+export const USED_ALL_KEY = 'used';                                               // '중고' 단축 키 (필터 값, 주소 파라미터 ?condition=used)
+export const USED_ALL = label('conditionGroup', USED_ALL_KEY);                    // '중고' 글자 — 홈 조건 검색 상태 칸이 아직 글자로 고름(다음 블록에서 정리)
+export const CONDITION_DISPLAY = [...CONDITIONS.filter((k) => !k.startsWith('used_')), USED_ALL_KEY, ...USED_GRADES]; // 사이드바: 새상품, 미개봉, NOS, 중고, 등급들
+export const LOCATIONS = LOCATION_OPTS.map((o) => o.value); // 지역 = 폼 '지역' 선택지와 같은 시/도 17개 키 (labels.ts LOCATION_OPTS)
+export const OWNERSHIP_OPTS = ['single_owner', 'multiple_owners'];
+export const COUNTRY_OPTS = ['us', 'jp', 'uk', 'de', 'fr', 'dk', 'ca', 'cn'];
 export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가격 높은순'];
 
 // 앰프 전용 필터 옵션
 export const AMP_TYPES = ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '리시버', 'AV 리시버', '헤드폰 앰프'];
-// 채널 = 폼 채널 옵션 2종의 합집합 (파워 등: 모노블록/스테레오/멀티채널 + 프리앰프: 모노/스테레오/멀티채널), 중복 제거·순서 유지
-export const AMP_DETAILS = Array.from(new Set(optLabels([...AMP_CHANNEL_OPTS, ...PREAMP_CHANNEL_OPTS])));
-export const AMP_METHODS = optLabels(AMP_DEVICE_OPTS);    // 증폭 방식 = 폼 '증폭 방식' 옵션: 진공관 / 솔리드 스테이트(TR) / 하이브리드
-export const IMPEDANCE_OPTS = AMP_OHM_OPTS;    // 지원 임피던스 = 폼 옴 옵션: 2Ω / 4Ω / 6Ω / 8Ω / 16Ω
-export const PHONO_OPTS = optLabels(AMP_PHONO_OPTS);      // 포노 입력 = 폼 옵션: MM / MC / MM/MC / 없음
-export const TONE_OPTS = optLabels(YES_NO_OPTS);          // 톤 컨트롤 = 있음 / 없음
-export const REMOTE_OPTS = optLabels(YES_NO_OPTS);        // 리모컨 = 있음 / 없음
-export const VOLTAGE_OPTS = optLabels(AMP_VOLTAGE_OPTS);  // 전원 전압 = 폼 '전원 전압' 옵션
+// 채널 = 폼 채널 옵션 2종의 합집합 (파워 등: mono_block/stereo/multi_channel + 프리앰프: mono/stereo/multi_channel), 중복 제거·순서 유지
+const CHANNEL_OPTS = [...AMP_CHANNEL_OPTS, ...PREAMP_CHANNEL_OPTS];
+export const AMP_DETAILS = Array.from(new Set(optValues(CHANNEL_OPTS)));
+export const AMP_METHODS = optValues(AMP_DEVICE_OPTS);    // 증폭 방식: tube / solid_state / hybrid
+export const IMPEDANCE_OPTS = AMP_OHM_OPTS;               // 지원 임피던스 = 폼 옴 옵션: 2Ω / 4Ω / 6Ω / 8Ω / 16Ω (중립 글자)
+export const PHONO_OPTS = optValues(AMP_PHONO_OPTS);      // 포노 입력: MM / MC / MM/MC / none
+export const TONE_OPTS = optValues(YES_NO_OPTS);          // 톤 컨트롤: yes / no
+export const REMOTE_OPTS = optValues(YES_NO_OPTS);        // 리모컨: yes / no
+export const VOLTAGE_OPTS = optValues(AMP_VOLTAGE_OPTS);  // 전원 전압: 100V / 120V / 220V / free_volt
 
 // 스피커 전용 필터 옵션 — 폼 옵션 그대로. 드라이버 구성·우퍼 크기는 드라이버 빌더 파생 키(driverWays·wooferMaxInch)의 어휘·구간
-export const SPEAKER_DETAILS = optLabels(SPEAKER_DETAIL_OPTS); // 폼 '형식': 패시브 / 액티브
-export const DRIVER_CONFIGS = optLabels(SPEAKER_DRIVER_OPTS);  // 풀레인지 / 동축 / 2-way / 3-way / 4-way 이상 (매물당 여러 개 — 예: 동축 + 2-way)
-export const ENCLOSURE_TYPES = optLabels(SPEAKER_ENCLOSURE_OPTS); // 폼 인클로저 검색 드롭다운 12종 (영문 키 저장 → 표시 글자)
-export const SPEAKER_IMPEDANCE = SPEAKER_OHM_OPTS;             // 폼 임피던스 select: 4Ω / 6Ω / 8Ω / 16Ω
-export const WOOFER_SIZES = SPEAKER_WOOFER_BUCKETS.map((b) => b.label); // 5인치 이하 / 6~8인치 / 10인치 / 12인치 / 15인치 이상
-// 턴테이블 전용 필터 옵션 = 폼 옵션의 표시 문자열(optLabels) — 폼은 영문키 저장, mapRow 가 optLabel 로 같은 한글로 바꿔 비교
-export const DRIVE_TYPES = optLabels(TT_DRIVE_OPTS);        // 벨트 / 다이렉트 / 아이들러 드라이브
-export const TONEARM_OPTS = optLabels(TT_TONEARM_OPTS);     // 포함 / 미포함 / 교체됨
-export const CARTRIDGE_OPTS = optLabels(TT_CARTRIDGE_OPTS); // 포함 / 미포함
-export const SPEED_OPTS = optLabels(TT_SPEED_OPTS);         // 33 1/3 RPM / 45 RPM / 78 RPM
-export const AUTO_OPTS = optLabels(TT_AUTO_OPTS);           // 풀 오토 / 세미 오토 / 매뉴얼
-export const DUSTCOVER_OPTS = optLabels(TT_DUSTCOVER_OPTS); // 있음 / 없음 / 손상 있음
+export const SPEAKER_DETAILS = optValues(SPEAKER_DETAIL_OPTS); // 폼 '형식': passive / active
+export const DRIVER_CONFIGS = optValues(SPEAKER_DRIVER_OPTS);  // full_range / coaxial / 2way / 3way / 4way_plus (매물당 여러 개 — 예: coaxial + 2way)
+export const ENCLOSURE_TYPES = optValues(SPEAKER_ENCLOSURE_OPTS); // 폼 인클로저 검색 드롭다운 12종 키
+export const SPEAKER_IMPEDANCE = SPEAKER_OHM_OPTS;             // 폼 임피던스 select: 4Ω / 6Ω / 8Ω / 16Ω (중립 글자)
+export const WOOFER_SIZES = SPEAKER_WOOFER_BUCKETS.map((b) => b.key); // in_5_down / in_6_8 / in_10 / in_12 / in_15_up
+// 턴테이블 전용 필터 옵션 = 폼 옵션의 저장값(영문 키)
+export const DRIVE_TYPES = optValues(TT_DRIVE_OPTS);        // belt_drive / direct_drive / idler_drive
+export const TONEARM_OPTS = optValues(TT_TONEARM_OPTS);     // included / not_included / replaced
+export const CARTRIDGE_OPTS = optValues(TT_CARTRIDGE_OPTS); // included / not_included
+export const SPEED_OPTS = optValues(TT_SPEED_OPTS);         // 33 / 45 / 78
+export const AUTO_OPTS = optValues(TT_AUTO_OPTS);           // full_auto / semi_auto / manual
+export const DUSTCOVER_OPTS = optValues(TT_DUSTCOVER_OPTS); // yes / no / damaged
+
+// 필터 값(키) → 화면 글자. 사이드바, 필터 팝업, 활성 필터 칩이 같이 씀. 표에 없는 값(브랜드, 모델, 8Ω 같은 중립 글자, 카테고리 이름)은 그대로
+//   케이블 필터(숨긴 카테고리, 저장 데이터 없음)는 아직 글자 그대로라 여기 없음
+export function filterLabel(field: keyof Filters, v: string): string {
+  switch (field) {
+    case 'condition': return v === USED_ALL_KEY ? USED_ALL : label('condition', v);
+    case 'region': return label('location', v);
+    case 'ownership': return label('ownership', v);
+    case 'country': return label('country', v);
+    case 'ampDetail': return optLabel(CHANNEL_OPTS, v);
+    case 'ampMethod': return optLabel(AMP_DEVICE_OPTS, v);
+    case 'phono': return optLabel(AMP_PHONO_OPTS, v);
+    case 'toneControl':
+    case 'remote': return optLabel(YES_NO_OPTS, v);
+    case 'voltage': return optLabel(AMP_VOLTAGE_OPTS, v);
+    case 'speakerDetail': return optLabel(SPEAKER_DETAIL_OPTS, v);
+    case 'driverConfig': return optLabel(SPEAKER_DRIVER_OPTS, v);
+    case 'enclosure': return optLabel(SPEAKER_ENCLOSURE_OPTS, v);
+    case 'wooferSize': return SPEAKER_WOOFER_BUCKETS.find((b) => b.key === v)?.label ?? v;
+    case 'driveType': return optLabel(TT_DRIVE_OPTS, v);
+    case 'tonearm': return optLabel(TT_TONEARM_OPTS, v);
+    case 'cartridge': return optLabel(TT_CARTRIDGE_OPTS, v);
+    case 'speeds': return optLabel(TT_SPEED_OPTS, v);
+    case 'autoMode': return optLabel(TT_AUTO_OPTS, v);
+    case 'dustCover': return optLabel(TT_DUSTCOVER_OPTS, v);
+    default: return v;
+  }
+}
 
 // 소스기기 카테고리: 모달에서만 그룹별로 표시
 export const SOURCE_GROUPS: { title: string; items: string[] }[] = [
@@ -140,15 +168,15 @@ export type Listing = {
   description: string;
   images: string[];           // Supabase Storage 공개 URL 목록 (대표=인덱스 0). 없으면 []
   price: number;
-  condition: string;
+  condition: string;         // 상태 키 (used_good 등, 화면은 label('condition'))
   appearance: string;        // 외관 등급 (한글 라벨, 없으면 '')
   appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
   working: string;           // 작동 등급 (한글 라벨, 없으면 '')
   workingDetail: string;     // 작동 자유 입력 (없으면 '')
   maintenance: string[];     // 정비 이력 (한글 라벨, 직접 입력 글은 그대로, 없으면 []) — specs.tech.maintenance
-  location: string;
-  ownership: string;
-  country: string;
+  location: string;          // 지역 키 (seoul 등) — 필터 값과 같음. 화면 글자는 label('location')
+  ownership: string;         // 소유권 키 (single_owner 등)
+  country: string;           // 제조국 키 (us 등)
   handmade: boolean;                   // 자작품(DIY) 태그
   components: string;                  // 구성품 (자유 텍스트, 없으면 '')
   techSpecs: Record<string, string | string[]>; // 기술 사양 (specs.tech key→값; 다중 선택은 배열)
@@ -166,10 +194,10 @@ export type Listing = {
   voltage: string;
   // 스피커 전용 속성 (스피커 카테고리에서만 사용)
   speakerDetail: string;
-  driverConfig: string[]; // 드라이버 구성 (여러 개 가능 — 예: ['동축', '2-way'])
+  driverConfig: string[]; // 드라이버 구성 키 (여러 개 가능 — 예: ['coaxial', '2way'])
   enclosure: string;
   speakerImpedance: string;
-  wooferSize: string; // 우퍼 크기 구간 라벨 (예: '6~8인치'). 미입력 = ''
+  wooferSize: string; // 우퍼 크기 구간 키 (예: 'in_6_8'). 미입력 = ''
   sensitivity: number | null; // 감도 (dB). 미입력 = null
   recPower: number | null; // 권장 앰프 출력 (W). 미입력 = null
   // 턴테이블 전용 속성
@@ -400,7 +428,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   if (f.brand.size > 0) r = r.filter((l) => f.brand.has(l.brand));
   if (f.model.size > 0) r = r.filter((l) => f.model.has(l.model));
   if (f.condition.size > 0) {
-    const usedAllSelected = f.condition.has(USED_ALL);
+    const usedAllSelected = f.condition.has(USED_ALL_KEY);
     r = r.filter((l) => {
       if (f.condition.has(l.condition)) return true;
       if (usedAllSelected && USED_GRADES.includes(l.condition)) return true;
