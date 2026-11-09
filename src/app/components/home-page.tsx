@@ -13,6 +13,7 @@ import {
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
 import { USED_GRADES, USED_ALL, USED_ALL_KEY, fmtPrice } from './browse-filters';
+import { ConditionBadge } from './condition-badge';
 import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
 
@@ -998,9 +999,10 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   />
                 </div>
                 <div className="p-3">
-                  <span className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold mb-1">
-                    {label('condition', l.condition)}
-                  </span>
+                  {/* 상태 배지 (외관 등급, 작동 경고 — 둘러보기 카드와 같은 conditionBadge) */}
+                  <div className="mb-1">
+                    <ConditionBadge listing={l} className="inline-block px-2 py-0.5 bg-green-100 text-green-800 rounded text-xs font-semibold" />
+                  </div>
                   <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
                     {l.brand} {l.model}
                   </p>

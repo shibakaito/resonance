@@ -21,7 +21,8 @@ import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
-import { label, desc, locationText } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
+import { label, desc, locationText } from '@/lib/labels';
+import { ConditionBadge } from './condition-badge'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
@@ -947,7 +948,8 @@ export function ListingDetail({ id }: { id?: string }) {
                     {listing?.handmade && (
                       <span className="px-1.5 py-0.5 bg-[#000000] text-white rounded text-xs font-medium">수제품</span>
                     )}
-                    <span className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs">{label('condition', listing?.condition)}</span>
+                    {/* 상태 배지 — 카드와 같은 conditionBadge (중고는 외관 등급, 작동 경고) */}
+                    {listing && <ConditionBadge listing={listing} className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs" />}
                   </div>
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">

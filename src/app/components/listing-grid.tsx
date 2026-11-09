@@ -4,7 +4,7 @@
 // ----------------------------------------------------------------------------
 // browse-page.tsx에서 분리. 필터링된 매물 목록을 카드 격자로 그려줌.
 //   - 매물이 없으면 "조건에 맞는 매물이 없습니다" 안내 표시
-//   - 각 카드: 이미지(+찜 하트) / 브랜드 / 모델 / 연도·카테고리 / 가격 / 상태·지역
+//   - 각 카드: 이미지(+찜 하트) / 브랜드 / 모델 / 연도·카테고리 / 가격 / 상태 배지·지역
 // 부모(browse-page)가 데이터와 동작(클릭/찜)을 props로 내려줌 → 이 컴포넌트는
 // "받은 걸 보여주기"만 하는 순수 표시용 컴포넌트.
 // ============================================================================
@@ -13,6 +13,7 @@ import type { MouseEvent } from 'react';
 import { Heart } from 'lucide-react';
 import { Listing, fmtPrice, yearText } from './browse-filters';
 import { label } from '@/lib/labels';
+import { ConditionBadge } from './condition-badge';
 
 export function ListingGrid({
   listings,      // 화면에 보여줄 매물 목록 (이미 필터·정렬 끝난 상태)
@@ -85,8 +86,8 @@ export function ListingGrid({
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
             <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price, l.currency)}</p>
             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
-              {/* 매물의 상태, 지역은 키 → 화면 글자 */}
-              <span>{label('condition', l.condition)}</span>
+              {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
+              <ConditionBadge listing={l} />
               <span>{label('location', l.location)}</span>
             </div>
           </div>

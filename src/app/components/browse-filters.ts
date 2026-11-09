@@ -149,6 +149,18 @@ export const SHIELD_RELEVANT = ['RCA 케이블', 'XLR 케이블', '디지털 동
 export const yearText = (l: { year: string; yearApprox?: boolean }): string =>
   FEATURE_FLAGS.yearApprox && l.yearApprox && l.year ? `약 ${l.year}${/년$/.test(l.year) ? '' : '년'}` : l.year;
 
+// 카드 상태 배지 글자 (condition-badge.tsx 가 그림 — 홈 카드, 둘러보기 카드, 상세 머리 공용)
+//   text = 새상품, 미개봉, NOS는 그 이름 / 중고는 외관 등급 라벨, 외관이 비어 있으면 '중고'
+//   warn = 작동 상태가 점검 필요나 수리 필요면 그 라벨(배지 옆 작은 경고), 아니면 ''
+export const WORKING_WARN_KEYS = ['needs_inspection', 'needs_repair'];
+export function conditionBadge(l: Pick<Listing, 'condition' | 'appearance' | 'working'>): { text: string; warn: string } {
+  const used = l.condition === 'used';
+  return {
+    text: used && l.appearance ? label('appearance', l.appearance) : label('condition', l.condition),
+    warn: used && WORKING_WARN_KEYS.includes(l.working) ? label('working', l.working) : '',
+  };
+}
+
 export function fmtPrice(v: number, currency: string = 'krw'): string {
   return (CURRENCY_SYMBOLS[currency] ?? '₩') + v.toLocaleString('ko-KR');
 }
