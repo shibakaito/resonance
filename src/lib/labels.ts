@@ -161,7 +161,8 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
 };
 
 // ── 등급 정의 한 줄 (폼은 고른 선택지 아래, 상세는 등급 옆 작은 안내) ──
-//   작동 구분: 전 기능 정상 = 작동 상태 '정상 작동' / 일부 이상(설명 필수) = '수리 필요' / 동작 미확인 = '점검 필요' / 부품용 = 상태 '작동 불가'
+//   상태(condition)는 종류만 정의, 중고의 등급은 외관(appearance)과 작동(working)이 정의 (2026-11-10 상태 등급 재구성)
+//   작동 구분: 전 기능 정상 = '정상 작동' / 동작 미확인 = '점검 필요' / 일부 이상, 작동 불가, 부품용(설명 필수) = '수리 필요'
 // 구성품 체크 선택지 (폼 체크 카드, 상세 나열)
 export const COMPONENT_OPTS = Object.entries(SPEC_LABELS.components).map(([value, m]) => ({ value, label: m.ko ?? value }));
 
@@ -170,12 +171,7 @@ export const LABEL_DESC: Record<string, LabelMap> = {
     new: { ko: '포장을 열었지만 사용하지 않은 제품. 흠집과 사용 흔적이 없음.' },
     unopened: { ko: '제조사 포장을 한 번도 열지 않은 제품.' },
     nos: { ko: '생산 당시 재고로 보관만 한 미사용 제품(New Old Stock). 보관 중 생긴 포장 변색이나 고무 부품 경화는 설명에 적음.' },
-    used_mint: { ko: '가까이 봐도 흠집이 없는 중고. 재도장, 노브나 패널 교체 없음. 모든 기능 정상.' },
-    used_excellent: { ko: '가까이 봐야 보이는 잔기스만 있음. 재도장 없음. 모든 기능 정상.' },
-    used_good: { ko: '눈에 보이는 작은 흠집이나 마모가 있음. 재도장, 노브나 패널 교체가 있으면 설명에 적음. 모든 기능 정상.' },
-    used_fair: { ko: '흠집, 찍힘, 변색이 뚜렷함. 재도장이나 부품 교체가 있으면 설명에 적음. 모든 기능 정상.' },
-    used_needs_service: { ko: '일부 기능에 이상이 있거나 동작을 다 확인하지 못함. 이상 내용과 확인한 범위를 설명에 꼭 적음.' },
-    used_not_working: { ko: '전원이 들어오지 않거나 핵심 기능이 작동하지 않음. 부품용 또는 수리 전제.' },
+    used: { ko: '사용한 제품. 외관과 작동 상태를 따로 표시.' },
   },
   appearance: {
     mint: { ko: '가까이 봐도 흠집이 없음. 재도장, 노브나 패널 교체 없음.' },
@@ -186,7 +182,7 @@ export const LABEL_DESC: Record<string, LabelMap> = {
   working: {
     working: { ko: '모든 기능을 확인했고 정상(전 기능 정상). 리캡 같은 정비 내역은 정비 이력 칸에 적음.' },
     needs_inspection: { ko: '동작을 다 확인하지 못함(동작 미확인). 확인한 기능과 못 한 기능을 옆 칸에 적음.' },
-    needs_repair: { ko: '일부 기능에 이상이 있음(일부 이상). 어떤 기능이 어떻게 이상한지 옆 칸에 꼭 적음.' },
+    needs_repair: { ko: '일부 기능에 이상이 있거나 작동하지 않음(부품용 포함). 어떤 기능이 어떻게 이상한지 옆 칸에 꼭 적음.' },
   },
 };
 // 키 → 정의 한 줄 (없으면 ''). FEATURE_FLAGS.gradeDescriptions 가 꺼져 있으면 늘 '' (문구는 위 표에 그대로)

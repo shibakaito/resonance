@@ -501,10 +501,11 @@ export function ListingDetail({ id }: { id?: string }) {
                     </>
                   )}
 
+                  {/* 상태(종류: 새상품, 미개봉, NOS, 중고) → 외관 상태 → 작동 상태를 각각 한 줄씩 (2026-11-10 상태 등급 재구성). 외관, 작동은 값이 있을 때만 */}
                   <div className="font-bold">상태</div>
                   <div className="break-words">
                     {label('condition', listing?.condition)}{' '}
-                    {/* 등급 정의 작은 안내 (labels.ts LABEL_DESC) */}
+                    {/* 정의 작은 안내 (labels.ts LABEL_DESC, gradeDescriptions 플래그 꺼져 있으면 안 보임) */}
                     {desc('condition', listing?.condition) && <span className="text-xs text-gray-500">{desc('condition', listing?.condition)}</span>}{' '}
                     <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
                       등급 기준 자세히 보기
