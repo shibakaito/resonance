@@ -111,6 +111,7 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
   cartType: { ceramic: { ko: '세라믹' } }, // + MM, MC
   extraFeatures: { fm_am_radio: { ko: 'FM/AM 라디오' }, cassette: { ko: '카세트' }, usb_playback: { ko: 'USB 재생' }, recording: { ko: '녹음' } }, // + CD
   // 우퍼 크기 필터 구간 (드라이버 빌더 파생 키 wooferMaxInch 를 묶은 값, 저장값 아님)
+  speakerImpedanceRange: { ohm_4_down: { ko: '4Ω 이하' }, ohm_6: { ko: '6Ω' }, ohm_8: { ko: '8Ω' }, ohm_16_up: { ko: '16Ω 이상' } }, // 스피커 임피던스 필터 구간 (category-specs SPEAKER_IMPEDANCE_BUCKETS)
   wooferSize: { in_5_down: { ko: '5인치 이하' }, in_6_8: { ko: '6~8인치' }, in_10: { ko: '10인치' }, in_12: { ko: '12인치' }, in_15_up: { ko: '15인치 이상' } },
   headMaterial: { permalloy: { ko: '퍼멀로이' }, sendust: { ko: '센더스트' }, ferrite: { ko: '페라이트' }, amorphous: { ko: '아몰퍼스' }, crystalloy: { ko: '크리스탈로이' } },
   // 임피던스: 앰프 지원 임피던스 + 스피커 임피던스 공용

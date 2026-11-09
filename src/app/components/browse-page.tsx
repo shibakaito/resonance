@@ -769,7 +769,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label="드라이버 구성" options={DRIVER_CONFIGS} selected={filters.driverConfig} getLabel={lab('driverConfig')} onToggle={toggleField('driverConfig')} counts={counts.driverConfig} defaultOpen={false} />
                   <FilterSection label="우퍼 크기" options={WOOFER_SIZES} selected={filters.wooferSize} getLabel={lab('wooferSize')} onToggle={toggleField('wooferSize')} counts={counts.wooferSize} defaultOpen={false} />
                   <FilterSection label="인클로저" options={ENCLOSURE_TYPES} selected={filters.enclosure} getLabel={lab('enclosure')} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
-                  <FilterSection label="임피던스" options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
+                  <FilterSection label="임피던스" options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} getLabel={lab('speakerImpedance')} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
                   <RangeSection label="감도" unit="dB" min={filters.sensitivityMin} max={filters.sensitivityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, sensitivityMin: m, sensitivityMax: x }))} defaultOpen={false} />
                   <RangeSection label="권장 앰프 출력" unit="W" min={filters.recPowerMin} max={filters.recPowerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, recPowerMin: m, recPowerMax: x }))} defaultOpen={false} />
                 </>

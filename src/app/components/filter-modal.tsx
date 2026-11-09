@@ -848,6 +848,7 @@ export function FilterModal({
                 <CheckGroup
                   options={SPEAKER_IMPEDANCE}
                   selected={draft.speakerImpedance}
+                  getLabel={lab('speakerImpedance')}
                   onToggle={toggleIn('speakerImpedance')}
                   counts={counts.speakerImpedance}
                 />

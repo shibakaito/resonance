@@ -582,6 +582,7 @@ export function ListingDetail({ id }: { id?: string }) {
               ): string => {
                 if (Array.isArray(v)) return v.map((x) => optLabel(f.input?.options, x)).join(', ');
                 if (f.input?.kind === 'select' || f.input?.kind === 'searchSelect') return optLabel(f.input.options, v); // 검색 드롭다운(인클로저 등)도 영문 키 저장 → 라벨
+                if ((f as { key: string }).key === 'speakerImpedance') return /Ω$/.test(v) ? v : `${v}Ω`; // 스피커 임피던스: 숫자 저장 → '8Ω', '3.2Ω' (옛 '8Ω' 글자는 그대로)
                 return v;
               };
               const rows = schema.filter((f) => {

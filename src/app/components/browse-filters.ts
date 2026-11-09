@@ -12,7 +12,7 @@
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
 import { LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, CONDITION_KEYS, SPEC_LABELS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
-import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
+import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_IMPEDANCE_BUCKETS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 상태 = 종류 4개 (labels.ts CONDITION_KEYS: new / unopened / nos / used, 주소 ?condition=used). 중고의 등급은 외관, 작동 필터가 맡음 (2026-11-10 상태 등급 재구성)
@@ -47,7 +47,7 @@ export const VOLTAGE_OPTS = optValues(AMP_VOLTAGE_OPTS);  // 전원 전압: 100V
 export const SPEAKER_DETAILS = optValues(SPEAKER_DETAIL_OPTS); // 폼 '형식': passive / active
 export const DRIVER_CONFIGS = optValues(SPEAKER_DRIVER_OPTS);  // full_range / coaxial / 2way / 3way / 4way_plus (매물당 여러 개 — 예: coaxial + 2way)
 export const ENCLOSURE_TYPES = optValues(SPEAKER_ENCLOSURE_OPTS); // 폼 인클로저 검색 드롭다운 12종 키
-export const SPEAKER_IMPEDANCE = SPEAKER_OHM_OPTS;             // 폼 임피던스 select: 4Ω / 6Ω / 8Ω / 16Ω (중립 글자)
+export const SPEAKER_IMPEDANCE = SPEAKER_IMPEDANCE_BUCKETS.map((b) => b.key); // 임피던스 구간: ohm_4_down / ohm_6 / ohm_8 / ohm_16_up (폼 숫자 칸 → mapRow 가 구간 키로)
 export const WOOFER_SIZES = SPEAKER_WOOFER_BUCKETS.map((b) => b.key); // in_5_down / in_6_8 / in_10 / in_12 / in_15_up
 // 턴테이블 전용 필터 옵션 = 폼 옵션의 저장값(영문 키)
 export const DRIVE_TYPES = optValues(TT_DRIVE_OPTS);        // belt_drive / direct_drive / idler_drive
@@ -78,6 +78,7 @@ export function filterLabel(field: keyof Filters, v: string): string {
     case 'driverConfig': return optLabel(SPEAKER_DRIVER_OPTS, v);
     case 'enclosure': return optLabel(SPEAKER_ENCLOSURE_OPTS, v);
     case 'wooferSize': return SPEAKER_WOOFER_BUCKETS.find((b) => b.key === v)?.label ?? v;
+    case 'speakerImpedance': return SPEAKER_IMPEDANCE_BUCKETS.find((b) => b.key === v)?.label ?? v;
     case 'driveType': return optLabel(TT_DRIVE_OPTS, v);
     case 'tonearm': return optLabel(TT_TONEARM_OPTS, v);
     case 'cartridge': return optLabel(TT_CARTRIDGE_OPTS, v);

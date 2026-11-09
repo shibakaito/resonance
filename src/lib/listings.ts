@@ -10,7 +10,7 @@ import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { isCategoryVisible } from '@/app/data/catalog';
 import { label, keyFor, locationCountryOf, conditionKind } from './labels';
-import { wooferBucket } from '@/app/data/category-specs';
+import { wooferBucket, speakerImpedanceBucket } from '@/app/data/category-specs';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
 type ListingRow = {
@@ -166,7 +166,7 @@ function mapRow(row: ListingRow): Listing {
     speakerDetail: techStr('speakerDetail'), // passive / active
     driverConfig: techArr('driverWays'),     // ['coaxial', '2way'] (드라이버 빌더 파생 키)
     enclosure: techStr('enclosure'),         // 인클로저 키(bass_reflex 등), 목록에 없는 글은 친 그대로
-    speakerImpedance: techStr('speakerImpedance'), // 임피던스: '8Ω' (= 폼 SPEAKER_OHM_OPTS)
+    speakerImpedance: speakerImpedanceBucket(((n) => (Number.isFinite(n) ? n : null))(parseFloat(techStr('speakerImpedance')))), // 임피던스 숫자(옛 '8Ω' 글자도 숫자로) → 구간 키 (SPEAKER_IMPEDANCE_BUCKETS). 미입력 = ''
     wooferSize: wooferBucket(techNum('wooferMaxInch')), // 우퍼 최대 크기(inch) → 구간 키 (SPEAKER_WOOFER_BUCKETS). 미입력 = ''
     sensitivity: techNum('sensitivity'), // 감도(dB). 패시브만 입력 → 액티브 등 미입력 = null (범위 필터에서 제외)
     recPower: techNum('recPower'),       // 권장 앰프 출력(W). 〃
