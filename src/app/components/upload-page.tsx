@@ -631,7 +631,7 @@ function Typeahead({
 // 드라이버 구성 빌더 — 행 1개 = 드라이버 1개. 종류에 따라 구조/재질(또는 담당대역) 옵션·칼럼이 바뀜(cascading).
 // 검색+드롭다운(단일)은 Typeahead 재사용(단자 위젯은 다중이라, 단일판 Typeahead 사용). A단계: 렌더만(요약·저장 없음).
 // DriverRow 타입 · ROLE_BAND · driverSummary(요약 칩 조립)는 src/lib/spec-builders.ts 로 이동 (폼·시드 스크립트 공용)
-const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' };
+const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' };
 
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
@@ -650,7 +650,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
             <div className={`relative ${(subwoofer || row.type) ? 'w-44 flex-shrink-0' : 'flex-1 min-w-0'}`}>
               <select
                 value={row.type}
-                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' })}
+                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
                 className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
@@ -662,7 +662,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 <button
                   type="button"
                   aria-label="종류 초기화"
-                  onClick={() => update(i, { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '' })}
+                  onClick={() => update(i, { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
                   className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
                 >
                   <X className="w-3.5 h-3.5" />
@@ -670,12 +670,16 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
               )}
               <ChevronDown className="w-4 h-4 absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
             </div>
-            {/* 구조·재질(또는 담당대역)·크기·개수 — 종류 선택 시 표시(서브우퍼는 처음부터 항상 표시) */}
+            {/* 구조, 재질(또는 담당 대역), 크기, 개수, 비고 — 종류 선택 시 표시(서브우퍼는 처음부터 항상 표시)
+                FEATURE_FLAGS.driverMaterialStructure 꺼짐(2026-11-10): 구조, 재질 칸 숨김 → [유닛][크기 + inch/mm][개수][비고]. 동축의 담당 대역은 way 계산(driverWays)에 쓰여 남김 */}
             {(subwoofer || row.type) && (
             <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              {FEATURE_FLAGS.driverMaterialStructure && (
               <div className="flex-1 min-w-0">
                 <Typeahead value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} freeText placeholder="구조" />
               </div>
+              )}
+              {(isCoax || FEATURE_FLAGS.driverMaterialStructure) && (
               <div className="flex-1 min-w-0">
                 {isCoax ? (
                   <Typeahead value={row.band} onChange={(v) => update(i, { band: v })} options={COAXIAL_BANDS} freeText placeholder="담당 대역" />
@@ -683,6 +687,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                   <Typeahead value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} freeText placeholder="재질" />
                 )}
               </div>
+              )}
               <input
                 value={row.size}
                 onChange={(e) => update(i, { size: e.target.value })}
@@ -707,6 +712,14 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 placeholder="개수"
                 className={`${inputCls} w-14 flex-shrink-0 text-center px-1`}
               />
+              {/* 비고 — 자유 글 (예: 실크 돔). 요약 줄 끝에 괄호로 */}
+              <input
+                value={row.note ?? ''}
+                onChange={(e) => update(i, { note: e.target.value })}
+                placeholder="비고"
+                aria-label="비고"
+                className={`${inputCls} flex-1 min-w-0`}
+              />
             </div>
             )}
             {/* 삭제 — 필드 끝~카드 오른쪽 끝 거터 중앙에 절대배치 (행 2개 이상일 때만) */}
@@ -730,7 +743,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       >
         <Plus className="w-3.5 h-3.5" /> 드라이버 추가
       </button>
-      {/* 자동 요약 (읽기 전용) — 속성별 칩 [1-way][1-driver][15inch][페이퍼][콘 타입][우퍼 (1)], X 없음 */}
+      {/* 자동 요약 (읽기 전용) — 속성별 칩 [2-way][2-driver][12inch][우퍼 (1)][1inch][트위터 (1) (실크 돔)], X 없음. 재질, 구조 칩은 플래그 켜졌을 때만 */}
       {summary.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {summary.map((chip, idx) => (

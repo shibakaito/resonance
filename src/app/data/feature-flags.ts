@@ -34,4 +34,7 @@ export const FEATURE_FLAGS = {
   // 정비 이력 칸(폼 제품 정보), 상세의 정비 이력 줄. 끄면 안 보임(저장 로직, 공통 목록 MAINTENANCE_OPTS 와 라벨은 그대로)
   // 2026-11-10 끔: 정비 이력 숨김
   maintenance: false,
+  // 스피커 드라이버 빌더 한 줄의 구조, 재질 선택 칸과 요약 문자열의 구조, 재질. 끄면 줄 = [유닛][크기 + inch/mm][개수][비고](동축은 담당 대역 칸이 더 있음)
+  // 2026-11-10 끔: 드라이버 줄을 유닛, 크기, 개수, 비고로 단순화
+  driverMaterialStructure: false,
 } as const;

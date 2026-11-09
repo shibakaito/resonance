@@ -8,6 +8,7 @@
 // 드라이버는 요약 문자열 대신 필터용 파생 키(driverDerived)를 같이 저장 — 필터는 그 키만 읽음 (요약 파싱 X)
 // ============================================================================
 import { DRIVER_TYPES, SPEAKER_DRIVER_OPTS } from '@/app/data/category-specs';
+import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md) — 드라이버 재질, 구조
 
 export type PowerPair = { w: string; ohm: string; note?: string };
 export type DimRow = { w: string; d: string; h: string; note: string };
@@ -15,7 +16,7 @@ export type ValNoteRow = { value: string; note: string };
 export type TubeRow = { role: string; type: string; qty: string };
 export type CrossoverRow = { value: string; unit: string };
 export type AmpPowerRow = { type: string; power: string };
-export type DriverRow = { type: string; structure: string; material: string; band: string; size: string; sizeUnit: string; count: string };
+export type DriverRow = { type: string; structure: string; material: string; band: string; size: string; sizeUnit: string; count: string; note?: string }; // note = 비고 자유 글 (요약 줄 끝 괄호). 구조, 재질은 FEATURE_FLAGS.driverMaterialStructure 가 켜져 있을 때만 씀
 
 // ⚠️ 이 조립 포맷("100W @ 8Ω, 150W @ 4Ω (비고)")을 바꾸면 src/lib/listings.ts 의 parsePowerW 도 같이 고칠 것
 //    (정격 출력 범위 필터가 저장된 문자열을 그 파서로 숫자화합니다).
@@ -78,8 +79,9 @@ function driverBands(active: DriverRow[]): Set<string> {
   }
   return bands;
 }
-// 드라이버 행들 → 칩 배열(속성별). [N-way] [N-driver?] [크기] [재질] [구조] [종류 (개수)] ...
+// 드라이버 행들 → 칩 배열(속성별). [N-way] [N-driver?] [크기] [재질] [구조] [종류 (개수) (비고)] ...
 //   동축은 재질 없이 종류(담당대역). N-driver 칩은 활성 행 전부 개수 입력됐을 때만.
+//   재질, 구조 칩은 FEATURE_FLAGS.driverMaterialStructure 가 켜져 있을 때만 (2026-11-10 끔). 비고가 있으면 그 줄 끝에 괄호로
 export function driverSummary(rows: DriverRow[]): string[] {
   const active = rows.filter((r) => r.type);
   if (active.length === 0) return [];
@@ -91,16 +93,18 @@ export function driverSummary(rows: DriverRow[]): string[] {
     if (Number.isFinite(n) && n > 0) drivers += n;
     else allCounted = false;
     const cnt = r.count ? ` (${r.count})` : '';
+    const note = r.note?.trim() ? ` (${r.note.trim()})` : ''; // 비고 → 줄 끝 괄호
+    const ms = FEATURE_FLAGS.driverMaterialStructure;            // 꺼지면 재질, 구조 칩 없음
     if (r.type === '동축') {
       if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
-      if (r.structure) chips.push(r.structure);
-      chips.push(`${r.type}(${r.band})${cnt}`);
+      if (ms && r.structure) chips.push(r.structure);
+      chips.push(`${r.type}(${r.band})${cnt}${note}`);
     } else {
-      const mat = (r.material || '').replace(/\s*콘$/, ''); // 페이퍼 콘 → 페이퍼
+      const mat = ms ? (r.material || '').replace(/\s*콘$/, '') : ''; // 페이퍼 콘 → 페이퍼
       if (r.size) chips.push(`${r.size}${r.sizeUnit}`);
       if (mat) chips.push(mat);
-      if (r.structure) chips.push(r.structure);
-      chips.push(`${r.type}${cnt}`);
+      if (ms && r.structure) chips.push(r.structure);
+      chips.push(`${r.type}${cnt}${note}`);
     }
   }
   const head = [`${driverBands(active).size}-way`];
