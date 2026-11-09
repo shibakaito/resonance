@@ -18,7 +18,7 @@ import type { Listing } from './browse-filters';
 import { fmtPrice, yearText } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
 import { label, desc, locationText } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
 
@@ -580,10 +580,12 @@ export function ListingDetail({ id }: { id?: string }) {
                 //   techSpecs.type = 폼 auto 필드가 저장한 하위 카테고리(예: '서브우퍼') → __sub로 사용해
                 //   서브우퍼 전용 필드(방사 방향·위상 조절 등)가 상세에서도 정상 표시됨.
                 if (f.showWhen && !f.showWhen({ ...specs, __sub: typeof specs.type === 'string' ? specs.type : '' })) return false;
+                // 상세 모드 'custom' 하위 카테고리: 숨긴 상세 칸은 옛 매물에 값이 남아 있어도 안 보임 (폼과 같은 규칙, docs/hidden.md)
+                if (f.input && hiddenByDetailMode(listing?.category ?? '', f as CategorySpecField)) return false;
                 const v = specs[f.key];
                 return Array.isArray(v) ? v.length > 0 : Boolean(v);
               });
-              const custom = listing?.customSpecs ?? []; // 자유 추가 사양 (프리앰프 등 상세 모드 'custom') — 정해진 칸 아래에 입력 순서대로
+              const custom = listing?.customSpecs ?? []; // 자유 추가 사양 (상세 모드 'custom') — 정해진 칸 아래에 입력 순서대로
               if (rows.length === 0 && custom.length === 0) return null;
               return (
                 <div>

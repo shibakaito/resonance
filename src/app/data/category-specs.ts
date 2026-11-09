@@ -567,18 +567,31 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   // 턴테이블 — 톤암은 기존 규칙대로 형식이 하이파이, DJ일 때만
   턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
   '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear'], // 정비 이력은 제품 정보 공통 칸으로 옮김
+  // CD 플레이어, 튜너 — 원래 분리 없음(마감, 전원, 크기, 무게뿐). 2026-11-10 상세 모드 'custom'을 켜려고 전원 전압만 핵심으로
+  'CD 플레이어': ['voltage'],
+  튜너: ['voltage'],
 };
 
 // 하위 카테고리별 상세 모드 스위치 — 'fields'(기본) = 정해진 상세 칸 + '상세 사양 (N)' 버튼 + 기타 사양
 //   'custom' = 상세 칸(핵심, 크기, 무게 밖의 칸 전부, 기타 사양 포함)을 숨기고 저장도 안 함, 대신 [제목][내용] 자유 추가(specs.tech.customSpecs)
 //   칸 정의와 라벨은 그대로 남음. 다른 하위 카테고리도 여기 한 줄만 넣으면 켜짐 (CORE_SPEC_KEYS 에 있는 하위 카테고리만 의미 있음)
-//   2026-11-09: 프리앰프부터 (docs/hidden.md)
+//   2026-11-09 프리앰프, 2026-11-10 보이는 카테고리 나머지 9개 (숨는 칸 목록: docs/hidden.md '상세 사양 숨김 목록')
+//   숨긴 카테고리(헤드폰 앰프 등)는 정해진 칸 그대로. 켤 때 여기 'custom' 한 줄도 같이
 export type DetailMode = 'fields' | 'custom';
 export const DETAIL_MODE_BY_SUB: Record<string, DetailMode> = {
   프리앰프: 'custom',
+  파워앰프: 'custom',
+  인티앰프: 'custom',
+  리시버: 'custom',
+  '북쉘프 스피커': 'custom',
+  '플로어 스탠딩 스피커': 'custom',
+  턴테이블: 'custom',
+  '카세트 데크': 'custom',
+  'CD 플레이어': 'custom',
+  튜너: 'custom',
 };
 export const detailModeOf = (sub: string): DetailMode => DETAIL_MODE_BY_SUB[sub] ?? 'fields';
-// 이 하위 카테고리에서 상세 모드 때문에 숨는 칸인가 (폼 그리기, 폼 저장, 시드 조립과 검사가 같이 씀)
+// 이 하위 카테고리에서 상세 모드 때문에 숨는 칸인가 (폼 그리기, 폼 저장, 상세 페이지 표시, 시드 조립과 검사가 같이 씀)
 export const hiddenByDetailMode = (sub: string, f: CategorySpecField): boolean => {
   const core = CORE_SPEC_KEYS[sub];
   if (!core || detailModeOf(sub) !== 'custom') return false;

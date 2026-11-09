@@ -920,7 +920,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [crossoverValues, setCrossoverValues] = useState<{ value: string; unit: string }[]>([{ value: '', unit: 'Hz' }]);
   // 진공관 빌더 — 역할/종류/개수 행 배열 (1단계: 상태·조립만, UI는 2단계)
   const [tubeRows, setTubeRows] = useState<{ role: string; type: string; qty: string }[]>([{ role: '', type: '', qty: '' }]);
-  // 자유 추가 사양 [제목][내용] 줄들 — 상세 모드 'custom' 하위 카테고리(프리앰프)에서만 보임 → specs.tech.customSpecs (빈 줄 제외, 입력 순서)
+  // 자유 추가 사양 [제목][내용] 줄들 — 상세 모드 'custom' 하위 카테고리(DETAIL_MODE_BY_SUB)에서만 보임 → specs.tech.customSpecs (빈 줄 제외, 입력 순서)
   const [customSpecs, setCustomSpecs] = useState<CustomSpecRow[]>([]);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
@@ -1068,7 +1068,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         for (const f of catFields) {
           // 조건부 필드(형식·서브우퍼별): 화면에 안 보이는 필드는 저장하지 않음(전환 시 잔여값 방지)
           if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) continue;
-          if (hiddenByDetailMode(subcategory, f)) continue; // 상세 모드 'custom'(프리앰프): 정해진 상세 칸은 숨김 + 저장 안 함
+          if (hiddenByDetailMode(subcategory, f)) continue; // 상세 모드 'custom'(DETAIL_MODE_BY_SUB): 정해진 상세 칸은 숨김 + 저장 안 함
           if (f.input.kind === 'auto') {
             // 타입: 카테고리에서 자동 입력된 값
             const v = (subcategory || category).trim();
@@ -2272,7 +2272,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 const always = fields.filter(isAlways);
                 const detail = fields.filter((f) => !isCore(f) && !isAlways(f));
                 const detailCount = detail.filter(visible).length;
-                // 상세 모드 'custom'(프리앰프): 상세 칸, 상세 버튼, 기타 사양 대신 [제목][내용] 자유 추가 (크기, 무게 빌더와 같은 칸 규칙)
+                // 상세 모드 'custom'(DETAIL_MODE_BY_SUB): 상세 칸, 상세 버튼, 기타 사양 대신 [제목][내용] 자유 추가 (크기, 무게 빌더와 같은 칸 규칙)
                 if (detailModeOf(subcategory) === 'custom') {
                   const updateRow = (i: number, patch: Partial<CustomSpecRow>) =>
                     setCustomSpecs((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
