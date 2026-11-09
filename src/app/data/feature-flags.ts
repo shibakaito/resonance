@@ -31,4 +31,7 @@ export const FEATURE_FLAGS = {
   // 소유권 칸(폼), 소유권 필터(사이드바, 필터 모달), 상세의 소유권 줄. 끄면 안 보이고 걸러지지도 않음(저장 로직, 라벨, DB 값은 그대로)
   // 2026-11-10 끔: 소유권 숨김
   ownership: false,
+  // 정비 이력 칸(폼 제품 정보), 상세의 정비 이력 줄. 끄면 안 보임(저장 로직, 공통 목록 MAINTENANCE_OPTS 와 라벨은 그대로)
+  // 2026-11-10 끔: 정비 이력 숨김
+  maintenance: false,
 } as const;

@@ -898,7 +898,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [conditionWorking, setConditionWorking] = useState('');               // 드롭다운(등급)
   const [conditionWorkingDetail, setConditionWorkingDetail] = useState('');   // 자유 입력칸
   const [maintenance, setMaintenance] = useState<string[]>([]);              // 정비 이력 (다중 — 영문키 + 직접 입력 글) → specs.tech.maintenance
-  // 새 제품 상태(새상품, 미개봉, NOS)면 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장도 안 함
+  // 새 제품 상태(새상품, 미개봉, NOS)면 중고 칸(외관 상태, 작동 상태)을 숨기고 저장도 안 함. 정비 이력은 화면은 FEATURE_FLAGS.maintenance 가 정하고, 저장은 예전처럼 새 제품 상태면 안 함
   const usedFieldsHidden = NEW_CONDITION_KEYS.includes(condition);
   // 복합 입력(정격출력/주파수/크기)의 부분 입력칸 — 변경 시 조립해서 specs에 반영
   const [powerPairs, setPowerPairs] = useState<{ w: string; ohm: string; note?: string }[]>([{ w: '', ohm: '', note: '' }]);
@@ -1584,8 +1584,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
 
               {/* 10. 정비 이력 — 모든 카테고리 공통(예전엔 카세트 기술 사양 칸). 저장 자리는 그대로 specs.tech.maintenance.
-                  중고 등급(used_*)일 때만 활성화, 새 제품 상태면 숨김. 선택지에 없는 정비는 직접 입력 */}
-              {!usedFieldsHidden && (
+                  중고 등급(used_*)일 때만 활성화. 선택지에 없는 정비는 직접 입력. 보이기는 FEATURE_FLAGS.maintenance 만 정함(상태 분기 없음) */}
+              {FEATURE_FLAGS.maintenance && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>정비 이력</label>
                 <MultiSelectDropdown

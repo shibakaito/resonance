@@ -537,7 +537,8 @@ export function ListingDetail({ id }: { id?: string }) {
                   )}
 
                   {/* 정비 이력 — 업로드 폼 제품 정보의 작동 상태 아래 칸과 같은 자리 */}
-                  {(listing?.maintenance?.length ?? 0) > 0 && (
+                  {/* FEATURE_FLAGS.maintenance 꺼지면 줄 숨김 (docs/hidden.md) */}
+                  {FEATURE_FLAGS.maintenance && (listing?.maintenance?.length ?? 0) > 0 && (
                     <>
                       <div className="font-bold">정비 이력</div>
                       <div className="break-words">{listing!.maintenance.join(', ')}</div>
