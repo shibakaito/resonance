@@ -18,19 +18,14 @@ export const LABELS: Record<string, LabelMap> = {
     sold: { ko: '판매완료' },
     draft: { ko: '임시저장' },
   },
+  // 상태 = 종류만 (2026-11-10 상태 등급 재구성). 중고의 등급은 외관 상태(SPEC_LABELS.appearance)와 작동 상태(SPEC_LABELS.working)가 맡음
+  //   옛 중고 등급 키(used_mint, used_excellent, used_good, used_fair, used_needs_service, used_not_working)는 선택지에서 뺌. 옛 행은 conditionKind 가 'used'로 읽음
   condition: {
     new: { ko: '새상품' },
     unopened: { ko: '미개봉' },
     nos: { ko: 'NOS' },
-    used_mint: { ko: '민트급' },
-    used_excellent: { ko: '매우 좋음' },
-    used_good: { ko: '좋음' },
-    used_fair: { ko: '보통' },
-    used_needs_service: { ko: '점검 필요' },
-    used_not_working: { ko: '작동 불가' },
+    used: { ko: '중고' },
   },
-  // 상태 묶음 — 필터, 주소 파라미터의 '중고' 단축(used = 중고 등급 전체)
-  conditionGroup: { used: { ko: '중고' } },
   // 매물 위치의 국가 (지역 키 접두와 같음). 제조국(country)과 다른 칸
   locationCountry: { kr: { ko: '한국' }, jp: { ko: '일본' } },
   locationCountryFull: { kr: { ko: '대한민국' }, jp: { ko: '일본' } }, // 상세 페이지 판매자 위치 줄 ('대한민국 서울')
@@ -83,8 +78,12 @@ export const locationOptsFor = (country: string) => LOCATION_OPTS.filter((o) => 
 // 지역 키 → 위치 글자 ('대한민국 서울', '일본 도쿄도'). 접두 없는 옛 키는 지역 이름만
 export const locationText = (key: string | null | undefined): string => (key ? `${label('locationCountryFull', locationCountryOf(key))} ${label('location', key)}`.trim() : '');
 
-// 새 제품 상태 키 — 이 상태면 업로드 폼이 중고 칸(외관 상태, 작동 상태, 정비 이력)을 숨기고 저장하지 않음 (시드도 같은 규칙)
+// 상태 선택지 키 (폼, 둘러보기 필터, 홈 검색이 같이 씀): new / unopened / nos / used
+export const CONDITION_KEYS = Object.keys(LABELS.condition);
+// 새 제품 상태 키 — 이 상태면 업로드 폼이 중고 칸(외관 상태, 작동 상태)을 숨기고 저장하지 않음 (시드도 같은 규칙). 나머지 하나 'used'(중고)만 외관, 작동을 고름
 export const NEW_CONDITION_KEYS = ['new', 'unopened', 'nos'];
+// 옛 중고 등급 키(used_* — 2026-11-10 전 저장분) → 'used'. 그 밖의 키는 그대로. DB 옛 행(mapRow)과 폼 임시 저장 복원이 씀
+export const conditionKind = (key: string | null | undefined): string => (key && key.startsWith('used_') ? 'used' : key ?? '');
 
 // ── specs(jsonb) 안의 선택지용 (key=코드 필드명) ──
 export const SPEC_LABELS: Record<string, LabelMap> = {

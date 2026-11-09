@@ -178,7 +178,7 @@ const common: CommonRow[] = [];
       continue;
     }
     if (lab !== undefined) {
-      const note = hiddenWhenNew.has(cleanJsx(lab)) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함' : /condition\.startsWith\('used_'\)/.test(labAttr) ? '중고 상태일 때 활성' : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
+      const note = hiddenWhenNew.has(cleanJsx(lab)) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함' : /condition === 'used'/.test(labAttr) ? '중고 상태일 때 활성' : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
       common.push({ section, label: cleanJsx(lab), required: /aria-label="필수"/.test(lab), note, boundVar: bound });
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);

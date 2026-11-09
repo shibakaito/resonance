@@ -9,7 +9,7 @@ import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
 import { isCategoryVisible } from '@/app/data/catalog';
-import { label, keyFor, locationCountryOf } from './labels';
+import { label, keyFor, locationCountryOf, conditionKind } from './labels';
 import { wooferBucket } from '@/app/data/category-specs';
 
 // DB 한 행의 모양 (이번에 쓰는 컬럼 위주)
@@ -111,7 +111,7 @@ function mapRow(row: ListingRow): Listing {
     images: row.images ?? [],
     price: row.price,
     currency: row.currency ?? 'krw', // 통화 키 (krw / jpy), 칸이 없던 옛 행은 원화
-    condition: row.condition, // 상태 키 (used_good 등) — 필터가 키로 비교, 화면은 label('condition')
+    condition: conditionKind(row.condition), // 상태 키 (new / unopened / nos / used, 옛 used_* 키도 used로) — 필터가 키로 비교, 화면은 label('condition')
     // 외관/작동 상태 (참고용, specs에서)
     appearance: typeof s.appearance === 'string' ? s.appearance : '', // 외관 등급 키 (mint 등) — 화면은 label('appearance'), 정의는 desc
     appearanceDetail: typeof s.appearanceDetail === 'string' ? s.appearanceDetail : '',
@@ -227,7 +227,7 @@ export type ListingInput = {
   finish: string;
   country: string;        // 한글 (예: '미국')
   handmade: boolean;
-  condition: string;      // 영문 키 (예: 'used_excellent')
+  condition: string;      // 영문 키 (new / unopened / nos / used)
   ownership: string;      // 영문 키 (single_owner/multiple_owners/unknown), 빈 문자열 가능
   description: string;
   sku: string;

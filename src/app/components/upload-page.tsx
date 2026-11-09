@@ -20,7 +20,7 @@ import {
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
-import { NEW_CONDITION_KEYS, desc, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
+import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
@@ -56,18 +56,9 @@ const OWNERSHIP_OPTIONS = [
   { value: 'multiple_owners', label: '2인 이상 소유' },
 ];
 
-// 상태: DB에 저장되는 영문 키(value) + 화면 표시(label). labels.ts의 condition과 동일. 등급 정의 한 줄은 labels.ts LABEL_DESC(desc)
-const CONDITIONS = [
-  { value: 'new', label: '새상품' },
-  { value: 'unopened', label: '미개봉' },
-  { value: 'nos', label: 'NOS' },
-  { value: 'used_mint', label: '민트급' },
-  { value: 'used_excellent', label: '매우 좋음' },
-  { value: 'used_good', label: '좋음' },
-  { value: 'used_fair', label: '보통' },
-  { value: 'used_needs_service', label: '점검 필요' },
-  { value: 'used_not_working', label: '작동 불가' }
-];
+// 상태: 종류 4개(새상품, 미개봉, NOS, 중고) — DB에 저장되는 영문 키(value) + 화면 표시(label), labels.ts LABELS.condition 그대로. 정의 한 줄은 LABEL_DESC(desc)
+//   중고의 등급은 아래 외관 상태, 작동 상태 칸이 맡음 (2026-11-10 상태 등급 재구성)
+const CONDITIONS = CONDITION_KEYS.map((value) => ({ value, label: label('condition', value) }));
 
 const PHOTO_EXAMPLES = [
   { label: '프론트', img: '/images/Front.png' },
@@ -1002,7 +993,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     const d = draftPrompt?.data ?? {};
     setCategory(d.category ?? ''); setSubcategory(d.subcategory ?? ''); setBrand(d.brand ?? ''); setModel(d.model ?? '');
     setTitle(d.title ?? ''); setTitleEdited(!!d.titleEdited); setYear(d.year ?? ''); setYearApprox(!!d.yearApprox); setYearUnknown(!!d.yearUnknown);
-    setFinish(d.finish ?? ''); setCountry(d.country ?? ''); setHandmade(!!d.handmade); setCondition(d.condition ?? ''); setOwnership(d.ownership ?? '');
+    setFinish(d.finish ?? ''); setCountry(d.country ?? ''); setHandmade(!!d.handmade); setCondition(conditionKind(d.condition)); /* 옛 임시 저장의 used_* 는 중고로 */ setOwnership(d.ownership ?? '');
     setComponents(d.components ?? []); setComponentsOther(d.componentsOther ?? '');
     setConditionAppearance(d.conditionAppearance ?? ''); setConditionAppearanceDetail(d.conditionAppearanceDetail ?? '');
     setConditionWorking(d.conditionWorking ?? ''); setConditionWorkingDetail(d.conditionWorkingDetail ?? ''); setMaintenance(d.maintenance ?? []);
@@ -1456,8 +1447,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 7. 상태 — 아래에 있던 CONDITIONS 드롭다운을 여기로 가져옴.
-                  중고 등급(used_*) 일 때만 아래의 외관·작동 상태 활성화 */}
+              {/* 7. 상태 — 종류 4개(CONDITIONS). 중고(used)일 때만 아래의 외관 상태, 작동 상태 활성화(둘 다 선택 사항) */}
               <div>
                 <label className="block font-semibold mb-1">
                   상태 <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#ff555d] align-middle ml-1" aria-label="필수" />
@@ -1468,8 +1458,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => {
                       const v = e.target.value;
                       setCondition(v);
-                      // 새상품/NOS 등 비-중고로 바뀌면 소유권, 외관, 작동, 정비 이력 값 자동 초기화
-                      if (!v.startsWith('used_')) {
+                      // 새상품, 미개봉, NOS 로 바뀌면 소유권, 외관, 작동, 정비 이력 값 자동 초기화
+                      if (v !== 'used') {
                         setOwnership('');
                         setConditionAppearance('');
                         setConditionAppearanceDetail('');
@@ -1489,19 +1479,19 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
-                {/* 고른 등급의 정의 한 줄 */}
+                {/* 고른 상태의 정의 한 줄 */}
                 {desc('condition', condition) && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
               </div>
 
-              {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님. FEATURE_FLAGS.ownership 꺼지면 칸만 숨김(저장 로직 그대로) */}
+              {/* 소유권 — 드롭다운(1인/다중). 중고(used)일 때만 활성화. 필수 아님. FEATURE_FLAGS.ownership 꺼지면 칸만 숨김(저장 로직 그대로) */}
               {FEATURE_FLAGS.ownership && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>소유권</label>
+                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>소유권</label>
                 <div className="relative">
                   <select
                     value={ownership}
                     onChange={(e) => setOwnership(e.target.value)}
-                    disabled={!condition.startsWith('used_')}
+                    disabled={condition !== 'used'}
                     className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                       ownership ? '' : 'text-gray-400'
                     }`}
@@ -1516,16 +1506,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
               )}
 
-              {/* 8. 외관 상태 — 중고 등급(used_*)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김 */}
+              {/* 8. 외관 상태 — 중고(used)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김. 선택 사항 */}
               {!usedFieldsHidden && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>외관 상태</label>
+                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>외관 상태</label>
                 <div className="flex gap-2">
                   <div className="relative w-36 flex-shrink-0">
                     <select
                       value={conditionAppearance}
                       onChange={(e) => setConditionAppearance(e.target.value)}
-                      disabled={!condition.startsWith('used_')}
+                      disabled={condition !== 'used'}
                       className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                         conditionAppearance ? '' : 'text-gray-400'
                       }`}
@@ -1541,7 +1531,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <input
                     value={conditionAppearanceDetail}
                     onChange={(e) => setConditionAppearanceDetail(e.target.value)}
-                    disabled={!condition.startsWith('used_')}
+                    disabled={condition !== 'used'}
                     placeholder=""
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
@@ -1550,16 +1540,16 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
               )}
 
-              {/* 9. 작동 상태 — 중고 등급(used_*)일 때만 활성화, 새 제품 상태면 숨김 */}
+              {/* 9. 작동 상태 — 중고(used)일 때만 활성화, 새 제품 상태면 숨김. 선택 사항 */}
               {!usedFieldsHidden && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>작동 상태</label>
+                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>작동 상태</label>
                 <div className="flex gap-2">
                   <div className="relative w-36 flex-shrink-0">
                     <select
                       value={conditionWorking}
                       onChange={(e) => setConditionWorking(e.target.value)}
-                      disabled={!condition.startsWith('used_')}
+                      disabled={condition !== 'used'}
                       className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
                         conditionWorking ? '' : 'text-gray-400'
                       }`}
@@ -1574,7 +1564,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <input
                     value={conditionWorkingDetail}
                     onChange={(e) => setConditionWorkingDetail(e.target.value)}
-                    disabled={!condition.startsWith('used_')}
+                    disabled={condition !== 'used'}
                     placeholder=""
                     className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
@@ -1584,15 +1574,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
 
               {/* 10. 정비 이력 — 모든 카테고리 공통(예전엔 카세트 기술 사양 칸). 저장 자리는 그대로 specs.tech.maintenance.
-                  중고 등급(used_*)일 때만 활성화. 선택지에 없는 정비는 직접 입력. 보이기는 FEATURE_FLAGS.maintenance 만 정함(상태 분기 없음) */}
+                  중고(used)일 때만 활성화. 선택지에 없는 정비는 직접 입력. 보이기는 FEATURE_FLAGS.maintenance 만 정함(상태 분기 없음) */}
               {FEATURE_FLAGS.maintenance && (
               <div>
-                <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>정비 이력</label>
+                <label className={`block font-semibold mb-1 ${condition === 'used' ? '' : 'text-gray-400'}`}>정비 이력</label>
                 <MultiSelectDropdown
                   options={MAINTENANCE_OPTS}
                   selected={maintenance}
                   onChange={setMaintenance}
-                  disabled={!condition.startsWith('used_')}
+                  disabled={condition !== 'used'}
                 />
               </div>
               )}
