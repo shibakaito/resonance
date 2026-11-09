@@ -1,24 +1,12 @@
-"use client";
+// ============================================================================
+// ui/label.tsx — 칸 이름 (2026-11-10 디자인 3a)
+// ----------------------------------------------------------------------------
+// 보통은 Field 가 씀. field-label 클래스는 등록 폼 안에서 theme.css 의 라벨 모양(대문자, 14px, 굵게, muted)을 받음
+// ============================================================================
+import * as React from 'react';
 
-import * as React from "react";
-import * as LabelPrimitive from "@radix-ui/react-label";
+export const LABEL_CLASS = 'field-label block mb-1 text-14 font-bold';
 
-import { cn } from "./utils";
-
-function Label({
-  className,
-  ...props
-}: React.ComponentProps<typeof LabelPrimitive.Root>) {
-  return (
-    <LabelPrimitive.Root
-      data-slot="label"
-      className={cn(
-        "flex items-center gap-2 text-14 leading-none font-medium select-none group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 peer-disabled:cursor-not-allowed peer-disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
-  );
+export function Label({ className = '', ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {
+  return <label className={`${LABEL_CLASS} ${className}`} {...rest} />;
 }
-
-export { Label };

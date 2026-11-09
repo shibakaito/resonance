@@ -1,18 +1,19 @@
-import * as React from "react";
+// ============================================================================
+// ui/textarea.tsx — 여러 줄 입력칸 (2026-11-10 디자인 3a, 토큰 6개만)
+// ----------------------------------------------------------------------------
+// border-line, 흰 바탕, 세로로만 늘이기. 비활성은 bg-surface text-muted. 포커스는 theme.css 전역 규칙
+// ============================================================================
+import * as React from 'react';
 
-import { cn } from "./utils";
-
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
-  return (
-    <textarea
-      data-slot="textarea"
-      className={cn(
-        "resize-none border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:bg-input/30 flex field-sizing-content min-h-16 w-full rounded-md border bg-input-background px-3 py-2 text-16 transition-[color,box-shadow] outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 md:text-14",
-        className,
-      )}
-      {...props}
-    />
-  );
-}
-
-export { Textarea };
+export const Textarea = React.forwardRef<HTMLTextAreaElement, React.TextareaHTMLAttributes<HTMLTextAreaElement>>(
+  function Textarea({ className = '', rows = 4, ...rest }, ref) {
+    return (
+      <textarea
+        ref={ref}
+        rows={rows}
+        className={`w-full min-w-0 border border-line bg-bg px-3 py-2 text-16 text-fg rounded-none resize-y placeholder:text-muted disabled:bg-surface disabled:text-muted ${className}`}
+        {...rest}
+      />
+    );
+  },
+);

@@ -171,45 +171,18 @@
 
 /* ── 레퍼런스(SONUS) 에디토리얼 톤: 제품 정보(Basic) + 기술 사양(Spec) ── */
 /* 제품 정보 라벨: 대문자 회색 eyebrow */
-#section-info label {
+#section-info label,
+#section-info .field-label {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: var(--text-14); /* 예전 13px → 6단 중 14 */
   font-weight: var(--font-weight-bold); /* 예전 600 → 700 */
   color: var(--color-muted);
 }
-/* 제품 정보 입력: surface 채움, 무테두리 → 포커스 bg 바탕 + fg 외곽선 */
-#section-info input,
-#section-info select,
-#section-info textarea {
-  background-color: var(--color-surface);
-  border: 1px solid transparent;
-  border-radius: 0;
-}
-#section-info input:focus,
-#section-info select:focus,
-#section-info textarea:focus {
-  background-color: var(--color-bg);
-  outline: 2px solid var(--color-fg); /* 포커스 = fg 2px 외곽선 + 2px 띄움 (예전 파랑 #3b82f6 테두리) */
-  outline-offset: 2px;
-}
-/* 기술 사양 입력: 제품 정보와 같음 */
-.spec-field input,
-.spec-field select,
-.spec-field textarea {
-  background-color: var(--color-surface);
-  border: 1px solid transparent;
-  border-radius: 0;
-}
-.spec-field input:focus,
-.spec-field select:focus,
-.spec-field textarea:focus {
-  background-color: var(--color-bg);
-  outline: 2px solid var(--color-fg); /* 포커스 = fg 2px 외곽선 + 2px 띄움 (예전 파랑 #3b82f6 테두리) */
-  outline-offset: 2px;
-}
+/* 입력칸 모양은 공통 부품(ui/input, ui/field 의 Select, ui/textarea, ui/autocomplete)이 정함 — 높이 40px, border-line, 흰 바탕, 포커스는 위 전역 규칙 (2026-11-10 디자인 3a) */
 /* 기술 사양 라벨 = 제품 정보와 동일한 eyebrow (라벨 위·입력 아래 1열). 2칸 분할 버전은 커밋 bd64ce1에 보관 */
-.spec-field label {
+.spec-field label,
+.spec-field .field-label {
   display: block;
   margin-bottom: 0.25rem;
   text-transform: uppercase;

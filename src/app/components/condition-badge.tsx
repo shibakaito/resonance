@@ -3,21 +3,19 @@
 // ----------------------------------------------------------------------------
 // 글자는 browse-filters.ts conditionBadge 한 함수가 정함:
 //   새상품, 미개봉, NOS = 그 이름 / 중고 = 외관 등급 라벨(비어 있으면 '중고')
-//   작동 상태가 점검 필요나 수리 필요면 배지 옆에 작은 경고 글자(각진 테두리)
-// className = 배지 글자 모양(카드마다 다름). 경고 모양은 여기 하나
+//   작동 상태가 점검 필요나 수리 필요면 옆에 경고 배지
+// 모양은 공통 부품 ui/badge.tsx (2026-11-10 디자인 3a): className 을 주면 상태 글자도 outline 배지로(홈, 상세),
+//   안 주면 글자만(둘러보기 카드). 경고는 늘 danger 배지
 // ============================================================================
 import { conditionBadge, type Listing } from './browse-filters';
+import { Badge } from './ui/badge';
 
-export function ConditionBadge({ listing, className = '' }: { listing: Pick<Listing, 'condition' | 'appearance' | 'working'>; className?: string }) {
+export function ConditionBadge({ listing, className }: { listing: Pick<Listing, 'condition' | 'appearance' | 'working'>; className?: string }) {
   const { text, warn } = conditionBadge(listing);
   return (
     <span className="inline-flex items-center gap-1 align-middle">
-      <span className={className}>{text}</span>
-      {warn && (
-        <span className="px-1 py-px border border-danger text-danger text-12 leading-tight font-bold rounded-none whitespace-nowrap">
-          {warn}
-        </span>
-      )}
+      {className !== undefined ? <Badge className={className}>{text}</Badge> : <span>{text}</span>}
+      {warn && <Badge variant="danger">{warn}</Badge>}
     </span>
   );
 }

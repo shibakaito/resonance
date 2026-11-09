@@ -1,58 +1,39 @@
-import * as React from "react";
-import { Slot } from "@radix-ui/react-slot";
-import { cva, type VariantProps } from "class-variance-authority";
+// ============================================================================
+// ui/button.tsx — 버튼 공통 부품 (2026-11-10 디자인 3a, 토큰 6개만)
+// ----------------------------------------------------------------------------
+// variant 2: primary = 검정 바탕(bg-fg text-bg), 마우스 올리면 반전(흰 바탕, 검정 글자)
+//            secondary = 흰 바탕(bg-bg text-fg border-line), 마우스 올리면 bg-surface
+// size 2: md = 40px, sm = 32px. 아이콘만 있는 버튼(iconOnly)은 정사각형이고 aria-label 이 없으면 타입 오류
+// 비활성: text-muted bg-surface. 각진 모서리, 그림자 없음, 애니메이션 없음. 포커스는 theme.css 전역 규칙
+// type 기본값은 "button" (폼 안에서 실수로 제출되지 않게)
+// ============================================================================
+import * as React from 'react';
 
-import { cn } from "./utils";
+type Variant = 'primary' | 'secondary';
+type Size = 'md' | 'sm';
+type Common = Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'aria-label'> & {
+  variant?: Variant;
+  size?: Size;
+};
+// 아이콘 전용이면 aria-label 필수 — 빠지면 타입 오류
+export type ButtonProps =
+  | (Common & { iconOnly?: false; 'aria-label'?: string })
+  | (Common & { iconOnly: true; 'aria-label': string });
 
-const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-14 font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        destructive:
-          "bg-destructive text-bg hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
-        outline:
-          "border bg-background text-foreground hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80",
-        ghost:
-          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default: "h-9 px-4 py-2 has-[>svg]:px-3",
-        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
-        icon: "size-9 rounded-md",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  },
-);
+const BASE =
+  'inline-flex items-center justify-center gap-2 border font-bold whitespace-nowrap rounded-none select-none ' +
+  'disabled:cursor-not-allowed disabled:bg-surface disabled:text-muted disabled:border-line';
+const VARIANT: Record<Variant, string> = {
+  primary: 'bg-fg text-bg border-fg enabled:hover:bg-bg enabled:hover:text-fg',
+  secondary: 'bg-bg text-fg border-line enabled:hover:bg-surface',
+};
+const SIZE: Record<Size, string> = { md: 'h-10 px-4 text-14', sm: 'h-8 px-3 text-14' };
+const ICON_SIZE: Record<Size, string> = { md: 'h-10 w-10 shrink-0 p-0', sm: 'h-8 w-8 shrink-0 p-0' };
 
-function Button({
-  className,
-  variant,
-  size,
-  asChild = false,
-  ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
-  }) {
-  const Comp = asChild ? Slot : "button";
-
-  return (
-    <Comp
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  );
-}
-
-export { Button, buttonVariants };
+export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
+  { variant = 'secondary', size = 'md', iconOnly = false, className = '', type = 'button', ...rest },
+  ref,
+) {
+  const cls = [BASE, VARIANT[variant], iconOnly ? ICON_SIZE[size] : SIZE[size], className].filter(Boolean).join(' ');
+  return <button ref={ref} type={type} className={cls} {...rest} />;
+});
