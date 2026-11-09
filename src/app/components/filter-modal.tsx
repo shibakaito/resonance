@@ -878,6 +878,9 @@ export function FilterModal({
                   setMax={setSensMaxInput}
                 />
               </Section>
+              <Section title={FL.voltage}>
+                <CheckGroup options={VOLTAGE_OPTS} selected={draft.voltage} getLabel={lab('voltage')} onToggle={toggleIn('voltage')} counts={counts.voltage} />
+              </Section>
               {FEATURE_FLAGS.recPowerFilter && (
               <Section title={`${FL.recPower} (W)`}>
                 <MinMaxRow
@@ -899,6 +902,9 @@ export function FilterModal({
               </Section>
               <Section title={FL.cdAnalogOut} defaultOpen>
                 <CheckGroup options={CD_ANALOG_OUTS} selected={draft.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleIn('cdAnalogOut')} counts={counts.cdAnalogOut} />
+              </Section>
+              <Section title={FL.voltage}>
+                <CheckGroup options={VOLTAGE_OPTS} selected={draft.voltage} getLabel={lab('voltage')} onToggle={toggleIn('voltage')} counts={counts.voltage} />
               </Section>
             </>
           )}
@@ -929,9 +935,14 @@ export function FilterModal({
             </>
           )}
           {draftIsTuner && (
-            <Section title={FL.tunerBand} defaultOpen>
-              <CheckGroup options={TUNER_BANDS} selected={draft.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleIn('tunerBand')} counts={counts.tunerBand} />
-            </Section>
+            <>
+              <Section title={FL.tunerBand} defaultOpen>
+                <CheckGroup options={TUNER_BANDS} selected={draft.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleIn('tunerBand')} counts={counts.tunerBand} />
+              </Section>
+              <Section title={FL.voltage}>
+                <CheckGroup options={VOLTAGE_OPTS} selected={draft.voltage} getLabel={lab('voltage')} onToggle={toggleIn('voltage')} counts={counts.voltage} />
+              </Section>
+            </>
           )}
 
           {draftIsTurntable && (

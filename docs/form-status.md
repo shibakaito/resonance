@@ -522,7 +522,7 @@
 | `src/lib/listings.ts:5` | 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에) | 영문키 통일은 보류 결정(Y안) — 다국어 착수 때 다시 |
 | `app/page.tsx:38` | 판매하기 → /sell (판매 페이지는 다음 단계에서 추가됨) | /sell 페이지는 이미 있음 — 주석만 오래됨 |
 
-### 2. 사용처 0인 export 상수·함수 — 6건
+### 2. 사용처 0인 export 상수·함수 — 7건
 
 import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오는 것 (`src/app/data`·`src/lib`·`browse-filters.ts` 대상).
 
@@ -534,6 +534,7 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | `src/app/data/catalog.ts` | `CATALOG_BRANDS` |
 | `src/app/data/catalog.ts` | `CATALOG_CATEGORIES` |
 | `src/app/data/category-slugs.ts` | `validateSlugMapping` |
+| `src/lib/labels.ts` | `FILTER_LABELS` |
 
 ### 3. 라벨 표(labels.ts) 중 쓰이지 않는 것 — 7건
 
@@ -547,14 +548,14 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | SPEC_LABELS | `shield` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 | SPEC_LABELS | `pair` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 
-### 4. 원천 없는·죽은 필터 — 10건 (+ 도달할 수 없는 카테고리 분기 3개)
+### 4. 원천 없는·죽은 필터 — 10건 (+ 도달할 수 없는 카테고리 분기 2개)
 
 mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼이 specs 최상위에 쓰는 키: tech, appearance, appearanceDetail, working, workingDetail, yearApprox, components, componentsOther.
 
 | Listing 필드 | 읽는 flat 키 | 필터 UI | 판정 |
 |---|---|---|---|
 | `ampType` | `s.ampType` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
-| `ratedCapacity` | `s.ratedCapacity` | 사이드바(isPowerDevice) | 죽은 필터 — UI 가 도달할 수 없는 분기(isPowerDevice) 아래 |
+| `ratedCapacity` | `s.ratedCapacity` | 사이드바(isPowerDevice) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
 | `cableLength` | `s.cableLength` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
 | `terminalIn` | `s.terminalIn` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
 | `terminalOut` | `s.terminalOut` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
@@ -564,7 +565,7 @@ mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼
 | `shield` | `s.shield` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
 | `pair` | `s.pair` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |
 
-browse-page.tsx 의 카테고리 분기 중 CATEGORY_TREE 에 없는 대분류를 가리키는 것: `isAccessory` (category === '액세서리') · `isTtAccessory` (category === '턴테이블') · `isPowerDevice` (isAccessory && [...subCategories].some((s) => POWER_DEVICE_ITEMS.includes(s))) — 그 아래 그룹·필터 코드는 실행되지 않음.
+browse-page.tsx 의 카테고리 분기 중 CATEGORY_TREE 에 없는 대분류를 가리키는 것: `isAccessory` (category === '액세서리') · `isTtAccessory` (category === '턴테이블') — 그 아래 그룹·필터 코드는 실행되지 않음.
 
 ### 5. 필수 표시 vs 제출 검사 — 불일치 0건
 

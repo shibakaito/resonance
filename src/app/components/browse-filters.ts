@@ -537,7 +537,7 @@ export type FilterVisibility = {
   power: boolean;        // 정격 출력 — 앰프, 프리앰프만, 헤드폰 앰프만 골랐을 때 빼고
   headphoneImp: boolean; // 내 헤드폰 임피던스 — 헤드폰 앰프만 골랐을 때
   impedance: boolean;    // 지원 임피던스 — 정격 출력과 같은 조건
-  voltage: boolean;      // 전원 전압 — 앰프, 턴테이블, 카세트 데크
+  voltage: boolean;      // 전원 전압 — 앰프, 스피커, 턴테이블, 카세트 데크, CD 플레이어, 튜너 (스피커는 액티브만 값이 있어 패시브는 안 걸림)
   turntable: boolean; cassette: boolean; cd: boolean; tuner: boolean;
   powerDevice: boolean; cable: boolean;
 };
@@ -549,14 +549,17 @@ export function filterVisibility(category: string | null | undefined, subs: Read
   const headphoneOnly = amp && only('헤드폰 앰프');
   const turntable = source && only('턴테이블');
   const cassette = source && only('카세트 데크');
+  const cd = source && only('CD 플레이어');
+  const tuner = source && only('튜너');
+  const speaker = category === '스피커';
   return {
-    amp, speaker: category === '스피커', source,
+    amp, speaker, source,
     channel: amp && !headphoneOnly,
     power: amp && !preampOnly && !headphoneOnly,
     headphoneImp: headphoneOnly,
     impedance: amp && !preampOnly && !headphoneOnly,
-    voltage: amp || turntable || cassette,
-    turntable, cassette, cd: source && only('CD 플레이어'), tuner: source && only('튜너'),
+    voltage: amp || speaker || turntable || cassette || cd || tuner,
+    turntable, cassette, cd, tuner,
     powerDevice: category === '액세서리' && [...subs].some((s) => POWER_DEVICE_ITEMS.includes(s)),
     cable: category === '케이블',
   };
@@ -627,7 +630,7 @@ export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility)
   // 내 헤드폰 임피던스 N: 매물 범위가 N을 포함하면 통과 (빈 쪽 = 제한 없음, 범위 미입력 매물은 제외 — inRange 의 값·경계 역할만 바뀜)
   if (vis.headphoneImp && f.headphoneImp != null) r = r.filter((l) => l.hpImpedance != null && inRange(f.headphoneImp, l.hpImpedance.min, l.hpImpedance.max));
   if (vis.impedance && f.impedance.size > 0) r = r.filter((l) => l.impedances.some((i) => f.impedance.has(i)));
-  // 전원 전압 — 앰프, 턴테이블, 카세트 데크 (filterVisibility.voltage)
+  // 전원 전압 — filterVisibility.voltage (앰프, 스피커, 턴테이블, 카세트, CD, 튜너). 값을 비운 매물(패시브 스피커 등)은 null 규칙으로 안 걸림
   if (vis.voltage && f.voltage.size > 0) r = r.filter((l) => f.voltage.has(l.voltage));
   if (vis.speaker) {
     if (f.speakerDetail.size > 0) r = r.filter((l) => f.speakerDetail.has(l.speakerDetail));

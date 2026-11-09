@@ -799,6 +799,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   <FilterSection label={FL.enclosure} options={ENCLOSURE_TYPES} selected={filters.enclosure} getLabel={lab('enclosure')} onToggle={toggleField('enclosure')} counts={counts.enclosure} defaultOpen={false} />
                   <FilterSection label={FL.speakerImpedance} options={SPEAKER_IMPEDANCE} selected={filters.speakerImpedance} getLabel={lab('speakerImpedance')} onToggle={toggleField('speakerImpedance')} counts={counts.speakerImpedance} defaultOpen={false} />
                   <RangeSection label={FL.sensitivity} unit="dB" min={filters.sensitivityMin} max={filters.sensitivityMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, sensitivityMin: m, sensitivityMax: x }))} defaultOpen={false} />
+                  {/* 전원 전압 — 액티브 스피커만 값이 있어 패시브는 집계, 결과에서 빠짐 (2026-11-10) */}
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                   {FEATURE_FLAGS.recPowerFilter && <RangeSection label={FL.recPower} unit="W" min={filters.recPowerMin} max={filters.recPowerMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, recPowerMin: m, recPowerMax: x }))} defaultOpen={false} />}
                 </>
               )}
@@ -849,6 +851,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 <>
                   <FilterSection label={FL.cdDigitalOut} options={CD_DIGITAL_OUTS} selected={filters.cdDigitalOut} getLabel={lab('cdDigitalOut')} onToggle={toggleField('cdDigitalOut')} counts={counts.cdDigitalOut} />
                   <FilterSection label={FL.cdAnalogOut} options={CD_ANALOG_OUTS} selected={filters.cdAnalogOut} getLabel={lab('cdAnalogOut')} onToggle={toggleField('cdAnalogOut')} counts={counts.cdAnalogOut} />
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
                 </>
               )}
               {/* 카세트 데크 전용 (2026-11-10) — 핵심 칸 6개 + 전원 전압 */}
@@ -865,7 +868,10 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               )}
               {/* 튜너 전용 (2026-11-10) */}
               {isTuner && (
-                <FilterSection label={FL.tunerBand} options={TUNER_BANDS} selected={filters.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleField('tunerBand')} counts={counts.tunerBand} />
+                <>
+                  <FilterSection label={FL.tunerBand} options={TUNER_BANDS} selected={filters.tunerBand} getLabel={lab('tunerBand')} onToggle={toggleField('tunerBand')} counts={counts.tunerBand} />
+                  <FilterSection label={FL.voltage} options={VOLTAGE_OPTS} selected={filters.voltage} getLabel={lab('voltage')} onToggle={toggleField('voltage')} counts={counts.voltage} defaultOpen={false} />
+                </>
               )}
 
               {/* 전원 장치 전용 */}

@@ -590,8 +590,8 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   사운드바: ['channelConfig', 'arcSupport', 'subIncluded', 'surroundType'],
   // 서브우퍼 — 인클로저는 패시브, 액티브 둘 다 / 앰프 출력, 전원은 액티브만(기존 showWhen)
   서브우퍼: ['speakerDetail', 'driverComposition', 'enclosure', 'ampPower', 'freqResponse', 'voltage'],
-  // 턴테이블 — 톤암은 기존 규칙대로 형식이 하이파이, DJ일 때만
-  턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
+  // 턴테이블 — 형식 플래그(turntableType)가 꺼져 있어 톤암 등은 늘 보임
+  턴테이블: ['driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'], // 형식(ttType)은 2026-11-10 핵심에서 뺌(FEATURE_FLAGS.turntableType 로 숨긴 칸)
   '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear', 'voltage'], // 정비 이력은 제품 정보 공통 칸으로 옮김. 전원 전압은 2026-11-10 핵심으로
   // CD 플레이어, 튜너 — 원래 분리 없음(마감, 전원, 크기, 무게뿐). 2026-11-10 상세 모드 'custom'을 켜려고 전원 전압만 핵심으로
   'CD 플레이어': ['cdDigitalOut', 'cdAnalogOut', 'voltage'], // 2026-11-10 디지털, 아날로그 출력 추가
