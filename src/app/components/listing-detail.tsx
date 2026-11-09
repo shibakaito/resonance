@@ -15,7 +15,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
 import type { Listing } from './browse-filters';
-import { fmtPrice } from './browse-filters';
+import { fmtPrice, yearText } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
@@ -473,7 +473,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="break-words">{listing?.model ?? ''}</div>
 
                   <div className="font-bold">출시 연도</div>
-                  <div className="break-words">{listing?.year ?? ''}</div>
+                  <div className="break-words">{listing ? yearText(listing) : ''}</div>
 
                   <div className="font-bold">제조국</div>
                   <div className="break-words">{label('country', listing?.country)}</div>

@@ -144,6 +144,10 @@ export const PAIR_OPTS = ['단선', '페어', '세트'];
 export const SHIELD_RELEVANT = ['RCA 케이블', 'XLR 케이블', '디지털 동축 케이블', '포노 케이블', '파워 케이블'];
 
 // 가격 글자 — 통화 기호 + 천 단위 쉼표 (₩4,200,000 / ¥420,000). 환산 표시는 아직 없음(베타 3)
+// 출시 연도 글자 — '대략'이면 '약 1975년', 아니면 적힌 그대로
+export const yearText = (l: { year: string; yearApprox?: boolean }): string =>
+  l.yearApprox && l.year ? `약 ${l.year}${/년$/.test(l.year) ? '' : '년'}` : l.year;
+
 export function fmtPrice(v: number, currency: string = 'krw'): string {
   return (CURRENCY_SYMBOLS[currency] ?? '₩') + v.toLocaleString('ko-KR');
 }
@@ -171,6 +175,7 @@ export type Listing = {
   model: string;
   title: string;             // 판매글 제목 (검색 대상)
   year: string;
+  yearApprox: boolean;        // 출시 연도 '대략' (specs.yearApprox) — 표시는 yearText, 필터는 releaseYear 그대로
   releaseYear: number;
   category: string;          // 표시용 메인 카테고리 (브래드크럼, 카드 라벨 등)
   categories: string[];       // 필터링용 — 다중 카테고리 등록 시 두 곳 모두에 노출

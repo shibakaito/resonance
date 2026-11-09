@@ -69,6 +69,8 @@
 | 제품 정보 | 브랜드 | ● |  |
 | 제품 정보 | 모델 | ● |  |
 | 제품 정보 | 출시 연도 |  |  |
+| 제품 정보 | 대략 |  | 체크박스 |
+| 제품 정보 | 모름 |  | 체크박스 |
 | 제품 정보 | 제조국 |  |  |
 | 제품 정보 | 구성품 |  |  |
 | 제품 정보 | 상태 | ● |  |
@@ -481,15 +483,15 @@
 | 16 | 무게 | 텍스트 |  |  | 카테고리 선택 후 | 선택 |
 | 17 | 기타 사양 | 긴 글 |  |  | 카테고리 선택 후 | 선택 |
 
-## 코드에서 보이는 미완·보류 — 총 39건
+## 코드에서 보이는 미완·보류 — 총 40건
 
 ### 1. TODO·임시·보류 주석 — 7건
 
 | 위치 | 주석 | 메모 |
 |---|---|---|
 | `src/app/components/home-page.tsx:326` | 관심 있게 본 매물: (로그인 기능 전이라) 임시로 최신 DB 매물 표시 |  |
-| `src/app/components/upload-page.tsx:910` | 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계. | 요약·저장은 이미 구현됨 — 주석만 오래됨 |
-| `src/app/components/upload-page.tsx:2426` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
+| `src/app/components/upload-page.tsx:912` | 드라이버 구성 빌더 행들 (스피커). A단계: 입력만, 요약·저장은 다음 단계. | 요약·저장은 이미 구현됨 — 주석만 오래됨 |
+| `src/app/components/upload-page.tsx:2455` | ⚠️ 임시: 실제 시장 가격 데이터 유무 판단 로직으로 추후 교체. |  |
 | `src/app/data/catalog.ts:776` | (하위 카테고리 영어 별칭은 추후 필요해지면 추가) |  |
 | `src/app/data/category-specs.ts:467` | 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가. |  |
 | `src/lib/listings.ts:5` | 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에) | 영문키 통일은 보류 결정(Y안) — 다국어 착수 때 다시 |
@@ -522,12 +524,13 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | SPEC_LABELS | `shield` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 | SPEC_LABELS | `pair` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 
-### 4. 원천 없는·죽은 필터 — 10건 (+ 도달할 수 없는 카테고리 분기 3개)
+### 4. 원천 없는·죽은 필터 — 11건 (+ 도달할 수 없는 카테고리 분기 3개)
 
 mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼이 specs 최상위에 쓰는 키: tech, appearance, appearanceDetail, working, workingDetail, components.
 
 | Listing 필드 | 읽는 flat 키 | 필터 UI | 판정 |
 |---|---|---|---|
+| `yearApprox` | `s.yearApprox` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `ampType` | `s.ampType` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `ratedCapacity` | `s.ratedCapacity` | 사이드바(isPowerDevice) | 죽은 필터 — UI 가 도달할 수 없는 분기(isPowerDevice) 아래 |
 | `cableLength` | `s.cableLength` | 사이드바(isCable) | 원천 없음 — 필터는 보이지만 폼 스키마가 없어 항상 0 |

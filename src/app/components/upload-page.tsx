@@ -865,6 +865,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     setTitle([brand, model, subcategory].filter(Boolean).join(' '));
   }, [brand, model, subcategory, titleEdited]);
   const [year, setYear] = useState(initialData?.year ?? '');
+  const [yearApprox, setYearApprox] = useState(false);   // 출시 연도 '대략' → specs.yearApprox = true (표시 '약 1975년')
+  const [yearUnknown, setYearUnknown] = useState(false); // 출시 연도 '모름' → 칸 비활성, 연도는 비워 저장
   const [finish, setFinish] = useState('');
   const [country, setCountry] = useState('');
   const [handmade, setHandmade] = useState(false);
@@ -975,6 +977,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         if (conditionWorking) specsToSave.working = conditionWorking;
         if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
       }
+      // 출시 연도 '대략' (모름이면 연도 자체를 비워 저장)
+      if (yearApprox && !yearUnknown && year.trim()) (specsToSave as Record<string, unknown>).yearApprox = true;
       // 구성품
       if (components) specsToSave.components = components;
       // 기술 사양 → specs.tech 중첩 객체에 저장 (값/배열 있는 것만, 빈 값·빈 배열 제외).
@@ -1051,7 +1055,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
       const id = await insertListing({
-        images, title, category, subcategory, brand, model, year, finish, country,
+        images, title, category, subcategory, brand, model, year: yearUnknown ? '' : year, finish, country,
         handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency,
         acceptOffers, shippingType, shippingCost, localPickup, location,
         specs: specsToSave,
@@ -1264,15 +1268,40 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               </div>
 
-              {/* 3. 출시 연도 */}
+              {/* 3. 출시 연도 — '대략'이면 specs.yearApprox = true(표시 '약 1975년', 필터는 그 연도로 비교), '모름'이면 칸 비활성 + 비워 저장 */}
               <div>
                 <label className="block font-semibold mb-1">출시 연도</label>
-                <input
-                  value={year}
-                  onChange={(e) => setYear(e.target.value)}
-                  placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
-                />
+                <div className="flex items-center gap-4">
+                  <input
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    disabled={yearUnknown}
+                    placeholder=""
+                    className="flex-1 min-w-0 border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                  />
+                  <label className="flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={yearApprox}
+                      disabled={yearUnknown}
+                      onChange={(e) => setYearApprox(e.target.checked)}
+                      className="accent-[#000000] w-4 h-4"
+                    />
+                    대략
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
+                    <input
+                      type="checkbox"
+                      checked={yearUnknown}
+                      onChange={(e) => {
+                        setYearUnknown(e.target.checked);
+                        if (e.target.checked) { setYear(''); setYearApprox(false); } // 모름이면 연도와 대략을 비움
+                      }}
+                      className="accent-[#000000] w-4 h-4"
+                    />
+                    모름
+                  </label>
+                </div>
               </div>
 
               {/* 4. 제조국 */}

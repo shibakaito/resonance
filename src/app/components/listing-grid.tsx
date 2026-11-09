@@ -11,7 +11,7 @@
 
 import type { MouseEvent } from 'react';
 import { Heart } from 'lucide-react';
-import { Listing, fmtPrice } from './browse-filters';
+import { Listing, fmtPrice, yearText } from './browse-filters';
 import { label } from '@/lib/labels';
 
 export function ListingGrid({
@@ -82,7 +82,7 @@ export function ListingGrid({
             <h3 className="text-sm font-semibold text-[#000000] line-clamp-1 group-hover:text-[#000000] transition">
               {l.model}
             </h3>
-            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{l.year} · {l.category}</p>
+            <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
             <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price, l.currency)}</p>
             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
               {/* 매물의 상태, 지역은 키 → 화면 글자 */}

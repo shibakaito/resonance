@@ -103,6 +103,7 @@ function mapRow(row: ListingRow): Listing {
     model: row.model,
     title: row.title ?? '',
     year: row.year ?? '',
+    yearApprox: s.yearApprox === true, // 출시 연도 '대략'
     releaseYear: row.release_year ?? 0,
     category: cat(row.category),
     categories: (row.categories && row.categories.length > 0 ? row.categories : [row.category]).map(cat),
