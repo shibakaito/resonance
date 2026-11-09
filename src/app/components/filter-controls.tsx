@@ -250,7 +250,7 @@ export function RangeSection({
           </div>
           <button
             onClick={apply}
-            className="mt-2 w-full py-2 text-12 font-medium bg-fg text-bg rounded hover:bg-fg"
+            className="mt-2 w-full py-2 text-12 font-medium bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg rounded"
           >
             적용
           </button>

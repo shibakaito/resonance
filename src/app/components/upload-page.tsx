@@ -1252,7 +1252,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={restoreDraft} className="bg-fg text-bg px-4 h-10 text-14 font-bold rounded-none">
+            <button type="button" onClick={restoreDraft} className="bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg px-4 h-10 text-14 font-bold rounded-none">
               이어서 작성
             </button>
             <button type="button" onClick={discardDraft} className="border border-line px-4 h-10 text-14 font-bold rounded-none hover:border-muted">
@@ -3004,7 +3004,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-fg text-bg py-3 px-6 rounded-none font-bold hover:bg-fg transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-3 px-6 rounded-none font-bold flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
                 {submitting ? '등록 중…' : '상품 등록하기'}

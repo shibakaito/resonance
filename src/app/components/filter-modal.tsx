@@ -1102,7 +1102,7 @@ export function FilterModal({
           </button>
           <button
             onClick={handleApply}
-            className="bg-fg text-bg text-14 font-bold px-6 py-2 rounded-lg hover:bg-fg transition"
+            className="bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg text-14 font-bold px-6 py-2 rounded-lg"
           >
             적용하기 ({previewCount.toLocaleString('ko-KR')}건)
           </button>

@@ -607,7 +607,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               onClick={() => {
                 navigator.clipboard?.writeText(JSON.stringify(heroImg, null, 2));
               }}
-              className="w-full bg-fg hover:bg-fg text-bg py-2 rounded font-bold"
+              className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-2 rounded font-bold"
             >
               📋 값 클립보드 복사
             </button>
@@ -628,7 +628,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         {adminMode && !panelOpen && (
           <button
             onClick={() => setPanelOpen(true)}
-            className="absolute top-4 left-4 z-40 bg-fg hover:bg-fg text-bg text-12 font-bold px-3 py-2 rounded-lg shadow-lg"
+            className="absolute top-4 left-4 z-40 bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg text-12 font-bold px-3 py-2 rounded-lg shadow-lg"
           >
             🛠 관리자 패널
           </button>
@@ -792,7 +792,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                         region: regionKey || undefined,
                       })
                     }
-                    className="w-full bg-fg text-bg font-bold py-3 rounded-lg hover:bg-fg transition mt-4"
+                    className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg font-bold py-3 rounded-lg mt-4"
                   >
                     검색 결과 {filteredCount.toLocaleString('ko-KR')}건 보기
                   </button>
@@ -891,7 +891,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
                   <button
                     onClick={() => onSell(sellQuery ? { title: sellQuery } : undefined)}
-                    className="w-full bg-fg text-bg font-bold py-3 rounded-lg hover:bg-fg transition"
+                    className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg font-bold py-3 rounded-lg"
                   >
                     {sellQuery ? '이 키워드로 등록 시작하기' : '등록 시작하기'}
                   </button>
@@ -961,7 +961,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
               <p className="text-fg mb-4 flex-1">
                 관심 매물의 가격이 변동되면 바로 알려드릴게요.
               </p>
-              <button className="bg-fg text-bg font-bold py-2 px-4 rounded-lg hover:bg-fg transition">
+              <button className="bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg font-bold py-2 px-4 rounded-lg">
                 관심 매물 관리
               </button>
             </div>
@@ -1057,14 +1057,14 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
 
           <div className="bg-fg text-bg rounded-xl p-6 flex gap-4 items-center">
             <div className="flex-1">
-              <p className="text-14 font-bold text-muted mb-1">매물 판매</p>
+              <p className="text-14 font-bold text-line mb-1">매물 판매</p>
               <h3 className="text-20 font-bold mb-2">원하는 방식으로 판매하세요</h3>
               <p className="text-line mb-4">
                 즉시 견적을 받거나 직접 등록할 수 있어요. 가격도, 조건도 직접 정합니다.
               </p>
               <button
                 onClick={() => onSell()}
-                className="bg-fg text-bg font-bold px-5 py-2 rounded-lg hover:bg-fg transition"
+                className="bg-fg border border-bg hover:bg-bg hover:text-fg text-bg font-bold px-5 py-2 rounded-lg"
               >
                 매물 등록하기
               </button>

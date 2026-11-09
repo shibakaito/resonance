@@ -394,7 +394,7 @@ export function ListingDetail({ id }: { id?: string }) {
 
                   <div className="relative">
                     <div className="flex h-1.5 gap-1">
-                      <div className="flex-1 bg-muted rounded-l-full"></div>
+                      <div className="flex-1 bg-line rounded-l-full"></div>
                       <div className="flex-[2] bg-muted"></div>
                       <div className="flex-1 bg-fg rounded-r-full"></div>
                     </div>
@@ -970,10 +970,10 @@ export function ListingDetail({ id }: { id?: string }) {
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <button className="w-full bg-fg text-bg py-3 px-6 rounded-lg font-bold hover:bg-fg transition">
+                  <button className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-3 px-6 rounded-lg font-bold">
                     장바구니 담기
                   </button>
-                  <button className="w-full bg-fg text-bg py-3 px-6 rounded-lg font-bold hover:bg-fg transition">
+                  <button className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-3 px-6 rounded-lg font-bold">
                     바로 구매
                   </button>
                 </div>
