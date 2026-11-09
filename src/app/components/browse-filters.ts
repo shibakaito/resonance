@@ -543,6 +543,20 @@ export function isFilterKeyVisible(key: keyof Filters, v: FilterVisibility): boo
   }
 }
 
+// 사라진 필터 자동 해제 — 하위 카테고리 선택이 바뀌어 화면에서 사라진 칸(isFilterKeyVisible 이 false)의 값을 비움(칩도 안 남음, 2026-11-10)
+//   바뀐 게 없으면 받은 객체 그대로 돌려줌. 대분류를 바꿀 때는 부르지 않음(예전처럼 하위 카테고리만 비움)
+export function pruneHiddenFilters(f: Filters, vis: FilterVisibility): Filters {
+  let out: Filters | null = null;
+  for (const k of Object.keys(f) as (keyof Filters)[]) {
+    if (isFilterKeyVisible(k, vis)) continue;
+    const v = f[k] as Set<string> | number | null;
+    if (v instanceof Set ? v.size === 0 : v == null) continue;
+    out ??= { ...f };
+    (out as Record<string, unknown>)[k] = v instanceof Set ? new Set<string>() : null;
+  }
+  return out ?? f;
+}
+
 // 매물 목록에 필터 적용 (정렬 제외). 어떤 칸을 적용할지는 filterVisibility 결과(vis)가 정함 — 안 보이는 칸은 값이 남아 있어도 안 거름
 export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility): Listing[] {
   let r = list;

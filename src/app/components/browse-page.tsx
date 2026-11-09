@@ -58,6 +58,7 @@ import {
   PLATING_OPTS,
   filterVisibility,
   isFilterKeyVisible,
+  pruneHiddenFilters,
   REMOTE_OPTS,
   SHIELD_OPTS,
   SHIELD_RELEVANT,
@@ -164,13 +165,17 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     setSubCategories(initialSubCategory ? new Set([initialSubCategory]) : new Set());
   }, [category, initialSubCategory]);
 
+  // 하위 카테고리 선택 바꾸기 — 바뀐 선택에서 화면에서 사라지는 필터 칸의 값도 같이 비움(pruneHiddenFilters, 칩 안 남음, 2026-11-10)
+  //   대분류를 바꿀 때(위 effect)는 예전처럼 하위 카테고리만 비움
+  const changeSubCategories = (next: Set<string>) => {
+    setSubCategories(next);
+    setFilters((prev) => pruneHiddenFilters(prev, filterVisibility(category, next)));
+  };
   const toggleSubCategory = (v: string) => {
-    setSubCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(v)) next.delete(v);
-      else next.add(v);
-      return next;
-    });
+    const next = new Set(subCategories);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    changeSubCategories(next);
   };
 
   // 검색어(?q) 1차 필터 — brand/model/title/description + 한글 별칭(브랜드) + 카테고리 한글
@@ -590,7 +595,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               <span className="mx-1">›</span>
               {subCategories.size === 1 ? (
                 <button
-                  onClick={() => setSubCategories(new Set())}
+                  onClick={() => changeSubCategories(new Set())}
                   className="text-sm hover:text-[#000000]"
                 >
                   {category}
@@ -917,7 +922,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           listings={baseCategoryListings}
           brandOptions={brandsByCount}
           onApply={(next, subs) => {
-            setFilters(next);
+            setFilters(pruneHiddenFilters(next, filterVisibility(category, subs))); // 모달에서도 사라진 칸 값은 비워서 넘어오지만 한 번 더
             setSubCategories(subs);
           }}
           onClose={() => setModalOpen(false)}

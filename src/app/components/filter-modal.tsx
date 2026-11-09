@@ -46,6 +46,7 @@ import {
   PLATING_OPTS,
   filterVisibility,
   isFilterKeyVisible,
+  pruneHiddenFilters,
   REMOTE_OPTS,
   SHIELD_OPTS,
   SHIELD_RELEVANT,
@@ -259,13 +260,19 @@ export function FilterModal({
     () => new Set(subCategories)
   );
 
+  // 모달에서 하위 카테고리를 바꾸면 사라지는 필터 칸의 값(체크와 범위 입력)도 같이 비움 — 사이드바와 같은 규칙(pruneHiddenFilters, 2026-11-10)
   const toggleDraftSubCategory = (v: string) => {
-    setDraftSubCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(v)) next.delete(v);
-      else next.add(v);
-      return next;
-    });
+    const next = new Set(draftSubCategories);
+    if (next.has(v)) next.delete(v);
+    else next.add(v);
+    setDraftSubCategories(next);
+    const nv = filterVisibility(category, next);
+    setDraft((d) => pruneHiddenFilters(d, nv));
+    if (!nv.power) { setPowerMinInput(''); setPowerMaxInput(''); }
+    if (!nv.headphoneImp) setHpImpInput('');
+    if (!nv.speaker) { setSensMinInput(''); setSensMaxInput(''); setRecMinInput(''); setRecMaxInput(''); }
+    if (!nv.powerDevice) { setCapMinInput(''); setCapMaxInput(''); }
+    if (!nv.cable) { setLenMinInput(''); setLenMaxInput(''); }
   };
   const str = (n: number | null) => (n != null ? String(n) : '');
   const [priceMinInput, setPriceMinInput] = useState(str(filters.priceMin));
