@@ -18,7 +18,7 @@
 // ============================================================================
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { CategorySpecField, SelectOption } from '@/app/data/category-specs';
+import type { CategorySpecField, SelectOption, CustomSpecRow } from '@/app/data/category-specs';
 import type { PowerPair, DimRow, ValNoteRow, TubeRow, CrossoverRow, AmpPowerRow, DriverRow } from '@/lib/spec-builders';
 import type { ListingInput } from '@/lib/listings';
 import { FEATURE_FLAGS as F } from '@/app/data/feature-flags'; // 숨김 플래그 — 폼과 같은 저장 규칙 (env 의존 없어 정적 import)
@@ -35,6 +35,7 @@ type Draft = {
   drivers?: DriverRow[];
   ampPower?: AmpPowerRow[];
   tubes?: TubeRow[];
+  customSpecs?: CustomSpecRow[];                   // 자유 추가 사양 [제목][내용] — 상세 모드 'custom' 하위 카테고리(프리앰프)만
 };
 type Seed = {
   category: '앰프' | '스피커' | '소스기기';
@@ -79,8 +80,8 @@ const SEEDS: Seed[] = [
       dims: { dimensions: [D('440', '454', '193')] }, valNotes: { weight: [KG('29.4')] } } },
   { category: '앰프', sub: '프리앰프', brand: 'Accuphase', model: 'C-2850', year: '2015', condition: 'used_excellent', price: 7800000, country: '일본', ownership: 'single_owner', location: 'kr_daegu', components: '정품 박스, 리모컨',
     description: '풀밸런스 프리앰프. 리모컨·정품 박스 포함.',
-    draft: { values: { channel: 'stereo', device: 'solid_state', thd: '0.005', snr: '118', phono: 'none', toneControl: 'no', remote: 'yes', voltage: '220V' },
-      ranges: { freqResponse: { low: '3', high: '200' } }, multi: { inputs: ['RCA', 'XLR'], outputs: ['RCA Out', 'XLR Out'] },
+    draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'none', voltage: '220V' }, // 프리앰프 = 상세 모드 'custom': 정해진 상세 칸 대신 자유 추가 사양
+      customSpecs: [{ title: '주파수 응답', value: '3Hz~200kHz' }, { title: 'THD / S/N', value: '0.005% / 118dB' }, { title: '입출력 단자', value: '입력 RCA, XLR / 출력 RCA, XLR' }],
       dims: { dimensions: [D('465', '412', '156')] }, valNotes: { weight: [KG('24.3')] } } },
   { category: '앰프', sub: '파워앰프', brand: 'Pass Labs', model: 'X250.8', year: '2016', condition: 'used_good', price: 9500000, country: '미국', ownership: 'single_owner', location: 'kr_incheon',
     description: '120V 사양(변압기 사용 중). 무게 45kg — 직거래 권장.',
@@ -200,12 +201,13 @@ function loadEnvLocal() {
 }
 
 // ── 폼 handleSubmit 의 kind별 분기와 거울 관계 (upload-page.tsx "⚠️ 아래 kind별 분기는 ..." 참조) ──
-function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: string, d: Draft, B: typeof import('@/lib/spec-builders')) {
+function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: string, d: Draft, B: typeof import('@/lib/spec-builders'), S: typeof import('@/app/data/category-specs')) {
   const values = d.values ?? {};
-  const tech: Record<string, string | string[] | number> = {}; // number = 드라이버 파생 키 wooferMaxInch
+  const tech: Record<string, string | string[] | number | CustomSpecRow[]> = {}; // number = 드라이버 파생 키 wooferMaxInch
   const gate: Record<string, string | string[]> = { ...values, __sub: sub };
   for (const f of fields) {
     if (f.showWhen && !f.showWhen(gate)) continue;           // 폼: 화면에 안 보이는 필드는 저장하지 않음
+    if (S.hiddenByDetailMode(sub, f)) continue;              // 폼: 상세 모드 'custom'(프리앰프)이면 정해진 상세 칸은 저장 안 함
     const inp = f.input;
     let v: string | string[] = '';
     if (inp.kind === 'auto') v = (sub || category).trim();
@@ -223,6 +225,8 @@ function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: s
     if (Array.isArray(v) ? v.length > 0 : v) tech[f.key] = v;
     if (inp.kind === 'drivers') Object.assign(tech, B.driverDerived(d.drivers ?? [])); // + 필터용 파생 키 driverWays·wooferMaxInch (폼과 같음)
   }
+  // 자유 추가 사양 — 폼과 같음: 상세 모드 'custom'일 때만, 빈 줄 빼고 입력 순서대로
+  if (S.CORE_SPEC_KEYS[sub] && S.detailModeOf(sub) === 'custom') { const cs = S.cleanCustomSpecs(d.customSpecs ?? []); if (cs.length > 0) tech.customSpecs = cs; }
   return tech;
 }
 
@@ -231,7 +235,7 @@ function validateSeed(seed: Seed, fields: CategorySpecField[], S: typeof import(
   const errs: string[] = [];
   const d = seed.draft; const values = d.values ?? {};
   const gate: Record<string, string | string[]> = { ...values, __sub: seed.sub };
-  const visible = fields.filter((f) => !f.showWhen || f.showWhen(gate));
+  const visible = fields.filter((f) => (!f.showWhen || f.showWhen(gate)) && !S.hiddenByDetailMode(seed.sub, f)); // 상세 모드 'custom'으로 숨는 칸도 안 보이는 칸
   const byKey = new Map<string, CategorySpecField>();
   visible.forEach((f) => { if (!byKey.has(f.key)) byKey.set(f.key, f); });
   const kinds = new Set(visible.map((f) => f.input.kind));
@@ -250,6 +254,9 @@ function validateSeed(seed: Seed, fields: CategorySpecField[], S: typeof import(
   if (d.crossover?.length && !kinds.has('crossover')) errs.push(`${tag('crossover')}: 크로스오버 칸이 없음`);
   if (d.drivers?.length && !kinds.has('drivers')) errs.push(`${tag('drivers')}: 드라이버 구성 칸이 없음`);
   if (d.ampPower?.length && !kinds.has('ampPower')) errs.push(`${tag('ampPower')}: 앰프 출력 빌더 칸이 없음`);
+  const customMode = !!S.CORE_SPEC_KEYS[seed.sub] && S.detailModeOf(seed.sub) === 'custom';
+  if (d.customSpecs?.length && !customMode) errs.push(`${tag('customSpecs')}: 이 하위 카테고리는 상세 모드가 'custom'이 아님 (DETAIL_MODE_BY_SUB)`);
+  for (const r of d.customSpecs ?? []) if (!r.title.trim() || !r.value.trim()) errs.push(`${tag('customSpecs')}: 제목이나 내용이 빈 줄 (폼은 저장 안 함)`);
   if (d.tubes?.length && !kinds.has('tubeBuilder')) errs.push(`${tag('tubes')}: 진공관 칸이 없음 (device 가 진공관/하이브리드여야 함)`);
   // 선택형 칸(select, 검색 드롭다운, 다중 선택, 숫자+선택의 조건)은 언어 중립 저장 — 한글 값이 남아 있으면 실패
   const HANGUL = /[가-힣]/;
@@ -345,7 +352,7 @@ async function main() {
   // 4) 행 조립 (폼과 동일 경로: tech 조립 → ListingInput → toListingRow)
   const rows = SEEDS.map((seed) => {
     const fields = S.SPEC_FIELDS_BY_CATEGORY[seed.category];
-    const tech = buildTechLikeForm(fields, seed.category, seed.sub, seed.draft, B);
+    const tech = buildTechLikeForm(fields, seed.category, seed.sub, seed.draft, B, S);
     const specs: Record<string, unknown> = {};
     const usedOk = !L.NEW_CONDITION_KEYS.includes(seed.condition); // 폼과 같음: 새 제품 상태면 중고 칸(외관, 작동, 정비 이력) 저장 안 함
     if (usedOk && seed.extras?.appearance) specs.appearance = seed.extras.appearance;
