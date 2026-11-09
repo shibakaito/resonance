@@ -953,6 +953,74 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const isAutoFixedField = (key: string) =>
     (key === 'speakerDetail' && subcategory === '사운드바') || (key === 'device' && subcategory === 'AV 리시버');
 
+  // ── 임시 저장 (이 브라우저 localStorage) — 입력이 멈추고 1초 뒤 자동 저장, 다시 들어오면 "이어서 작성할까요?" 안내. 사진은 저장 안 함 ──
+  const DRAFT_KEY = 'resonance.uploadDraft.v1';
+  const draftData = {
+    category, subcategory, brand, model, title, titleEdited, year, yearApprox, yearUnknown, finish, country, handmade,
+    condition, ownership, components, componentsOther, conditionAppearance, conditionAppearanceDetail, conditionWorking,
+    conditionWorkingDetail, maintenance, specs, powerPairs, ranges, dims, valNotes, impedances, multiSel, driverRows,
+    ampPowerRows, crossoverValues, tubeRows, description, asDescribed, sku, youtubeLink, price, comparePrice, currency,
+    acceptOffers, shippingType, shippingCost, localPickup, locationCountry, location,
+  };
+  type DraftData = Partial<typeof draftData>;
+  const draftJson = JSON.stringify(draftData);
+  const initialDraftJson = useRef(draftJson); // 처음 화면 그대로면(아무것도 안 쳤으면) 저장하지 않음
+  const [draftPrompt, setDraftPrompt] = useState<{ savedAt: number; data: DraftData } | null>(null);
+  const [draftReady, setDraftReady] = useState(false); // 이어서 작성/버리기를 고르기 전엔 자동 저장을 멈춤(저장본 덮어쓰기 방지)
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY);
+      const d = raw ? JSON.parse(raw) : null;
+      if (d && d.data) { setDraftPrompt(d); return; }
+    } catch { /* 저장소를 못 쓰면 임시 저장 없이 진행 */ }
+    setDraftReady(true);
+  }, []);
+  const saveDraftNow = (json: string) => {
+    try {
+      if (json === initialDraftJson.current) { localStorage.removeItem(DRAFT_KEY); return; }
+      const savedAt = Date.now();
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ savedAt, data: JSON.parse(json) }));
+      setDraftSavedAt(savedAt);
+    } catch { /* 저장소가 꽉 찼거나 막혀 있으면 조용히 넘어감 */ }
+  };
+  useEffect(() => {
+    if (!draftReady) return;
+    const t = setTimeout(() => saveDraftNow(draftJson), 1000);
+    return () => clearTimeout(t);
+  }, [draftJson, draftReady]); // eslint-disable-line react-hooks/exhaustive-deps
+  const restoreDraft = () => {
+    const d = draftPrompt?.data ?? {};
+    setCategory(d.category ?? ''); setSubcategory(d.subcategory ?? ''); setBrand(d.brand ?? ''); setModel(d.model ?? '');
+    setTitle(d.title ?? ''); setTitleEdited(!!d.titleEdited); setYear(d.year ?? ''); setYearApprox(!!d.yearApprox); setYearUnknown(!!d.yearUnknown);
+    setFinish(d.finish ?? ''); setCountry(d.country ?? ''); setHandmade(!!d.handmade); setCondition(d.condition ?? ''); setOwnership(d.ownership ?? '');
+    setComponents(d.components ?? []); setComponentsOther(d.componentsOther ?? '');
+    setConditionAppearance(d.conditionAppearance ?? ''); setConditionAppearanceDetail(d.conditionAppearanceDetail ?? '');
+    setConditionWorking(d.conditionWorking ?? ''); setConditionWorkingDetail(d.conditionWorkingDetail ?? ''); setMaintenance(d.maintenance ?? []);
+    if (d.specs) setSpecs(d.specs);
+    if (d.powerPairs) setPowerPairs(d.powerPairs);
+    if (d.ranges) setRanges(d.ranges);
+    if (d.dims) setDims(d.dims);
+    if (d.valNotes) setValNotes(d.valNotes);
+    if (d.impedances) setImpedances(d.impedances);
+    if (d.multiSel) setMultiSel(d.multiSel);
+    if (d.driverRows) setDriverRows(d.driverRows);
+    if (d.ampPowerRows) setAmpPowerRows(d.ampPowerRows);
+    if (d.crossoverValues) setCrossoverValues(d.crossoverValues);
+    if (d.tubeRows) setTubeRows(d.tubeRows);
+    setDescription(d.description ?? ''); setAsDescribed(!!d.asDescribed); setSku(d.sku ?? ''); setYoutubeLink(d.youtubeLink ?? '');
+    setPrice(d.price ?? ''); setComparePrice(d.comparePrice ?? ''); setCurrency(d.currency ?? 'krw'); setAcceptOffers(d.acceptOffers ?? true);
+    setShippingType(d.shippingType ?? ''); setShippingCost(d.shippingCost ?? ''); setLocalPickup(!!d.localPickup);
+    setLocationCountry(d.locationCountry ?? 'kr'); setLocation(d.location ?? '');
+    setDraftPrompt(null);
+    setDraftReady(true);
+  };
+  const discardDraft = () => {
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* 무시 */ }
+    setDraftPrompt(null);
+    setDraftReady(true);
+  };
+
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
     setSubmitError(null);
@@ -1057,6 +1125,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         acceptOffers, shippingType, shippingCost, localPickup, location,
         specs: specsToSave,
       });
+      try { localStorage.removeItem(DRAFT_KEY); } catch { /* 무시 */ } // 등록 성공 → 임시 저장본 삭제
       router.push(`/listing/${id}`); // 저장된 매물 상세로 이동
     } catch (e: any) {
       console.error('매물 저장 실패:', e);
@@ -1128,6 +1197,25 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           {title || '새 상품 등록'}
         </span>
       </nav>
+      {/* 임시 저장본 이어서 작성 안내 */}
+      {draftPrompt && (
+        <div className="mb-4 border border-[#000000] bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex-1">
+            <p className="font-semibold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
+            <p className="text-xs text-gray-500 mt-0.5">
+              {new Date(draftPrompt.savedAt).toLocaleString('ko-KR')}에 저장됨. 사진은 저장되지 않아 다시 올려야 해요.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <button type="button" onClick={restoreDraft} className="bg-[#000000] text-white px-4 h-10 text-sm font-semibold rounded-none">
+              이어서 작성
+            </button>
+            <button type="button" onClick={discardDraft} className="border border-[#e0e0e0] px-4 h-10 text-sm font-semibold rounded-none hover:border-gray-400">
+              버리기
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <aside className="lg:col-span-3">
@@ -2709,6 +2797,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 {submitError}
               </div>
             )}
+            <p className="text-xs text-gray-500 mb-2">
+              작성 중인 내용은 이 브라우저에 자동 저장돼요{draftSavedAt ? ` (${new Date(draftSavedAt).toLocaleTimeString('ko-KR')} 저장)` : ''}. 사진은 저장되지 않아요.
+            </p>
             <div className="flex flex-col sm:flex-row gap-2">
               <button
                 onClick={handleSubmit}
@@ -2718,7 +2809,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <Plus className="w-5 h-5" />
                 {submitting ? '등록 중…' : '상품 등록하기'}
               </button>
-              <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-none font-semibold hover:border-gray-400 transition">
+              {/* 임시 저장 — 자동 저장(1초 뒤)과 같은 저장본에 바로 저장 */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (draftPrompt && draftJson === initialDraftJson.current) return; // 안내가 떠 있고 아무것도 안 쳤으면 예전 저장본을 지우지 않음
+                  setDraftPrompt(null); setDraftReady(true); saveDraftNow(draftJson);
+                }}
+                className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-none font-semibold hover:border-gray-400 transition"
+              >
                 임시 저장
               </button>
               <button className="text-gray-600 py-3 px-6 rounded-none font-semibold hover:text-[#000000] transition">

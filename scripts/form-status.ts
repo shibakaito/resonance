@@ -211,7 +211,7 @@ const FILES = ['src', 'app', 'scripts', 'supabase'].flatMap(walk).filter((p) => 
 const SRC = new Map(FILES.map((p) => [p, read(p)]));
 
 // (1) TODO·임시·보류 주석
-const WORDS = /TODO|FIXME|XXX|HACK|보류|미완|미구현|미해결|임시|추후|다음 단계/; // '나중에'는 설명 주석(SQL 등)까지 잡혀서 제외
+const WORDS = /TODO|FIXME|XXX|HACK|보류|미완|미구현|미해결|임시(?! ?저장)|추후|다음 단계/; // '나중에'는 설명 주석(SQL 등)까지 잡혀서 제외, '임시 저장'은 기능 이름이라 제외
 // 주석이 가리키는 일이 이미 끝났거나 결정된 경우 메모 (주석 문구 일부로 매칭 — 문구가 바뀌면 안 붙음)
 const COMMENT_NOTES: [RegExp, string][] = [
   [/A단계: 입력만, 요약·저장은 다음 단계/, '요약·저장은 이미 구현됨 — 주석만 오래됨'],
