@@ -23,5 +23,6 @@
 | 상태, 외관, 작동 등급 정의 문구(폼과 상세) | 기능 | `FEATURE_FLAGS.gradeDescriptions` (문구는 `labels.ts` LABEL_DESC) | 2026-11-09 | `true`로 |
 | "핸드메이드 제품인가요?" 칸 | 칸 | `FEATURE_FLAGS.handmadeField` | 2026-11-09 | `true`로(저장 로직은 끈 동안에도 그대로, 기본 false) |
 | 앰프 필터 '리모컨 포함'(사이드바, 필터 모달) | 필터 | `FEATURE_FLAGS.remoteFilter` | 2026-11-09 | `true`로. 리모컨 칸이 상세 사양으로 간 것은 플래그가 아니라 `category-specs.ts` CORE_SPEC_KEYS 변경이라, 핵심으로 되돌리려면 목록에 `'remote'` 다시 넣기 |
+| 프리앰프 상세 사양 9칸(진공관 종류, 주파수 응답, THD, S/N, 입력 단자, 출력 단자, 무선/네트워크, 톤 컨트롤, 리모컨 포함) + 상세 사양 버튼 + 기타 사양 → 사양 추가로 대체 | 칸 | `category-specs.ts` DETAIL_MODE_BY_SUB `프리앰프: 'custom'` | 2026-11-09 | 그 줄을 지우거나 `'fields'`로. 자유 추가 사양(specs.tech.customSpecs)은 저장된 매물의 상세에 그대로 보임 |
 
 플래그를 켜고 끌 때는 시드(`scripts/seed-listings.ts`)도 같은 플래그를 따르니 dry-run으로 한 번 확인하세요.
