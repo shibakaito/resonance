@@ -48,8 +48,8 @@ function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabl
       onClick={onClick}
       className={`h-[42px] min-w-[64px] px-4 border rounded-none text-sm font-semibold whitespace-nowrap disabled:cursor-not-allowed ${
         on
-          ? 'border-[#000000] bg-[#000000] text-white'
-          : 'border-[#e0e0e0] bg-white text-[#000000] hover:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:hover:border-[#e0e0e0]'
+          ? 'border-fg bg-fg text-bg'
+          : 'border-line bg-bg text-fg hover:border-fg disabled:bg-surface disabled:text-gray-400 disabled:hover:border-line'
       }`}
     >
       {children}

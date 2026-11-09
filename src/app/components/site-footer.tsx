@@ -7,40 +7,40 @@
 
 export function SiteFooter() {
   return (
-    <footer className="bg-[#000000] text-white mt-16 py-12">
+    <footer className="bg-fg text-bg mt-16 py-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
             <h4 className="font-bold mb-4">구매</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white">기타</a></li>
-              <li><a href="#" className="hover:text-white">베이스</a></li>
-              <li><a href="#" className="hover:text-white">드럼</a></li>
-              <li><a href="#" className="hover:text-white">키보드</a></li>
+              <li><a href="#" className="hover:text-bg">기타</a></li>
+              <li><a href="#" className="hover:text-bg">베이스</a></li>
+              <li><a href="#" className="hover:text-bg">드럼</a></li>
+              <li><a href="#" className="hover:text-bg">키보드</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">판매</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white">판매 시작하기</a></li>
-              <li><a href="#" className="hover:text-white">판매자 허브</a></li>
-              <li><a href="#" className="hover:text-white">가격 가이드</a></li>
+              <li><a href="#" className="hover:text-bg">판매 시작하기</a></li>
+              <li><a href="#" className="hover:text-bg">판매자 허브</a></li>
+              <li><a href="#" className="hover:text-bg">가격 가이드</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">고객 지원</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white">도움말 센터</a></li>
-              <li><a href="#" className="hover:text-white">구매자 보호</a></li>
-              <li><a href="#" className="hover:text-white">배송 안내</a></li>
+              <li><a href="#" className="hover:text-bg">도움말 센터</a></li>
+              <li><a href="#" className="hover:text-bg">구매자 보호</a></li>
+              <li><a href="#" className="hover:text-bg">배송 안내</a></li>
             </ul>
           </div>
           <div>
             <h4 className="font-bold mb-4">회사</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#" className="hover:text-white">회사 소개</a></li>
-              <li><a href="#" className="hover:text-white">채용</a></li>
-              <li><a href="#" className="hover:text-white">보도자료</a></li>
+              <li><a href="#" className="hover:text-bg">회사 소개</a></li>
+              <li><a href="#" className="hover:text-bg">채용</a></li>
+              <li><a href="#" className="hover:text-bg">보도자료</a></li>
             </ul>
           </div>
         </div>

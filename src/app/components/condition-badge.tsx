@@ -14,7 +14,7 @@ export function ConditionBadge({ listing, className = '' }: { listing: Pick<List
     <span className="inline-flex items-center gap-1 align-middle">
       <span className={className}>{text}</span>
       {warn && (
-        <span className="px-1 py-px border border-[#d93025] text-[#d93025] text-[10px] leading-tight font-semibold rounded-none whitespace-nowrap">
+        <span className="px-1 py-px border border-danger text-danger text-[10px] leading-tight font-semibold rounded-none whitespace-nowrap">
           {warn}
         </span>
       )}

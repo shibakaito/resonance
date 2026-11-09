@@ -616,19 +616,19 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {subCategories.size === 1 ? (
                 <button
                   onClick={() => changeSubCategories(new Set())}
-                  className="text-sm hover:text-[#000000]"
+                  className="text-sm hover:text-fg"
                 >
                   {category}
                 </button>
               ) : (
-                <span className="text-[#000000]">{category}</span>
+                <span className="text-fg">{category}</span>
               )}
             </>
           )}
           {subCategories.size === 1 && (
             <>
               <span className="mx-1">›</span>
-              <span className="text-[#000000]">{[...subCategories][0]}</span>
+              <span className="text-fg">{[...subCategories][0]}</span>
             </>
           )}
         </nav>
@@ -640,7 +640,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             </h1>
             {/* "Did you mean?" — 결과 0건 + 비슷한 후보가 있을 때만 표시 */}
             {suggestion && (
-              <p className="text-base text-gray-700 mb-3">
+              <p className="text-base text-muted mb-3">
                 혹시{' '}
                 <button
                   type="button"
@@ -654,7 +654,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
             )}
             {/* 0건인데 비슷한 판매중 브랜드도 없으면 추천 없이 안내만 */}
             {!suggestion && !listingsLoading && searchedListings.length === 0 && (
-              <p className="text-base text-gray-700 mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
+              <p className="text-base text-muted mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
             )}
             {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
             <form
@@ -665,14 +665,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 placeholder="검색어 수정"
-                className="w-full border border-[#e0e0e0] rounded-full pl-5 pr-10 py-2.5 focus:outline-none focus:border-[#000000]"
+                className="w-full border border-line rounded-full pl-5 pr-10 py-2.5 focus:outline-none focus:border-fg"
               />
               <button
                 type="submit"
                 aria-label="검색"
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full hover:bg-[#f7f7f7] flex items-center justify-center"
+                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full hover:bg-surface flex items-center justify-center"
               >
-                <Search className="w-4 h-4 text-gray-700" />
+                <Search className="w-4 h-4 text-muted" />
               </button>
             </form>
           </div>
@@ -689,19 +689,19 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
         {/* 좌측 필터 사이드바 (스크롤 시 따라오지 않음) */}
         <aside className="hidden lg:block w-60 shrink-0">
           <div>
-            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-[#e0e0e0]">
+            <div className="flex items-center gap-2 pb-3 mb-3 border-b border-line">
               <SlidersHorizontal className="w-5 h-5" />
               <h2 className="text-lg font-bold">필터</h2>
             </div>
 
             {/* 활성 필터 섹션 */}
             {activeChips.length > 0 && (
-              <div className="pb-3 mb-3 border-b border-[#e0e0e0]">
+              <div className="pb-3 mb-3 border-b border-line">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-[#000000]">활성 필터</span>
+                  <span className="text-sm font-semibold text-fg">활성 필터</span>
                   <button
                     onClick={resetAll}
-                    className="text-sm text-gray-600 hover:text-[#000000] underline"
+                    className="text-sm text-gray-600 hover:text-fg underline"
                   >
                     전체 초기화
                   </button>
@@ -711,7 +711,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                     <button
                       key={chip.key}
                       onClick={chip.remove}
-                      className="inline-flex items-center justify-between gap-1 px-2.5 py-1 bg-[#f7f7f7] text-[#000000] border border-[#e0e0e0] rounded text-xs font-medium hover:bg-[#e0e0e0] text-left"
+                      className="inline-flex items-center justify-between gap-1 px-2.5 py-1 bg-surface text-fg border border-line rounded text-xs font-medium hover:bg-line text-left"
                     >
                       <span className="truncate">{chip.label}</span>
                       <X className="w-3 h-3 shrink-0" />
@@ -812,8 +812,8 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
                   {(() => {
                     const sortedTerms = terminalsPrioritized([...subCategories]);
                     return (
-                      <div className="border-b border-[#e0e0e0] py-3">
-                        <span className="block text-sm font-semibold text-[#000000] mb-2.5">입출력 단자</span>
+                      <div className="border-b border-line py-3">
+                        <span className="block text-sm font-semibold text-fg mb-2.5">입출력 단자</span>
                         <div className="flex flex-col gap-2">
                           <FilterDropdown label={FL.terminalIn} options={sortedTerms} selected={filters.terminalIn} onToggle={toggleField('terminalIn')} onClear={() => setFilters((prev) => ({ ...prev, terminalIn: new Set() }))} counts={counts.terminalIn} scrollable variant="box" />
                           <FilterDropdown label={FL.terminalOut} options={sortedTerms} selected={filters.terminalOut} onToggle={toggleField('terminalOut')} onClear={() => setFilters((prev) => ({ ...prev, terminalOut: new Set() }))} counts={counts.terminalOut} scrollable variant="box" />
@@ -898,14 +898,14 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               onClick={() => setModalOpen(true)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 filterCount > 0
-                  ? 'border-[#000000] bg-[#f7f7f7] text-[#000000]'
-                  : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+                  ? 'border-fg bg-surface text-fg'
+                  : 'border-line bg-bg text-muted hover:border-gray-400'
               }`}
             >
               <SlidersHorizontal className="w-4 h-4" />
               <span>필터</span>
               {filterCount > 0 && (
-                <span className="bg-[#000000] text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
+                <span className="bg-fg text-bg text-xs rounded-full px-1.5 py-0.5 leading-none">
                   {filterCount}
                 </span>
               )}
@@ -914,16 +914,16 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
 
           {/* 결과 수 + 정렬 */}
           <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-muted">
               {listingsLoading
                 ? '매물을 불러오는 중…'
-                : <><b className="text-[#000000]">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물</>}
+                : <><b className="text-fg">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물</>}
             </p>
             <div className="relative">
               <select
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
-                className="appearance-none border border-[#e0e0e0] rounded-lg pl-4 pr-9 py-2 text-sm focus:outline-none focus:border-[#000000] bg-white"
+                className="appearance-none border border-line rounded-lg pl-4 pr-9 py-2 text-sm focus:outline-none focus:border-fg bg-bg"
               >
                 {SORT_OPTIONS.map((s) => (
                   <option key={s} value={s}>{s}</option>

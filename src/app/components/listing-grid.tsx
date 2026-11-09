@@ -29,7 +29,7 @@ export function ListingGrid({
   // 결과가 하나도 없을 때
   if (listings.length === 0) {
     return (
-      <div className="bg-[#f7f7f7] border border-[#e0e0e0] rounded-lg py-16 text-center text-gray-500">
+      <div className="bg-surface border border-line rounded-lg py-16 text-center text-gray-500">
         조건에 맞는 매물이 없습니다. 필터를 조정해보세요.
       </div>
     );
@@ -42,9 +42,9 @@ export function ListingGrid({
         <button
           key={l.id}
           onClick={() => onSelect(l.id)}
-          className="group text-left bg-white border border-[#e0e0e0] rounded-lg overflow-hidden hover:border-[#000000] hover:shadow-md transition"
+          className="group text-left bg-bg border border-line rounded-lg overflow-hidden hover:border-fg hover:shadow-md transition"
         >
-          <div className="relative aspect-square bg-[#f7f7f7] flex items-center justify-center">
+          <div className="relative aspect-square bg-surface flex items-center justify-center">
             {l.images?.[0] ? (
               <img
                 src={l.images[0]}
@@ -70,21 +70,21 @@ export function ListingGrid({
             )}
             <button
               onClick={(e) => onToggleLike(l.id, e)}
-              className="absolute top-2 right-2 w-8 h-8 bg-white/90 hover:bg-white rounded-full flex items-center justify-center shadow-sm"
+              className="absolute top-2 right-2 w-8 h-8 bg-bg/90 hover:bg-bg rounded-full flex items-center justify-center shadow-sm"
               aria-label="찜하기"
             >
               <Heart
-                className={`w-4 h-4 ${liked.has(l.id) ? 'fill-[#000000] text-[#000000]' : 'text-gray-500'}`}
+                className={`w-4 h-4 ${liked.has(l.id) ? 'fill-fg text-fg' : 'text-gray-500'}`}
               />
             </button>
           </div>
           <div className="p-3">
             <p className="text-xs text-gray-500 mb-1">{l.brand}</p>
-            <h3 className="text-sm font-semibold text-[#000000] line-clamp-1 group-hover:text-[#000000] transition">
+            <h3 className="text-sm font-semibold text-fg line-clamp-1 group-hover:text-fg transition">
               {l.model}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{yearText(l)} · {l.category}</p>
-            <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price, l.currency)}</p>
+            <p className="text-base font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
               {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
               <ConditionBadge listing={l} />

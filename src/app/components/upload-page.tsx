@@ -178,7 +178,7 @@ function ImpedanceSelect({
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="w-full h-[42px] border border-transparent rounded-none pl-3 pr-16 flex items-center bg-[#f4f4f5] focus:outline-none focus:bg-white focus:border-[#3b82f6]"
+          className="w-full h-[42px] border border-transparent rounded-none pl-3 pr-16 flex items-center bg-[#f4f4f5] focus:outline-none focus:bg-bg focus:border-[#3b82f6]"
         >
           {selected.length > 0 ? (
             <span className="text-gray-800">{displayText}</span>
@@ -193,13 +193,13 @@ function ImpedanceSelect({
             type="button"
             aria-label="초기화"
             onClick={(e) => { e.stopPropagation(); onChange([]); }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#e0e0e0]"
+            className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-line"
           >
             <X className="w-4 h-4" />
           </button>
         )}
         {open && (
-          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg py-1">
+          <div className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-bg border border-line rounded-none shadow-lg py-1">
             {options.map((o) => {
               const active = selected.includes(o);
               return (
@@ -207,10 +207,10 @@ function ImpedanceSelect({
                   key={o}
                   type="button"
                   onClick={() => toggle(o)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-[#f7f7f7] ${active ? 'bg-[#f7f7f7] font-semibold text-[#000000]' : 'text-gray-800'}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left hover:bg-surface ${active ? 'bg-surface font-semibold text-fg' : 'text-gray-800'}`}
                 >
                   {o}
-                  {active && <Check className="w-4 h-4 text-[#000000]" />}
+                  {active && <Check className="w-4 h-4 text-fg" />}
                 </button>
               );
             })}
@@ -333,11 +333,11 @@ function MultiSelectDropdown({
           }}
           placeholder="검색 또는 선택"
           disabled={disabled}
-          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 bg-white focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+          className="w-full h-[42px] border border-line rounded-none pl-3 pr-9 py-2 bg-bg focus:outline-none focus:border-fg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed"
         />
         <ChevronDown className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 transition-transform pointer-events-none ${open ? 'rotate-180' : ''}`} />
         {open && (
-          <div ref={listRef} className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg">
+          <div ref={listRef} className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-bg border border-line rounded-none shadow-lg">
             {/* 매칭 추천 항목 */}
             {matched.map((o, idx) => {
               const active = selected.includes(o);
@@ -349,10 +349,10 @@ function MultiSelectDropdown({
                   data-idx={idx}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onClick={() => toggle(o)}
-                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${nav ? 'bg-[#f7f7f7]' : ''} ${active ? 'bg-[#f7f7f7] font-semibold text-[#000000]' : 'text-gray-800'}`}
+                  className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left ${nav ? 'bg-surface' : ''} ${active ? 'bg-surface font-semibold text-fg' : 'text-gray-800'}`}
                 >
                   <span>{highlightMatch(labelOf(o), query)}</span>
-                  {active && <Check className="w-4 h-4 text-[#000000] flex-shrink-0" />}
+                  {active && <Check className="w-4 h-4 text-fg flex-shrink-0" />}
                 </button>
               );
             })}
@@ -363,7 +363,7 @@ function MultiSelectDropdown({
                 data-idx={matched.length}
                 onMouseEnter={() => setActiveIdx(matched.length)}
                 onClick={() => toggle(query.trim())}
-                className={`w-full text-left px-3 py-2 text-sm text-blue-700 ${activeIdx === matched.length ? 'bg-[#f7f7f7]' : ''} ${matched.length > 0 ? 'border-t border-[#e0e0e0]' : ''}`}
+                className={`w-full text-left px-3 py-2 text-sm text-blue-700 ${activeIdx === matched.length ? 'bg-surface' : ''} ${matched.length > 0 ? 'border-t border-line' : ''}`}
               >
                 직접 입력: <span className="font-semibold">{query.trim()}</span>
               </button>
@@ -379,13 +379,13 @@ function MultiSelectDropdown({
       {selected.length > 0 && (
         <div className="mt-2 flex flex-wrap gap-2 items-center">
           {selected.map((o) => (
-            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-[#f7f7f7] rounded-none text-sm text-gray-700">
+            <span key={o} className="inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 bg-surface rounded-none text-sm text-muted">
               {labelOf(o)}
               <button
                 type="button"
                 aria-label={`${labelOf(o)} 삭제`}
                 onClick={() => remove(o)}
-                className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-gray-700"
+                className="w-4 h-4 flex items-center justify-center text-gray-400 hover:text-muted"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -407,7 +407,7 @@ function SpecTextarea({ value, onChange, maxLength = 500, placeholder = '' }: { 
         maxLength={maxLength}
         rows={4}
         placeholder={placeholder}
-        className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] resize-y"
+        className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg resize-y"
       />
       <p className="text-xs text-gray-500 mt-1">{value.length}/{maxLength}자</p>
     </>
@@ -565,7 +565,7 @@ function Typeahead({
           }
         }}
         placeholder={placeholder}
-        className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+        className="w-full border border-line rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-fg"
       />
       {/* 값이 있으면 오른쪽 끝에 X 버튼 — 클릭 시 선택값/검색어 초기화 */}
       {value && (
@@ -580,7 +580,7 @@ function Typeahead({
             setOpen(false);
             setActiveIdx(-1);
           }}
-          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+          className="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
         >
           <X className="w-4 h-4" />
         </button>
@@ -588,7 +588,7 @@ function Typeahead({
       {open && (!hideUntilTyping || qNorm) && (
         <div
           ref={listRef}
-          className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-white border border-[#e0e0e0] rounded-none shadow-lg"
+          className="absolute z-30 left-0 right-0 mt-1 max-h-60 overflow-y-auto bg-bg border border-line rounded-none shadow-lg"
         >
           {matched.length === 0 && (
             <div className="px-3 py-2 text-sm text-gray-500">검색 결과 없음</div>
@@ -609,12 +609,12 @@ function Typeahead({
                     commit(item);
                   }}
                   className={`w-full text-left px-3 py-2 text-sm ${
-                    isActive ? 'bg-[#f7f7f7]' : ''
+                    isActive ? 'bg-surface' : ''
                   } ${
                     isFree
-                      ? 'text-blue-700 border-t border-[#e0e0e0]'
+                      ? 'text-blue-700 border-t border-line'
                       : value === item.text
-                      ? 'font-semibold text-[#000000]'
+                      ? 'font-semibold text-fg'
                       : 'text-gray-800'
                   }`}
                 >
@@ -642,7 +642,7 @@ const BLANK_DRIVER_ROW: DriverRow = { type: '', structure: '', material: '', ban
 function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: DriverRow[]; onChange: (rows: DriverRow[]) => void; subwoofer?: boolean }) {
   const update = (i: number, patch: Partial<DriverRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-none px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-sm focus:outline-none focus:border-fg';
   const summary = driverSummary(rows);
   // 서브우퍼: 종류는 우퍼·패시브 라디에이터만, 셀(구조/재질/크기/개수)은 처음부터 펼침
   const typeOpts = subwoofer ? ['우퍼', '패시브 라디에이터'] : DRIVER_TYPES;
@@ -657,11 +657,11 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
               <select
                 value={row.type}
                 onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
-                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+                className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-gray-400'}`}
               >
                 <option value="" disabled>종류</option>
                 {typeOpts.map((t) => (
-                  <option key={t} value={t} className="text-[#000000]">{t}</option>
+                  <option key={t} value={t} className="text-fg">{t}</option>
                 ))}
               </select>
               {row.type && (
@@ -669,7 +669,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                   type="button"
                   aria-label="종류 초기화"
                   onClick={() => update(i, { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
-                  className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                  className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -704,7 +704,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 <select
                   value={row.sizeUnit}
                   onChange={(e) => update(i, { sizeUnit: e.target.value })}
-                  className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 pr-7 h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000]"
+                  className="w-full appearance-none border border-line rounded-none pl-2 pr-7 h-[42px] text-sm bg-bg focus:outline-none focus:border-fg"
                 >
                   <option value="inch">inch</option>
                   <option value="mm">mm</option>
@@ -734,7 +734,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
                 type="button"
                 aria-label="행 삭제"
                 onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-                className="absolute left-full ml-[10px] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                className="absolute left-full ml-[10px] top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -745,7 +745,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       <button
         type="button"
         onClick={() => onChange([...rows, { ...BLANK_DRIVER_ROW }])}
-        className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+        className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
       >
         <Plus className="w-3.5 h-3.5" /> 드라이버 추가
       </button>
@@ -753,7 +753,7 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
       {summary.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {summary.map((chip, idx) => (
-            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-[#f7f7f7] rounded-none text-sm text-gray-700">{chip}</span>
+            <span key={idx} className="inline-flex items-center px-2.5 py-1 bg-surface rounded-none text-sm text-muted">{chip}</span>
           ))}
         </div>
       )}
@@ -770,7 +770,7 @@ const BLANK_AMP_POWER_ROW: AmpPowerRow = { type: '', power: '' };
 function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (rows: AmpPowerRow[]) => void }) {
   const update = (i: number, patch: Partial<AmpPowerRow>) =>
     onChange(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const inputCls = 'h-[42px] border border-[#e0e0e0] rounded-none px-2 bg-white text-sm focus:outline-none focus:border-[#000000]';
+  const inputCls = 'h-[42px] border border-line rounded-none px-2 bg-bg text-sm focus:outline-none focus:border-fg';
   return (
     <div className="space-y-2">
       {rows.map((row, i) => (
@@ -780,11 +780,11 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
             <select
               value={row.type}
               onChange={(e) => update(i, { type: e.target.value })}
-              className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-white focus:outline-none focus:border-[#000000] ${row.type ? '' : 'text-gray-400'}`}
+              className={`w-full appearance-none border border-line rounded-none pl-2 ${row.type ? 'pr-11' : 'pr-6'} h-[42px] text-sm bg-bg focus:outline-none focus:border-fg ${row.type ? '' : 'text-gray-400'}`}
             >
               <option value="" disabled>종류</option>
               {AMP_POWER_TYPES.map((t) => (
-                <option key={t} value={t} className="text-[#000000]">{t}</option>
+                <option key={t} value={t} className="text-fg">{t}</option>
               ))}
             </select>
             {row.type && (
@@ -792,7 +792,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
                 type="button"
                 aria-label="종류 초기화"
                 onClick={() => update(i, { type: '', power: '' })}
-                className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -812,7 +812,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
               type="button"
               aria-label="행 삭제"
               onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-              className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+              className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
             >
               <X className="w-4 h-4" />
             </button>
@@ -824,7 +824,7 @@ function AmpPowerBuilder({ rows, onChange }: { rows: AmpPowerRow[]; onChange: (r
       <button
         type="button"
         onClick={() => onChange([...rows, { ...BLANK_AMP_POWER_ROW }])}
-        className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+        className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
       >
         <Plus className="w-3.5 h-3.5" /> 앰프 출력 추가
       </button>
@@ -1233,18 +1233,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   };
 
   return (
-    <main className="bg-[#f7f7f7] min-h-screen">
+    <main className="bg-surface min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6">
       <nav className="flex items-center gap-1 text-sm text-gray-600 mb-4">
-        <button className="hover:text-[#000000]">내 상품 목록</button>
+        <button className="hover:text-fg">내 상품 목록</button>
         <ChevronRight className="w-3 h-3" />
-        <span className="text-[#000000] font-medium truncate max-w-md">
+        <span className="text-fg font-medium truncate max-w-md">
           {title || '새 상품 등록'}
         </span>
       </nav>
       {/* 임시 저장본 이어서 작성 안내 */}
       {draftPrompt && (
-        <div className="mb-4 border border-[#000000] bg-white px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
+        <div className="mb-4 border border-fg bg-bg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex-1">
             <p className="font-semibold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
             <p className="text-xs text-gray-500 mt-0.5">
@@ -1252,10 +1252,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </p>
           </div>
           <div className="flex gap-2">
-            <button type="button" onClick={restoreDraft} className="bg-[#000000] text-white px-4 h-10 text-sm font-semibold rounded-none">
+            <button type="button" onClick={restoreDraft} className="bg-fg text-bg px-4 h-10 text-sm font-semibold rounded-none">
               이어서 작성
             </button>
-            <button type="button" onClick={discardDraft} className="border border-[#e0e0e0] px-4 h-10 text-sm font-semibold rounded-none hover:border-gray-400">
+            <button type="button" onClick={discardDraft} className="border border-line px-4 h-10 text-sm font-semibold rounded-none hover:border-gray-400">
               버리기
             </button>
           </div>
@@ -1274,7 +1274,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     {idx < STEPS.length - 1 && (
                       <span
                         className={`absolute left-3 top-6 bottom-0 w-0.5 -ml-px ${
-                          isDone ? 'bg-gray-700' : 'bg-[#e0e0e0]'
+                          isDone ? 'bg-muted' : 'bg-line'
                         }`}
                       />
                     )}
@@ -1285,10 +1285,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <span
                         className={`absolute left-0 top-0 w-6 h-6 rounded-full flex items-center justify-center border-2 transition ${
                           isDone
-                            ? 'bg-[#000000] border-[#000000] text-white'
+                            ? 'bg-fg border-fg text-bg'
                             : isActive
-                            ? 'bg-white border-[#000000] text-[#000000]'
-                            : 'bg-white border-[#e0e0e0] text-gray-400'
+                            ? 'bg-bg border-fg text-fg'
+                            : 'bg-bg border-line text-gray-400'
                         }`}
                       >
                         {isDone ? (
@@ -1299,7 +1299,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </span>
                       <span
                         className={`font-semibold transition ${
-                          isActive ? 'text-[#000000]' : 'text-gray-500 group-hover:text-gray-700'
+                          isActive ? 'text-fg' : 'text-gray-500 group-hover:text-muted'
                         }`}
                       >
                         {step.label}
@@ -1315,7 +1315,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         <div className="lg:col-span-9 space-y-6">
           <section
             id="section-info"
-            className="bg-white border border-[#e0e0e0] rounded-none py-6 px-10"
+            className="bg-bg border border-line rounded-none py-6 px-10"
           >
             <h2 className="text-2xl font-bold mb-2">제품 정보</h2>
             <div className="space-y-4">
@@ -1409,7 +1409,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     onChange={(e) => setYear(e.target.value)}
                     disabled={yearUnknown}
                     placeholder=""
-                    className="flex-1 min-w-0 border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-0 border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed"
                   />
                   <label className="flex items-center gap-2 cursor-pointer text-sm whitespace-nowrap">
                     <input
@@ -1417,7 +1417,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       checked={yearApprox}
                       disabled={yearUnknown}
                       onChange={(e) => setYearApprox(e.target.checked)}
-                      className="accent-[#000000] w-4 h-4"
+                      className="accent-fg w-4 h-4"
                     />
                     대략
                   </label>
@@ -1429,7 +1429,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         setYearUnknown(e.target.checked);
                         if (e.target.checked) { setYear(''); setYearApprox(false); } // 모름이면 연도와 대략을 비움
                       }}
-                      className="accent-[#000000] w-4 h-4"
+                      className="accent-fg w-4 h-4"
                     />
                     모름
                   </label>
@@ -1439,7 +1439,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={year}
                   onChange={(e) => setYear(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                 />
                 )}
               </div>
@@ -1461,13 +1461,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     return (
                       <label
                         key={o.value}
-                        className={`flex items-center gap-2 border rounded-none px-3 h-[42px] text-sm cursor-pointer ${on ? 'border-[#000000] bg-[#f7f7f7]' : 'border-[#e0e0e0] hover:border-gray-400'}`}
+                        className={`flex items-center gap-2 border rounded-none px-3 h-[42px] text-sm cursor-pointer ${on ? 'border-fg bg-surface' : 'border-line hover:border-gray-400'}`}
                       >
                         <input
                           type="checkbox"
                           checked={on}
                           onChange={() => setComponents((p) => (on ? p.filter((x) => x !== o.value) : [...p, o.value]))}
-                          className="accent-[#000000] w-4 h-4"
+                          className="accent-fg w-4 h-4"
                         />
                         {o.label}
                       </label>
@@ -1479,7 +1479,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={componentsOther}
                   onChange={(e) => setComponentsOther(e.target.value)}
                   placeholder={FEATURE_FLAGS.componentChecks ? '기타 구성품 (예: 예비 진공관, 스파이크)' : ''}
-                  className={`${FEATURE_FLAGS.componentChecks ? 'mt-2 ' : ''}w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]`}
+                  className={`${FEATURE_FLAGS.componentChecks ? 'mt-2 ' : ''}w-full h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg`}
                 />
               </div>
 
@@ -1501,13 +1501,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <select
                         value={condition}
                         onChange={(e) => onConditionChange(e.target.value)}
-                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                        className={`w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg ${
                           condition ? '' : 'text-gray-400'
                         }`}
                       >
                         <option value="" disabled>선택하세요</option>
                         {CONDITIONS.map((c) => (
-                          <option key={c.value} value={c.value} className="text-[#000000]">{c.label}</option>
+                          <option key={c.value} value={c.value} className="text-fg">{c.label}</option>
                         ))}
                       </select>
                       <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -1535,13 +1535,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         value={ownership}
                         onChange={(e) => setOwnership(e.target.value)}
                         disabled={condition !== 'used'}
-                        className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                        className={`w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed ${
                           ownership ? '' : 'text-gray-400'
                         }`}
                       >
                         <option value="" disabled>선택하세요</option>
                         {OWNERSHIP_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>
+                          <option key={opt.value} value={opt.value} className="text-fg">{opt.label}</option>
                         ))}
                       </select>
                       <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -1566,7 +1566,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       disabled={condition !== 'used'}
                       placeholder=""
                       aria-label="외관 상태 자세히"
-                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed`}
+                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed`}
                     />
                   );
                   return (
@@ -1585,13 +1585,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 value={conditionAppearance}
                                 onChange={(e) => setConditionAppearance(e.target.value)}
                                 disabled={condition !== 'used'}
-                                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                                className={`w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed ${
                                   conditionAppearance ? '' : 'text-gray-400'
                                 }`}
                               >
                                 <option value="" disabled>선택</option>
                                 {APPEARANCE_OPTIONS.map((o) => (
-                                  <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                                  <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                                 ))}
                               </select>
                               <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -1623,7 +1623,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       disabled={condition !== 'used'}
                       placeholder=""
                       aria-label="작동 상태 자세히"
-                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000] disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed`}
+                      className={`${asButtons ? 'mt-2 w-full' : 'flex-1 min-w-0'} h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed`}
                     />
                   );
                   return (
@@ -1642,13 +1642,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 value={conditionWorking}
                                 onChange={(e) => setConditionWorking(e.target.value)}
                                 disabled={condition !== 'used'}
-                                className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white disabled:bg-[#f7f7f7] disabled:text-gray-400 disabled:cursor-not-allowed ${
+                                className={`w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg disabled:bg-surface disabled:text-gray-400 disabled:cursor-not-allowed ${
                                   conditionWorking ? '' : 'text-gray-400'
                                 }`}
                               >
                                 <option value="" disabled>선택</option>
                                 {WORKING_OPTIONS.map((o) => (
-                                  <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                                  <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                                 ))}
                               </select>
                               <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -1693,7 +1693,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={title}
                   onChange={(e) => { setTitle(e.target.value); setTitleEdited(true); }}
                   placeholder=""
-                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                 />
               </div>
 
@@ -1707,7 +1707,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     type="checkbox"
                     checked={handmade}
                     onChange={(e) => setHandmade(e.target.checked)}
-                    className="accent-[#000000] w-4 h-4"
+                    className="accent-fg w-4 h-4"
                   />
                   <span className="text-sm text-gray-500">직접 만든 수제품입니다.</span>
                 </label>
@@ -1717,7 +1717,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
-          <section className="bg-white border border-[#e0e0e0] rounded-none py-6 px-10">
+          <section className="bg-bg border border-line rounded-none py-6 px-10">
             <button
               type="button"
               onClick={() => setTechExpanded((v) => !v)}
@@ -1746,7 +1746,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         <input
                           value={subcategory || category}
                           readOnly
-                          className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 bg-[#f7f7f7] text-gray-500 cursor-default"
+                          className="w-full h-[42px] border border-line rounded-none px-3 py-2 bg-surface text-gray-500 cursor-default"
                         />
                       </div>
                     );
@@ -1769,7 +1769,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <select
                             value={v}
                             onChange={(e) => setSpec(e.target.value)}
-                            className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${v ? 'pr-16' : 'pr-9'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                            className={`w-full appearance-none border border-line rounded-none pl-3 ${v ? 'pr-16' : 'pr-9'} py-2 h-[42px] focus:outline-none focus:border-fg bg-bg ${
                               v ? '' : 'text-gray-400'
                             }`}
                           >
@@ -1777,7 +1777,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             {f.input.options.map((o) => {
                               // 문자열(앰프: 저장=표시) 또는 {value,label}(스피커: 저장=영문키, 표시=한글)
                               const opt = typeof o === 'string' ? { value: o, label: o } : o;
-                              return <option key={opt.value} value={opt.value} className="text-[#000000]">{opt.label}</option>;
+                              return <option key={opt.value} value={opt.value} className="text-fg">{opt.label}</option>;
                             })}
                           </select>
                           {/* 선택값 있으면 화살표 왼쪽에 X (초기화) */}
@@ -1786,7 +1786,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               type="button"
                               aria-label="초기화"
                               onClick={() => setSpec('')}
-                              className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                              className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                             >
                               <X className="w-4 h-4" />
                             </button>
@@ -1839,7 +1839,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             onChange={(e) => setSpec(free ? e.target.value : numOnly(e.target.value))}
                             inputMode={free ? 'text' : 'decimal'}
                             placeholder=""
-                            className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 py-2 focus:outline-none focus:border-[#000000] ${
+                            className={`w-full h-[42px] border border-line rounded-none pl-3 py-2 focus:outline-none focus:border-fg ${
                               unit ? 'pr-10' : 'pr-3'
                             }`}
                           />
@@ -1875,7 +1875,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               value={specs[f.key] || ''}
                               onChange={(e) => setSpec(numOnly(e.target.value))}
                               inputMode="decimal"
-                              className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
+                              className={`w-full h-[42px] border border-line rounded-none pl-3 ${unit ? 'pr-10' : 'pr-3'} py-2 focus:outline-none focus:border-fg`}
                             />
                             {unit && (
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{unit}</span>
@@ -1886,11 +1886,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             <select
                               value={typeVal}
                               onChange={(e) => setSpecs({ ...specs, [typeKey]: e.target.value })}
-                              className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${typeVal ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${typeVal ? '' : 'text-gray-400'}`}
+                              className={`w-full appearance-none border border-line rounded-none pl-3 ${typeVal ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-fg bg-bg ${typeVal ? '' : 'text-gray-400'}`}
                             >
                               <option value="" disabled>선택</option>
                               {f.input.options.map((o) => (
-                                <option key={o} value={o} className="text-[#000000]">{o}</option>
+                                <option key={o} value={o} className="text-fg">{o}</option>
                               ))}
                             </select>
                             {typeVal && (
@@ -1898,7 +1898,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 type="button"
                                 aria-label="초기화"
                                 onClick={() => setSpecs({ ...specs, [typeKey]: '' })}
-                                className="absolute right-7 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                className="absolute right-7 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -1930,7 +1930,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   }}
                                   inputMode="decimal"
                                   placeholder="출력값"
-                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+                                  className="w-full h-[42px] border border-line rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-fg"
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">W</span>
                               </div>
@@ -1944,11 +1944,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     setPowerPairs(pairs);
                                     setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                   }}
-                                  className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${p.ohm ? '' : 'text-gray-400'}`}
+                                  className={`w-full appearance-none border border-line rounded-none pl-3 ${p.ohm ? 'pr-14' : 'pr-8'} py-2 h-[42px] focus:outline-none focus:border-fg bg-bg ${p.ohm ? '' : 'text-gray-400'}`}
                                 >
                                   <option value="" disabled>기준</option>
                                   {ohmOpts.map((o) => (
-                                    <option key={o} value={o} className="text-[#000000]">{o}</option>
+                                    <option key={o} value={o} className="text-fg">{o}</option>
                                   ))}
                                 </select>
                                 {p.ohm && (
@@ -1960,7 +1960,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                       setPowerPairs(pairs);
                                       setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                     }}
-                                    className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                    className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                                   >
                                     <X className="w-3.5 h-3.5" />
                                   </button>
@@ -1977,7 +1977,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                 }}
                                 placeholder="비고"
-                                className="w-[114px] flex-shrink-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="w-[114px] flex-shrink-0 h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                               />
                               {powerPairs.length > 1 ? (
                                 <button
@@ -1988,7 +1988,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     setSpecs({ ...specs, [f.key]: buildPower(pairs) });
                                   }}
                                   aria-label="삭제"
-                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface flex-shrink-0"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -2000,7 +2000,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '', note: '' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 임피던스별 출력 추가
                           </button>
@@ -2027,7 +2027,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => setRange({ low: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="하한"
-                              className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                              className="w-full h-[42px] border border-line rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-fg"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{lowUnit}</span>
                           </div>
@@ -2038,7 +2038,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               onChange={(e) => setRange({ high: numOnly(e.target.value) })}
                               inputMode="decimal"
                               placeholder="상한"
-                              className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-[#000000]"
+                              className="w-full h-[42px] border border-line rounded-none pl-3 pr-10 py-2 focus:outline-none focus:border-fg"
                             />
                             <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">{highUnit}</span>
                           </div>
@@ -2062,7 +2062,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           onChange={(e) => update(i, { [axis]: numOnly(e.target.value) })}
                           inputMode="decimal"
                           placeholder={ph}
-                          className="w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-[#000000]"
+                          className="w-full h-[42px] border border-line rounded-none pl-3 pr-9 py-2 focus:outline-none focus:border-fg"
                         />
                         <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">mm</span>
                       </div>
@@ -2084,7 +2084,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   value={r.note}
                                   onChange={(e) => update(i, { note: e.target.value })}
                                   placeholder="비고"
-                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                  className="w-full h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                                 />
                               </div>
                               {rows.length > 1 ? (
@@ -2092,7 +2092,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   type="button"
                                   aria-label="삭제"
                                   onClick={() => commit(rows.filter((_, idx) => idx !== i))}
-                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -2104,7 +2104,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => commit([...rows, { w: '', d: '', h: '', note: '' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크기 추가
                           </button>
@@ -2134,7 +2134,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   value={r.value}
                                   onChange={(e) => update(i, { value: numOnly(e.target.value) })}
                                   inputMode="decimal"
-                                  className={`w-full h-[42px] border border-[#e0e0e0] rounded-none pl-3 ${unit ? 'pr-9' : 'pr-3'} py-2 focus:outline-none focus:border-[#000000]`}
+                                  className={`w-full h-[42px] border border-line rounded-none pl-3 ${unit ? 'pr-9' : 'pr-3'} py-2 focus:outline-none focus:border-fg`}
                                 />
                                 {unit && (
                                   <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 text-xs pointer-events-none">{unit}</span>
@@ -2146,7 +2146,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   value={r.note}
                                   onChange={(e) => update(i, { note: e.target.value })}
                                   placeholder="비고"
-                                  className="w-full h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                  className="w-full h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                                 />
                               </div>
                               {rows.length > 1 ? (
@@ -2154,7 +2154,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   type="button"
                                   aria-label="삭제"
                                   onClick={() => commit(rows.filter((_, idx) => idx !== i))}
-                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                  className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -2166,7 +2166,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => commit([...rows, { value: '', note: '' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> {f.label} 추가
                           </button>
@@ -2233,13 +2233,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 value={row.value}
                                 onChange={(e) => { const nv = numOnly(e.target.value); setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, value: nv } : x))); }}
                                 inputMode="decimal"
-                                className="flex-1 min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="flex-1 min-w-0 h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                               />
                               <div className="relative w-24 flex-shrink-0">
                                 <select
                                   value={row.unit}
                                   onChange={(e) => { const u = e.target.value; setCrossoverValues((prev) => prev.map((x, i) => (i === idx ? { ...x, unit: u } : x))); }}
-                                  className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-8 h-[42px] bg-white focus:outline-none focus:border-[#000000]"
+                                  className="w-full appearance-none border border-line rounded-none pl-3 pr-8 h-[42px] bg-bg focus:outline-none focus:border-fg"
                                 >
                                   <option value="Hz">Hz</option>
                                   <option value="kHz">kHz</option>
@@ -2251,7 +2251,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   type="button"
                                   aria-label="삭제"
                                   onClick={() => setCrossoverValues((prev) => prev.filter((_, i) => i !== idx))}
-                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                  className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface flex-shrink-0"
                                 >
                                   <X className="w-4 h-4" />
                                 </button>
@@ -2263,7 +2263,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setCrossoverValues((prev) => [...prev, { value: '', unit: 'Hz' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 크로스오버 추가
                           </button>
@@ -2291,11 +2291,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   <select
                                     value={row.role}
                                     onChange={(e) => update({ role: e.target.value, type: '' })}
-                                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 ${row.role ? 'pr-14' : 'pr-8'} h-[42px] bg-white focus:outline-none focus:border-[#000000] ${row.role ? '' : 'text-gray-400'}`}
+                                    className={`w-full appearance-none border border-line rounded-none pl-3 ${row.role ? 'pr-14' : 'pr-8'} h-[42px] bg-bg focus:outline-none focus:border-fg ${row.role ? '' : 'text-gray-400'}`}
                                   >
                                     <option value="" disabled>역할</option>
                                     {TUBE_ROLE_OPTS.map((o) => (
-                                      <option key={o} value={o} className="text-[#000000]">{o}</option>
+                                      <option key={o} value={o} className="text-fg">{o}</option>
                                     ))}
                                   </select>
                                   {row.role && (
@@ -2303,7 +2303,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                       type="button"
                                       aria-label="초기화"
                                       onClick={() => update({ role: '', type: '' })}
-                                      className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                      className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                                     >
                                       <X className="w-3.5 h-3.5" />
                                     </button>
@@ -2326,7 +2326,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   onChange={(e) => update({ qty: numOnly(e.target.value) })}
                                   inputMode="numeric"
                                   placeholder="개수"
-                                  className="w-20 flex-shrink-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                  className="w-20 flex-shrink-0 h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                                 />
                                 {/* 행삭제 (2행 이상일 때만) */}
                                 {tubeRows.length > 1 ? (
@@ -2334,7 +2334,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     type="button"
                                     aria-label="삭제"
                                     onClick={() => { const next = tubeRows.filter((_, i) => i !== idx); setTubeRows(next); setSpecs({ ...specs, tubes: buildTubes(next) }); }}
-                                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7] flex-shrink-0"
+                                    className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface flex-shrink-0"
                                   >
                                     <X className="w-4 h-4" />
                                   </button>
@@ -2347,7 +2347,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setTubeRows((prev) => [...prev, { role: '', type: '', qty: '' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 진공관 추가
                           </button>
@@ -2387,20 +2387,20 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                 onChange={(e) => updateRow(i, { title: e.target.value })}
                                 placeholder="제목"
                                 aria-label={`사양 ${i + 1} 제목`}
-                                className="flex-[2_1_0] min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="flex-[2_1_0] min-w-0 h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                               />
                               <input
                                 value={r.value}
                                 onChange={(e) => updateRow(i, { value: e.target.value })}
                                 placeholder="내용"
                                 aria-label={`사양 ${i + 1} 내용`}
-                                className="flex-[3_1_0] min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                                className="flex-[3_1_0] min-w-0 h-[42px] border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                               />
                               <button
                                 type="button"
                                 aria-label="삭제"
                                 onClick={() => setCustomSpecs((rows) => rows.filter((_, idx) => idx !== i))}
-                                className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                                className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-muted rounded-full hover:bg-surface"
                               >
                                 <X className="w-4 h-4" />
                               </button>
@@ -2409,7 +2409,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           <button
                             type="button"
                             onClick={() => setCustomSpecs((rows) => [...rows, { title: '', value: '' }])}
-                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                            className="text-sm text-fg font-semibold inline-flex items-center gap-1 hover:underline"
                           >
                             <Plus className="w-3.5 h-3.5" /> 사양 추가
                           </button>
@@ -2428,7 +2428,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           type="button"
                           onClick={() => setDetailExpanded((v) => !v)}
                           aria-expanded={detailExpanded}
-                          className="w-full flex items-center justify-between border border-[#e0e0e0] rounded-none px-4 h-[42px] text-sm font-semibold text-[#000000] bg-[#f7f7f7] hover:border-[#000000]"
+                          className="w-full flex items-center justify-between border border-line rounded-none px-4 h-[42px] text-sm font-semibold text-fg bg-surface hover:border-fg"
                         >
                           <span>상세 사양 ({detailCount})</span>
                           <ChevronDown className={`w-4 h-4 text-gray-500 ${detailExpanded ? 'rotate-180' : ''}`} />
@@ -2454,7 +2454,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={specs[f.key] || ''}
                       onChange={(e) => setSpecs({ ...specs, [f.key]: e.target.value })}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                     />
                     )}
                   </div>
@@ -2469,7 +2469,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
           <section
             id="section-photos"
-            className="bg-white border border-[#e0e0e0] rounded-none p-6"
+            className="bg-bg border border-line rounded-none p-6"
           >
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-xl font-bold">
@@ -2482,13 +2482,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             <div className="mb-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-sm font-semibold text-gray-700">예시</p>
-                <button className="text-xs text-gray-500 hover:text-gray-700">숨김</button>
+                <p className="text-sm font-semibold text-muted">예시</p>
+                <button className="text-xs text-gray-500 hover:text-muted">숨김</button>
               </div>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {PHOTO_EXAMPLES.map((ex) => (
                   <div key={ex.label} className="text-center">
-                    <div className="aspect-square rounded-none overflow-hidden bg-white border border-[#e0e0e0] mb-1">
+                    <div className="aspect-square rounded-none overflow-hidden bg-bg border border-line mb-1">
                       <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
                     </div>
                     <p className="text-xs text-gray-600">{ex.label}</p>
@@ -2496,7 +2496,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 ))}
               </div>
               <p className="text-xs text-gray-500 mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
-              <button className="text-sm text-[#000000] hover:text-[#000000] font-semibold mt-3 inline-flex items-center gap-1">
+              <button className="text-sm text-fg hover:text-fg font-semibold mt-3 inline-flex items-center gap-1">
                 최고 품질의 사진을 위한 팁 <ChevronRight className="w-3 h-3" />
               </button>
             </div>
@@ -2514,11 +2514,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               onClick={openFilePicker}
               onDrop={onDrop}
               onDragOver={onDragOver}
-              className="border-2 border-dashed border-[#e0e0e0] hover:border-gray-700 hover:bg-[#f7f7f7] rounded-none py-12 flex flex-col items-center justify-center text-center cursor-pointer transition"
+              className="border-2 border-dashed border-line hover:border-muted hover:bg-surface rounded-none py-12 flex flex-col items-center justify-center text-center cursor-pointer transition"
             >
               <button
                 type="button"
-                className="px-4 py-2 border border-gray-400 rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm flex items-center gap-1.5 mb-3"
+                className="px-4 py-2 border border-gray-400 rounded-full bg-bg hover:bg-surface font-semibold text-sm flex items-center gap-1.5 mb-3"
               >
                 <Plus className="w-4 h-4" />
                 사진 업로드
@@ -2530,8 +2530,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
             {/* 업로드 중 / 에러 표시 */}
             {uploadingCount > 0 && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-gray-700">
-                <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-[#000000] rounded-full animate-spin" />
+              <div className="mt-3 flex items-center gap-2 text-sm text-muted">
+                <span className="inline-block w-4 h-4 border-2 border-gray-300 border-t-fg rounded-full animate-spin" />
                 업로드 중… ({uploadingCount}장 처리 중)
               </div>
             )}
@@ -2543,24 +2543,24 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             {images.length > 0 && (
               <div className="mt-6">
-                <p className="font-semibold mb-3 pb-2 border-b border-[#e0e0e0]">사진</p>
+                <p className="font-semibold mb-3 pb-2 border-b border-line">사진</p>
                 <p className="text-xs font-semibold text-gray-500 mb-2">대표</p>
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
                   {images.map((img, idx) => (
                     <div
                       key={idx}
-                      className="relative aspect-square rounded-none overflow-hidden border-2 border-[#e0e0e0] bg-[#f7f7f7] group"
+                      className="relative aspect-square rounded-none overflow-hidden border-2 border-line bg-surface group"
                     >
                       <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
                       {idx === 0 && (
-                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-[#000000] text-white text-[10px] rounded">
+                        <span className="absolute top-1 left-1 px-1.5 py-0.5 bg-fg text-bg text-[10px] rounded">
                           대표
                         </span>
                       )}
                       <button
                         onClick={() => removeImage(idx)}
                         aria-label="사진 삭제"
-                        className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
+                        className="absolute top-1 right-1 w-6 h-6 bg-black/60 text-bg rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition"
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -2571,22 +2571,22 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             )}
           </section>
 
-          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+          <section className="bg-bg border border-line rounded-none p-6">
             <h3 className="text-xl font-bold mb-4">항목을 설명하세요.</h3>
 
             <div>
               <label className="block font-semibold mb-1">
                 이 상품과 그 상태에 대해 설명해 주세요
               </label>
-              <div className="border border-[#e0e0e0] rounded-none overflow-hidden focus-within:border-[#000000]">
-                <div className="flex gap-1 px-2 py-1.5 border-b border-[#e0e0e0] bg-[#f7f7f7]">
-                  <button className="w-7 h-7 rounded hover:bg-[#e0e0e0] flex items-center justify-center text-gray-700">
+              <div className="border border-line rounded-none overflow-hidden focus-within:border-fg">
+                <div className="flex gap-1 px-2 py-1.5 border-b border-line bg-surface">
+                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-muted">
                     <Bold className="w-4 h-4" />
                   </button>
-                  <button className="w-7 h-7 rounded hover:bg-[#e0e0e0] flex items-center justify-center text-gray-700">
+                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-muted">
                     <Italic className="w-4 h-4" />
                   </button>
-                  <button className="w-7 h-7 rounded hover:bg-[#e0e0e0] flex items-center justify-center text-gray-700">
+                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-muted">
                     <List className="w-4 h-4" />
                   </button>
                 </div>
@@ -2601,13 +2601,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <p className="text-xs text-gray-500 mt-1">{description.length}자 입력됨</p>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-[#e0e0e0]">
+            <div className="mt-4 pt-4 border-t border-line">
               <label className="flex items-start gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={asDescribed}
                   onChange={(e) => setAsDescribed(e.target.checked)}
-                  className="mt-1 accent-[#000000] w-4 h-4"
+                  className="mt-1 accent-fg w-4 h-4"
                 />
                 <div>
                   <p className="font-semibold text-sm">이 상품은 "설명한 그대로" 판매됩니다.</p>
@@ -2618,7 +2618,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </label>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-[#e0e0e0]">
+            <div className="mt-4 pt-4 border-t border-line">
               <button
                 onClick={() => setSkuOpen(!skuOpen)}
                 className="w-full flex items-center justify-between font-semibold"
@@ -2634,14 +2634,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={sku}
                     onChange={(e) => setSku(e.target.value)}
                     placeholder=""
-                    className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                    className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                   />
                 </div>
               )}
             </div>
           </section>
 
-          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+          <section className="bg-bg border border-line rounded-none p-6">
             <div className="flex items-center gap-2 mb-4">
               <Youtube className="w-5 h-5 text-red-600" />
               <h3 className="text-xl font-bold">상품 목록에 YouTube 동영상을 삽입하세요</h3>
@@ -2653,14 +2653,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   value={youtubeLink}
                   onChange={(e) => setYoutubeLink(e.target.value)}
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">유튜브 영상을 검색하세요</label>
                 <input
                   placeholder=""
-                  className="w-full border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                  className="w-full border border-line rounded-none px-3 py-2 focus:outline-none focus:border-fg"
                 />
               </div>
             </div>
@@ -2669,7 +2669,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <h2 id="section-price" className="text-2xl font-bold pl-2 pt-2">
             가격
           </h2>
-          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+          <section className="bg-bg border border-line rounded-none p-6">
             <div className="space-y-4">
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               <div className="max-w-[12rem]">
@@ -2687,10 +2687,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <select
                         value={currency}
                         onChange={(e) => setCurrency(e.target.value)}
-                        className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
+                        className="w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg"
                       >
                         {CURRENCY_OPTS.map((o) => (
-                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label} ({CURRENCY_SYMBOLS[o.value]})</option>
+                          <option key={o.value} value={o.value} className="text-fg">{o.label} ({CURRENCY_SYMBOLS[o.value]})</option>
                         ))}
                       </select>
                       <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -2708,7 +2708,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={price}
                       onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-line rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-fg"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[currency]}</span>
                   </div>
@@ -2722,7 +2722,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       value={comparePrice}
                       onChange={(e) => setComparePrice(e.target.value.replace(/[^0-9]/g, ''))}
                       placeholder=""
-                      className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                      className="w-full border border-line rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-fg"
                     />
                     <span className="absolute right-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[currency]}</span>
                   </div>
@@ -2733,7 +2733,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   type="checkbox"
                   checked={acceptOffers}
                   onChange={(e) => setAcceptOffers(e.target.checked)}
-                  className="accent-[#000000] w-4 h-4"
+                  className="accent-fg w-4 h-4"
                 />
                 <span className="font-semibold">구매자의 가격 제안 받기</span>
               </label>
@@ -2753,7 +2753,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             const hasMarketData = true;
             if (!hasMarketData) {
               return (
-                <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+                <section className="bg-bg border border-line rounded-none p-6">
                   <h3 className="text-xl font-bold mb-2">가격 변동 내역</h3>
                   <p className="text-sm text-gray-500">
                     해당 제품의 시장 가격 데이터가 아직 없습니다.
@@ -2799,7 +2799,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 : '현재 평균 시장 가격대 안에 있어요';
 
             return (
-              <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+              <section className="bg-bg border border-line rounded-none p-6">
                 <h3 className="text-xl font-bold mb-4">
                   이 제품은 <span className={zoneColor}>{zoneLabel}</span>이에요
                 </h3>
@@ -2815,11 +2815,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       {/* 현재 가격 말풍선 */}
                       {priceNum > 0 && (
                         <div
-                          className="absolute -top-9 -translate-x-1/2 px-3 py-1 bg-white border border-[#e0e0e0] rounded-full shadow-sm font-bold whitespace-nowrap text-sm"
+                          className="absolute -top-9 -translate-x-1/2 px-3 py-1 bg-bg border border-line rounded-full shadow-sm font-bold whitespace-nowrap text-sm"
                           style={{ left: `${positionPct}%` }}
                         >
                           {priceNum.toLocaleString()}원
-                          <span className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-2.5 h-2.5 bg-white border-r border-b border-[#e0e0e0] rotate-45" />
+                          <span className="absolute left-1/2 -translate-x-1/2 -bottom-1.5 w-2.5 h-2.5 bg-bg border-r border-b border-line rotate-45" />
                         </div>
                       )}
 
@@ -2833,7 +2833,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         {/* 현재 가격 핸들(원형) */}
                         {priceNum > 0 && (
                           <div
-                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-white border-[3px] border-green-500 shadow"
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 rounded-full bg-bg border-[3px] border-green-500 shadow"
                             style={{ left: `${positionPct}%` }}
                           />
                         )}
@@ -2859,7 +2859,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <h2 id="section-shipping" className="text-2xl font-bold pl-2 pt-2">
             배송
           </h2>
-          <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
+          <section className="bg-bg border border-line rounded-none p-6">
             <div className="space-y-2 mb-4">
               {[
                 { value: 'free', label: '무료 배송', desc: '판매자가 배송비를 부담' },
@@ -2870,8 +2870,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   key={opt.value}
                   className={`flex items-start gap-3 p-3 rounded-none border-2 cursor-pointer transition ${
                     shippingType === opt.value
-                      ? 'border-[#000000] bg-[#f7f7f7]'
-                      : 'border-[#e0e0e0] hover:border-[#e0e0e0]'
+                      ? 'border-fg bg-surface'
+                      : 'border-line hover:border-line'
                   }`}
                 >
                   <input
@@ -2880,7 +2880,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={opt.value}
                     checked={shippingType === opt.value}
                     onChange={(e) => setShippingType(e.target.value as 'free' | 'flat' | 'calculated')}
-                    className="mt-1 accent-[#000000]"
+                    className="mt-1 accent-fg"
                   />
                   <div>
                     <p className="font-semibold">{opt.label}</p>
@@ -2897,18 +2897,18 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     value={shippingCost}
                     onChange={(e) => setShippingCost(e.target.value.replace(/[^0-9]/g, ''))}
                     placeholder=""
-                    className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
+                    className="w-full border border-line rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-fg"
                   />
                   <span className="absolute right-3 top-2 text-gray-500">원</span>
                 </div>
               </div>
             )}
-            <label className="flex items-center gap-2 cursor-pointer mt-4 pt-4 border-t border-[#e0e0e0]">
+            <label className="flex items-center gap-2 cursor-pointer mt-4 pt-4 border-t border-line">
               <input
                 type="checkbox"
                 checked={localPickup}
                 onChange={(e) => setLocalPickup(e.target.checked)}
-                className="accent-[#000000] w-4 h-4"
+                className="accent-fg w-4 h-4"
               />
               <span className="font-semibold">직거래 가능</span>
             </label>
@@ -2929,10 +2929,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       <select
                         value={locationCountry}
                         onChange={(e) => onLocationCountryChange(e.target.value)}
-                        className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
+                        className="w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg"
                       >
                         {LOCATION_COUNTRY_OPTS.map((o) => (
-                          <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                          <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                         ))}
                       </select>
                       <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -2946,13 +2946,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <select
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className={`w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white ${
+                    className={`w-full appearance-none border border-line rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-fg bg-bg ${
                       location ? '' : 'text-gray-400'
                     }`}
                   >
                     <option value="">선택하세요</option>
                     {locationOptsFor(locationCountry).map((o) => (
-                      <option key={o.value} value={o.value} className="text-[#000000]">{o.label}</option>
+                      <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                     ))}
                   </select>
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
@@ -2961,11 +2961,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
           </section>
 
-          <div className="bg-white border border-[#e0e0e0] rounded-none p-6">
-            <div className="rounded-none bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0] p-4 space-y-3 mb-5">
+          <div className="bg-bg border border-line rounded-none p-6">
+            <div className="rounded-none bg-gradient-to-br from-surface/60 via-bg to-surface border border-line p-4 space-y-3 mb-5">
               <div className="flex items-start gap-2">
-                <div className="w-8 h-8 rounded-none bg-[#e0e0e0] flex items-center justify-center flex-shrink-0">
-                  <Tag className="w-4 h-4 text-[#000000]" />
+                <div className="w-8 h-8 rounded-none bg-line flex items-center justify-center flex-shrink-0">
+                  <Tag className="w-4 h-4 text-fg" />
                 </div>
                 <div>
                   <p className="font-semibold text-sm">Resonance 판매 수수료</p>
@@ -3004,7 +3004,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 bg-[#000000] text-white py-3 px-6 rounded-none font-semibold hover:bg-[#000000] transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                className="flex-1 bg-fg text-bg py-3 px-6 rounded-none font-semibold hover:bg-fg transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
               >
                 <Plus className="w-5 h-5" />
                 {submitting ? '등록 중…' : '상품 등록하기'}
@@ -3016,11 +3016,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (draftPrompt && draftJson === initialDraftJson.current) return; // 안내가 떠 있고 아무것도 안 쳤으면 예전 저장본을 지우지 않음
                   setDraftPrompt(null); setDraftReady(true); saveDraftNow(draftJson);
                 }}
-                className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-3 px-6 rounded-none font-semibold hover:border-gray-400 transition"
+                className="flex-1 border-2 border-line text-muted py-3 px-6 rounded-none font-semibold hover:border-gray-400 transition"
               >
                 임시 저장
               </button>
-              <button className="text-gray-600 py-3 px-6 rounded-none font-semibold hover:text-[#000000] transition">
+              <button className="text-gray-600 py-3 px-6 rounded-none font-semibold hover:text-fg transition">
                 취소
               </button>
             </div>

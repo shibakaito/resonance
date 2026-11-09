@@ -79,12 +79,12 @@ export function FilterSection({
   const collapse = () => setVisibleCount(maxVisible ?? Infinity);
 
   return (
-    <div className="border-b border-[#e0e0e0] py-3">
+    <div className="border-b border-line py-3">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-between w-full text-left"
       >
-        <span className="text-sm font-semibold text-[#000000]">{label}</span>
+        <span className="text-sm font-semibold text-fg">{label}</span>
         {open ? (
           <ChevronUp className="w-4 h-4 text-gray-600" />
         ) : (
@@ -101,7 +101,7 @@ export function FilterSection({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="검색"
-                className="w-full pl-8 pr-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
+                className="w-full pl-8 pr-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
               />
             </div>
           )}
@@ -110,13 +110,13 @@ export function FilterSection({
             {visible.map((opt) => (
               <label
                 key={opt}
-                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-gray-700 hover:text-[#000000]"
+                className="flex items-center gap-2 py-1 cursor-pointer text-sm text-muted hover:text-fg"
               >
                 <input
                   type="checkbox"
                   checked={selected.has(opt)}
                   onChange={() => onToggle(opt)}
-                  className="accent-[#000000] w-3.5 h-3.5"
+                  className="accent-fg w-3.5 h-3.5"
                 />
                 <span className="flex-1 truncate">{show(opt)}</span>
                 {counts && (
@@ -130,7 +130,7 @@ export function FilterSection({
                 {hasMore && (
                   <button
                     onClick={showMore}
-                    className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
+                    className="text-xs font-medium text-gray-600 hover:text-fg underline"
                   >
                     모두 보기
                   </button>
@@ -138,7 +138,7 @@ export function FilterSection({
                 {expanded && (
                   <button
                     onClick={collapse}
-                    className="text-xs font-medium text-gray-600 hover:text-[#000000] underline"
+                    className="text-xs font-medium text-gray-600 hover:text-fg underline"
                   >
                     접기
                   </button>
@@ -202,12 +202,12 @@ export function RangeSection({
   };
 
   return (
-    <div className="border-b border-[#e0e0e0] py-3">
+    <div className="border-b border-line py-3">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex items-center justify-between w-full text-left"
       >
-        <span className="text-sm font-semibold text-[#000000]">
+        <span className="text-sm font-semibold text-fg">
           {label}{unit ? ` (${unit})` : ''}
         </span>
         {open ? (
@@ -230,7 +230,7 @@ export function RangeSection({
               }
               onKeyDown={(e) => e.key === 'Enter' && apply()}
               placeholder={single ? singlePlaceholder : '최소'}
-              className="w-0 flex-1 px-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
+              className="w-0 flex-1 px-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
             />
             {!single && (
               <input
@@ -244,13 +244,13 @@ export function RangeSection({
                 }
                 onKeyDown={(e) => e.key === 'Enter' && apply()}
                 placeholder="최대"
-                className="w-0 flex-1 px-2 py-1.5 text-sm border border-[#e0e0e0] rounded focus:outline-none focus:border-[#000000]"
+                className="w-0 flex-1 px-2 py-1.5 text-sm border border-line rounded focus:outline-none focus:border-fg"
               />
             )}
           </div>
           <button
             onClick={apply}
-            className="mt-2 w-full py-1.5 text-xs font-medium bg-[#000000] text-white rounded hover:bg-gray-800"
+            className="mt-2 w-full py-1.5 text-xs font-medium bg-fg text-bg rounded hover:bg-gray-800"
           >
             적용
           </button>
@@ -305,15 +305,15 @@ export function FilterDropdown({
 
   const isBox = variant === 'box';
   const triggerCls = isBox
-    ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-white transition ${
+    ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
         selected.size > 0 || open
-          ? 'border-[#000000] text-[#000000]'
-          : 'border-[#e0e0e0] text-gray-700 hover:border-gray-400'
+          ? 'border-fg text-fg'
+          : 'border-line text-muted hover:border-gray-400'
       }`
     : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
         selected.size > 0
-          ? 'border-[#000000] bg-[#f7f7f7] text-[#000000]'
-          : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+          ? 'border-fg bg-surface text-fg'
+          : 'border-line bg-bg text-muted hover:border-gray-400'
       }`;
 
   return (
@@ -324,7 +324,7 @@ export function FilterDropdown({
       >
         <span>{label}</span>
         {selected.size > 0 && (
-          <span className="bg-[#000000] text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
+          <span className="bg-fg text-bg text-xs rounded-full px-1.5 py-0.5 leading-none">
             {selected.size}
           </span>
         )}
@@ -336,7 +336,7 @@ export function FilterDropdown({
               e.stopPropagation();
               onClear();
             }}
-            className="w-4 h-4 flex items-center justify-center rounded-full text-[#000000] hover:bg-[#e0e0e0]"
+            className="w-4 h-4 flex items-center justify-center rounded-full text-fg hover:bg-line"
           >
             <X className="w-3 h-3" />
           </span>
@@ -348,12 +348,12 @@ export function FilterDropdown({
         const expandedScroll = showAll && hasMore && options.length > 8;
         const useScroll = scrollable || expandedScroll;
         const scrollCls = useScroll
-          ? 'max-h-64 overflow-y-scroll [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-[#f7f7f7] [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500'
+          ? 'max-h-64 overflow-y-scroll [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-surface [&::-webkit-scrollbar-track]:rounded-full [&::-webkit-scrollbar-thumb]:bg-gray-400 [&::-webkit-scrollbar-thumb]:rounded-full hover:[&::-webkit-scrollbar-thumb]:bg-gray-500'
           : '';
         const collapseBtn = hasMore && (
           <button
             onClick={() => setShowAll((v) => !v)}
-            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-sm font-medium text-gray-700 hover:text-[#000000]"
+            className="flex items-center gap-1 px-2 py-1.5 mt-0.5 text-sm font-medium text-muted hover:text-fg"
           >
             {showAll ? (
               <>
@@ -370,7 +370,7 @@ export function FilterDropdown({
         );
         return (
           <div
-            className={`absolute z-20 mt-2 bg-white border border-[#e0e0e0] rounded-lg shadow-lg p-2 ${
+            className={`absolute z-20 mt-2 bg-bg border border-line rounded-lg shadow-lg p-2 ${
               isBox ? 'w-full min-w-56' : 'w-56'
             }`}
           >
@@ -378,13 +378,13 @@ export function FilterDropdown({
               {visible.map((opt) => (
                 <label
                   key={opt}
-                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-[#f7f7f7] cursor-pointer text-sm text-gray-700"
+                  className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-surface cursor-pointer text-sm text-muted"
                 >
                   <input
                     type="checkbox"
                     checked={selected.has(opt)}
                     onChange={() => onToggle(opt)}
-                    className="accent-[#000000]"
+                    className="accent-fg"
                   />
                   <span>{opt}</span>
                   {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
@@ -448,15 +448,15 @@ export function PriceDropdown({
         onClick={() => setOpen((v) => !v)}
         className={
           fullWidth
-            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-white transition ${
+            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
                 active || open
-                  ? 'border-[#000000] text-[#000000]'
-                  : 'border-[#e0e0e0] text-gray-700 hover:border-gray-400'
+                  ? 'border-fg text-fg'
+                  : 'border-line text-muted hover:border-gray-400'
               }`
             : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 active
-                  ? 'border-[#000000] bg-[#f7f7f7] text-[#000000]'
-                  : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+                  ? 'border-fg bg-surface text-fg'
+                  : 'border-line bg-bg text-muted hover:border-gray-400'
               }`
         }
       >
@@ -464,9 +464,9 @@ export function PriceDropdown({
         {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
       {open && (
-        <div className={`absolute z-20 mt-2 bg-white border border-[#e0e0e0] rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
-          <h3 className="font-semibold text-[#000000] mb-3">가격</h3>
-          <div className="flex items-stretch border border-[#e0e0e0] rounded-lg overflow-hidden focus-within:border-[#000000]">
+        <div className={`absolute z-20 mt-2 bg-bg border border-line rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
+          <h3 className="font-semibold text-fg mb-3">가격</h3>
+          <div className="flex items-stretch border border-line rounded-lg overflow-hidden focus-within:border-fg">
             <input
               type="text"
               inputMode="numeric"
@@ -476,7 +476,7 @@ export function PriceDropdown({
               placeholder="최소"
               className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
             />
-            <span className="w-px bg-[#e0e0e0]" />
+            <span className="w-px bg-line" />
             <input
               type="text"
               inputMode="numeric"
@@ -489,9 +489,9 @@ export function PriceDropdown({
             <button
               onClick={apply}
               aria-label="가격 적용"
-              className="px-3 border-l border-[#e0e0e0] hover:bg-[#f7f7f7] flex items-center justify-center"
+              className="px-3 border-l border-line hover:bg-surface flex items-center justify-center"
             >
-              <Search className="w-4 h-4 text-gray-700" />
+              <Search className="w-4 h-4 text-muted" />
             </button>
           </div>
         </div>
@@ -550,15 +550,15 @@ export function LengthDropdown({
         onClick={() => setOpen((v) => !v)}
         className={
           fullWidth
-            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-white transition ${
+            ? `flex items-center justify-between gap-2 w-full px-3 py-2 rounded-lg border text-sm bg-bg transition ${
                 active || open
-                  ? 'border-[#000000] text-[#000000]'
-                  : 'border-[#e0e0e0] text-gray-700 hover:border-gray-400'
+                  ? 'border-fg text-fg'
+                  : 'border-line text-muted hover:border-gray-400'
               }`
             : `flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium transition ${
                 active
-                  ? 'border-[#000000] bg-[#f7f7f7] text-[#000000]'
-                  : 'border-[#e0e0e0] bg-white text-gray-700 hover:border-gray-400'
+                  ? 'border-fg bg-surface text-fg'
+                  : 'border-line bg-bg text-muted hover:border-gray-400'
               }`
         }
       >
@@ -566,9 +566,9 @@ export function LengthDropdown({
         {open ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
       </button>
       {open && (
-        <div className={`absolute z-20 mt-2 bg-white border border-[#e0e0e0] rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
-          <h3 className="font-semibold text-[#000000] mb-3">길이 (m)</h3>
-          <div className="flex items-stretch border border-[#e0e0e0] rounded-lg overflow-hidden focus-within:border-[#000000]">
+        <div className={`absolute z-20 mt-2 bg-bg border border-line rounded-xl shadow-lg p-4 ${fullWidth ? 'w-full min-w-72' : 'w-80'}`}>
+          <h3 className="font-semibold text-fg mb-3">길이 (m)</h3>
+          <div className="flex items-stretch border border-line rounded-lg overflow-hidden focus-within:border-fg">
             <input
               type="number"
               inputMode="decimal"
@@ -580,7 +580,7 @@ export function LengthDropdown({
               placeholder="최소"
               className="flex-1 w-0 px-3 py-2.5 text-sm focus:outline-none"
             />
-            <span className="w-px bg-[#e0e0e0]" />
+            <span className="w-px bg-line" />
             <input
               type="number"
               inputMode="decimal"
@@ -595,9 +595,9 @@ export function LengthDropdown({
             <button
               onClick={apply}
               aria-label="길이 적용"
-              className="px-3 border-l border-[#e0e0e0] hover:bg-[#f7f7f7] flex items-center justify-center"
+              className="px-3 border-l border-line hover:bg-surface flex items-center justify-center"
             >
-              <Search className="w-4 h-4 text-gray-700" />
+              <Search className="w-4 h-4 text-muted" />
             </button>
           </div>
         </div>

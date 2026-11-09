@@ -41,11 +41,11 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
             else setShowResults(false);
           }}
           placeholder="브랜드, 모델 또는 키워드를 입력하세요 (예: McIntosh MC152)"
-          className="w-full border-2 border-[#e0e0e0] rounded-full pl-14 pr-32 py-4 focus:outline-none focus:border-[#000000] text-base shadow-sm"
+          className="w-full border-2 border-line rounded-full pl-14 pr-32 py-4 focus:outline-none focus:border-fg text-base shadow-sm"
         />
         <button
           type="submit"
-          className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#000000] hover:bg-[#000000] text-white px-6 py-2.5 rounded-full font-semibold transition"
+          className="absolute right-2 top-1/2 -translate-y-1/2 bg-fg hover:bg-fg text-bg px-6 py-2.5 rounded-full font-semibold transition"
         >
           검색
         </button>
@@ -60,7 +60,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
               setQuery(b);
               setShowResults(true);
             }}
-            className="text-sm px-3 py-1 rounded-full border border-[#e0e0e0] hover:border-gray-500 hover:text-[#000000] hover:bg-[#f7f7f7] transition"
+            className="text-sm px-3 py-1 rounded-full border border-line hover:border-gray-500 hover:text-fg hover:bg-surface transition"
           >
             {b}
           </button>
@@ -86,9 +86,9 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                       category: r.category
                     })
                   }
-                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-[#e0e0e0] hover:border-gray-500 hover:shadow-md transition text-left group"
+                  className="w-full flex items-center gap-3 p-3 rounded-lg border border-line hover:border-gray-500 hover:shadow-md transition text-left group"
                 >
-                  <div className="w-14 h-14 rounded-md bg-[#f7f7f7] overflow-hidden flex-shrink-0">
+                  <div className="w-14 h-14 rounded-md bg-surface overflow-hidden flex-shrink-0">
                     <img src={imgFor(r.model)} alt={r.model} className="w-full h-full object-contain" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -99,11 +99,11 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                       {r.year} · {r.category}
                     </p>
                   </div>
-                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-[#000000] transition flex-shrink-0" />
+                  <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-fg transition flex-shrink-0" />
                 </button>
               ))
             ) : (
-              <div className="border border-dashed border-[#e0e0e0] rounded-lg p-5">
+              <div className="border border-dashed border-line rounded-lg p-5">
                 <p className="text-gray-600 mb-3 text-center">
                   카탈로그에 일치하는 모델이 없어요.
                 </p>
@@ -115,7 +115,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                         <button
                           key={b.name}
                           onClick={() => onSelect({ title: b.name, brand: b.name })}
-                          className="px-3 py-1.5 rounded-full border border-[#e0e0e0] hover:border-gray-500 hover:text-[#000000] hover:bg-[#f7f7f7] text-sm font-semibold transition"
+                          className="px-3 py-1.5 rounded-full border border-line hover:border-gray-500 hover:text-fg hover:bg-surface text-sm font-semibold transition"
                         >
                           {b.name}
                         </button>
@@ -126,7 +126,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
                 <div className="text-center">
                   <button
                     onClick={() => onSelect({ title: query })}
-                    className="text-[#000000] hover:text-[#000000] font-semibold underline text-sm"
+                    className="text-fg hover:text-fg font-semibold underline text-sm"
                   >
                     "{query}" 으로 직접 등록하기
                   </button>
@@ -138,10 +138,10 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0]">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-surface/60 via-bg to-surface border border-line">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-[#e0e0e0] flex items-center justify-center">
-              <Tag className="w-4 h-4 text-[#000000]" />
+            <div className="w-8 h-8 rounded-lg bg-line flex items-center justify-center">
+              <Tag className="w-4 h-4 text-fg" />
             </div>
             <span className="text-xs font-semibold text-gray-500">1단계</span>
           </div>
@@ -149,7 +149,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
           <p className="text-sm text-gray-600">브랜드, 모델, 연도 같은 키워드로 검색해보세요.</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/60 via-white to-[#f7f7f7] border border-[#e0e0e0]">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-50/60 via-bg to-surface border border-line">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
               <Package className="w-4 h-4 text-blue-600" />
@@ -160,7 +160,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
           <p className="text-sm text-gray-600">검색 결과에서 내 상품과 일치하는 항목을 선택하세요.</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/60 via-white to-[#f7f7f7] border border-[#e0e0e0]">
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-amber-50/60 via-bg to-surface border border-line">
           <div className="flex items-center gap-2 mb-3">
             <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center">
               <Upload className="w-4 h-4 text-amber-600" />
@@ -175,7 +175,7 @@ export function ListingSearchPage({ onSelect }: ListingSearchPageProps) {
       <div className="text-center">
         <button
           onClick={() => onSelect({ title: '' })}
-          className="text-[#000000] hover:text-[#000000] font-semibold text-sm underline underline-offset-4"
+          className="text-fg hover:text-fg font-semibold text-sm underline underline-offset-4"
         >
           검색 없이 직접 등록하기
         </button>

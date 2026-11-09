@@ -7,9 +7,18 @@
 // ============================================================================
 
 import type { Metadata } from 'next';
+import localFont from 'next/font/local';
 import '@/styles/index.css';
 import { SiteHeader } from '@/app/components/site-header';
 import { SiteFooter } from '@/app/components/site-footer';
+
+// 글꼴 — Pretendard Variable 한 파일(src/fonts, woff2, 굵기 45~920 가변). html 에 --font-pretendard 변수를 붙이고 theme.css 의 --font-sans 가 씀 (2026-11-10)
+const pretendard = localFont({
+  src: '../src/fonts/PretendardVariable.woff2',
+  variable: '--font-pretendard',
+  weight: '45 920',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: 'Resonance',
@@ -22,10 +31,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko">
+    <html lang="ko" className={pretendard.variable}>
       <body>
         {/* 모든 페이지 공통: 헤더(+메가메뉴) → 페이지 내용 → 푸터 */}
-        <div className="min-h-screen bg-white">
+        <div className="min-h-screen bg-bg">
           <SiteHeader />
           {children}
           <SiteFooter />

@@ -161,9 +161,9 @@ export function ListingDetail({ id }: { id?: string }) {
     <button
       onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       aria-label="이전 사진"
-      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg active:scale-90 active:bg-[#e0e0e0] active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
     >
-      <ChevronLeft className="w-5 h-5 text-gray-700" />
+      <ChevronLeft className="w-5 h-5 text-muted" />
     </button>
   );
 
@@ -171,9 +171,9 @@ export function ListingDetail({ id }: { id?: string }) {
     <button
       onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       aria-label="다음 사진"
-      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-md hover:shadow-lg active:scale-90 active:bg-[#e0e0e0] active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
+      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
     >
-      <ChevronRight className="w-5 h-5 text-gray-700" />
+      <ChevronRight className="w-5 h-5 text-muted" />
     </button>
   );
 
@@ -201,9 +201,9 @@ export function ListingDetail({ id }: { id?: string }) {
                 <button
                   onClick={() => scrollThumbnails('up')}
                   aria-label="썸네일 위로"
-                  className="absolute top-0 left-0 right-0 z-10 h-7 bg-white/90 hover:bg-white shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
+                  className="absolute top-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
                 >
-                  <ChevronUp className="w-4 h-4 text-gray-700" />
+                  <ChevronUp className="w-4 h-4 text-muted" />
                 </button>
 
                 <div
@@ -221,8 +221,8 @@ export function ListingDetail({ id }: { id?: string }) {
                         setIsZooming(false);
                         sliderRef.current?.slickGoTo(idx, true);
                       }}
-                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 bg-[#f7f7f7] flex-shrink-0 ${
-                        mainImage === idx ? 'border-[#000000]' : 'border-[#e0e0e0]'
+                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 bg-surface flex-shrink-0 ${
+                        mainImage === idx ? 'border-fg' : 'border-line'
                       }`}
                     >
                       <img
@@ -238,9 +238,9 @@ export function ListingDetail({ id }: { id?: string }) {
                 <button
                   onClick={() => scrollThumbnails('down')}
                   aria-label="썸네일 아래로"
-                  className="absolute bottom-0 left-0 right-0 z-10 h-7 bg-white/90 hover:bg-white shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
+                  className="absolute bottom-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
                 >
-                  <ChevronDown className="w-4 h-4 text-gray-700" />
+                  <ChevronDown className="w-4 h-4 text-muted" />
                 </button>
               </div>
 
@@ -248,7 +248,7 @@ export function ListingDetail({ id }: { id?: string }) {
                 ref={imageContainerRef}
                 onClick={() => setIsZooming(prev => !prev)}
                 onMouseMove={handleZoomMouseMove}
-                className={`group relative bg-[#f7f7f7] rounded-lg overflow-hidden flex-1 aspect-[4/3] ${isZooming ? 'cursor-zoom-out' : 'cursor-zoom-in'} [&_.slick-slider]:h-full [&_.slick-list]:h-full [&_.slick-track]:h-full [&_.slick-slide>div]:h-full [&_.slick-slide]:!block`}
+                className={`group relative bg-surface rounded-lg overflow-hidden flex-1 aspect-[4/3] ${isZooming ? 'cursor-zoom-out' : 'cursor-zoom-in'} [&_.slick-slider]:h-full [&_.slick-list]:h-full [&_.slick-track]:h-full [&_.slick-slide>div]:h-full [&_.slick-slide]:!block`}
               >
                 <Slider {...sliderSettings} ref={sliderRef}>
                   {images.map((img, idx) => (
@@ -271,7 +271,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   ))}
                 </Slider>
 
-                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-red-500 text-white text-xs font-semibold rounded-full pointer-events-none">
+                <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-red-500 text-bg text-xs font-semibold rounded-full pointer-events-none">
                   3명의 장바구니에 담음
                 </div>
 
@@ -281,12 +281,12 @@ export function ListingDetail({ id }: { id?: string }) {
                     setMainLiked((v) => !v);
                   }}
                   aria-label="좋아요"
-                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e0e0e0] hover:border-gray-400 shadow-sm rounded-full active:scale-95 transition"
+                  className="absolute top-3 right-3 z-10 flex items-center gap-1.5 px-3 py-1.5 bg-bg border border-line hover:border-gray-400 shadow-sm rounded-full active:scale-95 transition"
                 >
-                  <span className="text-sm font-semibold text-gray-700">{mainLikeCount}</span>
+                  <span className="text-sm font-semibold text-muted">{mainLikeCount}</span>
                   <Heart
                     className={`w-4 h-4 ${
-                      mainLiked ? 'fill-red-500 text-red-500' : 'text-gray-700'
+                      mainLiked ? 'fill-red-500 text-red-500' : 'text-muted'
                     }`}
                   />
                 </button>
@@ -319,30 +319,30 @@ export function ListingDetail({ id }: { id?: string }) {
                   return (
                     <div
                       key={idx}
-                      className="flex-shrink-0 w-[170px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-[#e0e0e0] relative"
+                      className="flex-shrink-0 w-[170px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-line relative"
                     >
                       <button
                         onClick={(e) => toggleSimilarLike(idx, e)}
                         aria-label="좋아요"
-                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center active:scale-90 transition"
+                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-bg/90 hover:bg-bg shadow-md flex items-center justify-center active:scale-90 transition"
                       >
                         <Heart
                           className={`w-4 h-4 ${
                             likedSimilar.has(idx)
                               ? 'fill-red-500 text-red-500'
-                              : 'text-gray-700'
+                              : 'text-muted'
                           }`}
                         />
                       </button>
-                      <div className="aspect-square bg-[#f7f7f7]">
+                      <div className="aspect-square bg-surface">
                         <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
                       </div>
                       <div className="p-3">
                         <h4 className="text-sm font-semibold truncate">{item.title}</h4>
                         <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
-                        <p className="text-base font-bold text-[#000000] mt-1">{item.price}</p>
+                        <p className="text-base font-bold text-fg mt-1">{item.price}</p>
                         {isNew && (
-                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-700">
+                          <div className="flex items-center gap-1 mt-1 text-xs text-muted">
                             <Truck className="w-3.5 h-3.5" />
                             <span>무료 배송</span>
                           </div>
@@ -356,27 +356,27 @@ export function ListingDetail({ id }: { id?: string }) {
               <button
                 onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: -400, behavior: 'smooth' })}
                 aria-label="이전"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-700" />
+                <ChevronLeft className="w-5 h-5 text-muted" />
               </button>
               <button
                 onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: 400, behavior: 'smooth' })}
                 aria-label="다음"
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
               >
-                <ChevronRight className="w-5 h-5 text-gray-700" />
+                <ChevronRight className="w-5 h-5 text-muted" />
               </button>
             </div>
 
-            <div className="border border-[#e0e0e0] rounded-lg p-6">
+            <div className="border border-line rounded-lg p-6">
               <h3 className="text-2xl font-bold mb-6">
                 이 제품은 <span className="text-green-600">합리적인 가격</span>이에요
               </h3>
 
               <div className="flex items-start gap-6">
                 <div className="flex-shrink-0">
-                  <p className="text-gray-700 leading-relaxed">
+                  <p className="text-muted leading-relaxed">
                     현재 평균 시장 가격대<br />
                     안에 있어요
                   </p>
@@ -385,21 +385,21 @@ export function ListingDetail({ id }: { id?: string }) {
 
                 <div className="flex-1 mt-2 relative pt-14">
                   <div
-                    className="absolute top-0 -translate-x-1/2 px-4 py-1.5 bg-white border border-[#e0e0e0] rounded-full shadow-sm text-base font-bold whitespace-nowrap"
+                    className="absolute top-0 -translate-x-1/2 px-4 py-1.5 bg-bg border border-line rounded-full shadow-sm text-base font-bold whitespace-nowrap"
                     style={{ left: '53.5%' }}
                   >
                     25,900,000원
-                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-white border-r border-b border-[#e0e0e0] rotate-45"></div>
+                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-bg border-r border-b border-line rotate-45"></div>
                   </div>
 
                   <div className="relative">
                     <div className="flex h-1.5 gap-0.5">
                       <div className="flex-1 bg-purple-400 rounded-l-full"></div>
                       <div className="flex-[2] bg-green-500"></div>
-                      <div className="flex-1 bg-gray-700 rounded-r-full"></div>
+                      <div className="flex-1 bg-muted rounded-r-full"></div>
                     </div>
                     <div
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-white border-2 border-green-500 rounded-full shadow-md flex items-center justify-center"
+                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-bg border-2 border-green-500 rounded-full shadow-md flex items-center justify-center"
                       style={{ left: '53.5%' }}
                     >
                       <div className="w-3 h-3 rounded-full bg-green-500"></div>
@@ -413,7 +413,7 @@ export function ListingDetail({ id }: { id?: string }) {
                 </div>
               </div>
 
-              <div className="border-t border-[#e0e0e0] mt-6 pt-4">
+              <div className="border-t border-line mt-6 pt-4">
                 <button
                   onClick={() => setPriceHistoryOpen(!priceHistoryOpen)}
                   className="w-full flex items-center justify-between"
@@ -436,7 +436,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       <div>변동</div>
                       <div className="text-right">가격</div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-[#e0e0e0] items-center">
+                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-line items-center">
                       <div>2026/04/15</div>
                       <div className="flex items-center gap-1.5">
                         <Tag className="w-4 h-4" />
@@ -444,7 +444,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <div className="text-right font-semibold">25,900,000원</div>
                     </div>
-                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-[#e0e0e0] items-center">
+                    <div className="grid grid-cols-3 gap-4 text-sm py-3 border-t border-line items-center">
                       <div>2026/03/01</div>
                       <div className="flex items-center gap-1.5">
                         <Tag className="w-4 h-4" />
@@ -452,7 +452,7 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <div className="text-right font-semibold">30,800,000원</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-[#e0e0e0]">
+                    <p className="text-xs text-gray-500 mt-4 pt-4 border-t border-line">
                       가격 정보는 판매자가 제공한 가격 변동 내역 기준입니다.
                     </p>
                   </div>
@@ -507,7 +507,7 @@ export function ListingDetail({ id }: { id?: string }) {
                     {label('condition', listing?.condition)}{' '}
                     {/* 정의 작은 안내 (labels.ts LABEL_DESC, gradeDescriptions 플래그 꺼져 있으면 안 보임) */}
                     {desc('condition', listing?.condition) && <span className="text-xs text-gray-500">{desc('condition', listing?.condition)}</span>}{' '}
-                    <a href="#" className="text-[#000000] underline hover:text-[#000000] text-sm">
+                    <a href="#" className="text-fg underline hover:text-fg text-sm">
                       등급 기준 자세히 보기
                     </a>
                   </div>
@@ -549,14 +549,14 @@ export function ListingDetail({ id }: { id?: string }) {
                 </div>
 
                 {!specsExpanded && (
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-bg pointer-events-none"></div>
                 )}
 
                 {!specsExpanded && (
                   <div className="absolute bottom-0 left-0 right-0 flex justify-center">
                     <button
                       onClick={() => setSpecsExpanded(true)}
-                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                      className="px-6 py-2 border border-line rounded-full bg-bg hover:bg-surface font-semibold text-sm shadow-sm transition"
                     >
                       더 보기
                     </button>
@@ -623,11 +623,11 @@ export function ListingDetail({ id }: { id?: string }) {
 
                     {!techSpecsExpanded && rows.length + custom.length > 4 && (
                       <>
-                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-bg pointer-events-none"></div>
                         <div className="absolute bottom-0 left-0 right-0 flex justify-center">
                           <button
                             onClick={() => setTechSpecsExpanded(true)}
-                            className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                            className="px-6 py-2 border border-line rounded-full bg-bg hover:bg-surface font-semibold text-sm shadow-sm transition"
                           >
                             더 보기
                           </button>
@@ -643,7 +643,7 @@ export function ListingDetail({ id }: { id?: string }) {
               <h2 className="text-2xl font-bold mb-4">제품 설명</h2>
               <div className="relative">
                 <div
-                  className={`prose max-w-none text-gray-700 space-y-4 leading-relaxed ${
+                  className={`prose max-w-none text-muted space-y-4 leading-relaxed ${
                     !descriptionExpanded ? 'max-h-[200px] overflow-hidden' : ''
                   }`}
                 >
@@ -676,14 +676,14 @@ export function ListingDetail({ id }: { id?: string }) {
                 </div>
 
                 {!descriptionExpanded && (
-                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-bg pointer-events-none"></div>
                 )}
 
                 {!descriptionExpanded && (
                   <div className="absolute bottom-0 left-0 right-0 flex justify-center">
                     <button
                       onClick={() => setDescriptionExpanded(true)}
-                      className="px-6 py-2 border border-[#e0e0e0] rounded-full bg-white hover:bg-[#f7f7f7] font-semibold text-sm shadow-sm transition"
+                      className="px-6 py-2 border border-line rounded-full bg-bg hover:bg-surface font-semibold text-sm shadow-sm transition"
                     >
                       더 보기
                     </button>
@@ -692,11 +692,11 @@ export function ListingDetail({ id }: { id?: string }) {
               </div>
             </div>
 
-            <div className="border-t border-[#e0e0e0] pt-6">
+            <div className="border-t border-line pt-6">
               <h2 className="text-2xl font-bold mb-6">판매자에 대하여</h2>
               <div className="flex items-start justify-between gap-6 mb-6">
                 <div className="flex items-center gap-4 flex-1">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-white font-bold text-2xl flex-shrink-0">
+                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-bg font-bold text-2xl flex-shrink-0">
                     몽
                   </div>
                   <div className="flex-1">
@@ -704,9 +704,9 @@ export function ListingDetail({ id }: { id?: string }) {
                       <p className="text-2xl font-bold">몽키타르</p>
                       <div className="relative group/badge inline-block">
                         <BadgeCheck className="w-6 h-6 text-blue-500 fill-blue-100 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
                           이 판매자는 뛰어난 서비스를 제공합니다.
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[#000000]"></div>
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-fg"></div>
                         </div>
                       </div>
                     </div>
@@ -717,66 +717,66 @@ export function ListingDetail({ id }: { id?: string }) {
                         <span>{locationText(listing.location)}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-sm text-gray-700 mt-2">
+                    <div className="flex items-center gap-2 text-sm text-muted mt-2">
                       <span className="font-semibold">Resonance 가입일 :</span>
                       <span>2018년</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 w-[280px] flex-shrink-0">
-                  <button className="bg-[#f7f7f7] hover:bg-[#e0e0e0] text-[#000000] py-3 px-6 rounded-full font-semibold transition text-sm">
+                  <button className="bg-surface hover:bg-line text-fg py-3 px-6 rounded-full font-semibold transition text-sm">
                     판매자에게 메시지 보내기
                   </button>
-                  <button className="bg-[#f7f7f7] hover:bg-[#e0e0e0] text-[#000000] py-3 px-6 rounded-full font-semibold transition text-sm">
+                  <button className="bg-surface hover:bg-line text-fg py-3 px-6 rounded-full font-semibold transition text-sm">
                     이 상점의 더 많은 제품 보기
                   </button>
                 </div>
               </div>
 
-              <div className="rounded-2xl bg-gradient-to-br from-[#f7f7f7]/60 via-white to-[#f7f7f7] border border-[#e0e0e0] p-5">
+              <div className="rounded-2xl bg-gradient-to-br from-surface/60 via-bg to-surface border border-line p-5">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-[#e0e0e0] flex items-center justify-center group-hover:bg-[#e0e0e0] transition">
-                        <BookOpen className="w-4 h-4 text-[#000000]" />
+                      <div className="w-8 h-8 rounded-lg bg-line flex items-center justify-center group-hover:bg-line transition">
+                        <BookOpen className="w-4 h-4 text-fg" />
                       </div>
                       <span className="font-bold text-sm">브랜드 스토리</span>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-muted leading-relaxed">
                       2006년 설립된 <span className="font-semibold">'Monkey Guitar'</span>의 약자입니다.
                     </p>
                   </div>
 
-                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center group-hover:bg-blue-200 transition">
                         <Package className="w-4 h-4 text-blue-600" />
                       </div>
                       <span className="font-bold text-sm">취급 제품</span>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-muted leading-relaxed">
                       신품·중고 유명 브랜드. 구하기 어려운 제품을 <span className="font-semibold">합리적인 가격</span>에 제공합니다.
                     </p>
                   </div>
 
-                  <div className="group relative p-4 rounded-xl bg-white border border-[#f7f7f7] hover:border-gray-400 hover:shadow-md transition-all duration-200">
+                  <div className="group relative p-4 rounded-xl bg-bg border border-surface hover:border-gray-400 hover:shadow-md transition-all duration-200">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center group-hover:bg-amber-200 transition">
                         <ShieldAlert className="w-4 h-4 text-amber-600" />
                       </div>
                       <span className="font-bold text-sm">거래 정책</span>
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed">
+                    <p className="text-sm text-muted leading-relaxed">
                       현 상태 그대로 판매 · <span className="font-semibold">환불 불가</span>
                       <button
                         onClick={() => setSellerDescExpanded(!sellerDescExpanded)}
-                        className="ml-1 text-[#000000] hover:text-[#000000] font-semibold text-xs"
+                        className="ml-1 text-fg hover:text-fg font-semibold text-xs"
                       >
                         {sellerDescExpanded ? '접기' : '자세히'}
                       </button>
                     </p>
                     {sellerDescExpanded && (
-                      <p className="text-xs text-gray-600 leading-relaxed mt-2 pt-2 border-t border-[#f7f7f7]">
+                      <p className="text-xs text-gray-600 leading-relaxed mt-2 pt-2 border-t border-surface">
                         모든 기타, 이펙터 및 액세서리는 현 상태 그대로 판매되며 환불이 불가합니다. 배송비에는 PayPal 수수료와 Reverb 수수료가 포함됩니다.
                       </p>
                     )}
@@ -785,7 +785,7 @@ export function ListingDetail({ id }: { id?: string }) {
               </div>
             </div>
 
-            <div className="border-t border-[#e0e0e0] pt-6">
+            <div className="border-t border-line pt-6">
               <button
                 onClick={() => setSellerReviewsOpen(!sellerReviewsOpen)}
                 className="w-full flex items-center justify-between mb-4 hover:opacity-80 transition"
@@ -794,31 +794,31 @@ export function ListingDetail({ id }: { id?: string }) {
                   <h2 className="text-2xl font-bold">판매자 리뷰 (1,234)</h2>
                   <div className="flex">
                     {[1, 2, 3, 4, 5].map((star) => (
-                      <Star key={star} className="w-5 h-5 fill-gray-700 text-gray-700" />
+                      <Star key={star} className="w-5 h-5 fill-muted text-muted" />
                     ))}
                   </div>
                 </div>
                 {sellerReviewsOpen ? (
-                  <ChevronUp className="w-6 h-6 text-gray-700" />
+                  <ChevronUp className="w-6 h-6 text-muted" />
                 ) : (
-                  <ChevronDown className="w-6 h-6 text-gray-700" />
+                  <ChevronDown className="w-6 h-6 text-muted" />
                 )}
               </button>
 
               {sellerReviewsOpen && (
               <>
-              <div className="bg-[#f7f7f7] rounded-lg p-6 mb-6">
+              <div className="bg-surface rounded-lg p-6 mb-6">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="text-center">
-                    <div className="text-4xl font-bold text-[#000000]">4.9</div>
+                    <div className="text-4xl font-bold text-fg">4.9</div>
                     <div className="flex justify-center mt-1">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="w-4 h-4 fill-gray-700 text-gray-700" />
+                        <Star key={star} className="w-4 h-4 fill-muted text-muted" />
                       ))}
                     </div>
                     <p className="text-sm text-gray-600 mt-1">종합 평점</p>
                   </div>
-                  <div className="flex-1 border-l border-[#e0e0e0] pl-6">
+                  <div className="flex-1 border-l border-line pl-6">
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className="text-2xl font-bold text-green-600">99%</div>
@@ -868,12 +868,12 @@ export function ListingDetail({ id }: { id?: string }) {
                 </div>
               </div>
 
-              <div className="mb-4 flex items-center justify-between pb-2 border-b border-[#e0e0e0]">
-                <span className="font-semibold text-gray-700">전체 리뷰 ({allReviews.length})</span>
+              <div className="mb-4 flex items-center justify-between pb-2 border-b border-line">
+                <span className="font-semibold text-muted">전체 리뷰 ({allReviews.length})</span>
                 <select
                   value={reviewSort}
                   onChange={(e) => { setReviewSort(e.target.value as 'latest' | 'rating-high' | 'rating-low'); setReviewPage(1); }}
-                  className="text-xs border border-[#e0e0e0] rounded-md px-2 py-1 bg-white hover:border-gray-400 cursor-pointer focus:outline-none focus:border-[#000000]"
+                  className="text-xs border border-line rounded-md px-2 py-1 bg-bg hover:border-gray-400 cursor-pointer focus:outline-none focus:border-fg"
                 >
                   <option value="latest">최신순</option>
                   <option value="rating-high">별점 높은 순</option>
@@ -883,20 +883,20 @@ export function ListingDetail({ id }: { id?: string }) {
 
               <div className="space-y-4">
                 {paginatedReviews.map((review) => (
-                  <div key={review.id} className="border-b border-[#e0e0e0] pb-4">
+                  <div key={review.id} className="border-b border-line pb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <div className="flex">
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            className={`w-4 h-4 ${star <= review.rating ? 'fill-gray-700 text-gray-700' : 'text-[#e0e0e0]'}`}
+                            className={`w-4 h-4 ${star <= review.rating ? 'fill-muted text-muted' : 'text-line'}`}
                           />
                         ))}
                       </div>
                       <span className="font-semibold">{review.name}</span>
                       <span className="text-sm text-gray-500">• {formatDaysAgo(review.daysAgo)}</span>
                     </div>
-                    <p className="text-gray-700 mb-2">{review.text}</p>
+                    <p className="text-muted mb-2">{review.text}</p>
                     <p className="text-sm text-gray-500">제품: {review.product}</p>
                   </div>
                 ))}
@@ -907,7 +907,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button
                     onClick={() => setReviewPage(Math.max(1, currentPage - 1))}
                     disabled={currentPage === 1}
-                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e0e0e0] hover:bg-[#f7f7f7] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-line hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
                     aria-label="이전 페이지"
                   >
                     <ChevronLeft className="w-4 h-4" />
@@ -918,8 +918,8 @@ export function ListingDetail({ id }: { id?: string }) {
                       onClick={() => setReviewPage(page)}
                       className={`w-9 h-9 flex items-center justify-center rounded-lg font-semibold transition ${
                         currentPage === page
-                          ? 'bg-[#000000] text-white'
-                          : 'border border-[#e0e0e0] hover:bg-[#f7f7f7]'
+                          ? 'bg-fg text-bg'
+                          : 'border border-line hover:bg-surface'
                       }`}
                     >
                       {page}
@@ -928,7 +928,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button
                     onClick={() => setReviewPage(Math.min(totalPages, currentPage + 1))}
                     disabled={currentPage === totalPages}
-                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-[#e0e0e0] hover:bg-[#f7f7f7] disabled:opacity-40 disabled:cursor-not-allowed transition"
+                    className="w-9 h-9 flex items-center justify-center rounded-lg border border-line hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed transition"
                     aria-label="다음 페이지"
                   >
                     <ChevronRight className="w-4 h-4" />
@@ -943,12 +943,12 @@ export function ListingDetail({ id }: { id?: string }) {
           <div className="lg:col-span-5">
             <div ref={sentinelRef} className="h-0"></div>
             <div className="sticky top-20">
-              <div className={`bg-white rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
+              <div className={`bg-bg rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
                 <div>
                   <h1 className="text-3xl font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
                   <div className="flex items-center gap-2 text-gray-600 mb-2">
                     {listing?.handmade && (
-                      <span className="px-1.5 py-0.5 bg-[#000000] text-white rounded text-xs font-medium">수제품</span>
+                      <span className="px-1.5 py-0.5 bg-fg text-bg rounded text-xs font-medium">수제품</span>
                     )}
                     {/* 상태 배지 — 카드와 같은 conditionBadge (중고는 외관 등급, 작동 경고) */}
                     {listing && <ConditionBadge listing={listing} className="px-1.5 py-0.5 bg-green-100 text-green-800 rounded text-xs" />}
@@ -956,24 +956,24 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="flex items-center gap-2 mb-4">
                     <div className="flex">
                       {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="w-4 h-4 fill-gray-700 text-gray-700" />
+                        <Star key={star} className="w-4 h-4 fill-muted text-muted" />
                       ))}
                     </div>
                     <span className="text-sm text-gray-600">(리뷰 124개)</span>
                   </div>
                 </div>
 
-                <div className={`border-t border-t-[#e0e0e0] border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-[#e0e0e0]'}`}>
+                <div className={`border-t border-t-line border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-line'}`}>
                   <div className="flex items-baseline gap-2">
                     <span className="text-4xl font-bold">{listing ? fmtPrice(listing.price, listing.currency) : ''}</span>
                   </div>
                 </div>
 
                 <div className="flex flex-col gap-2">
-                  <button className="w-full bg-[#000000] text-white py-3 px-6 rounded-lg font-semibold hover:bg-[#000000] transition">
+                  <button className="w-full bg-fg text-bg py-3 px-6 rounded-lg font-semibold hover:bg-fg transition">
                     장바구니 담기
                   </button>
-                  <button className="w-full bg-slate-900 text-white py-3 px-6 rounded-lg font-semibold hover:bg-slate-800 transition">
+                  <button className="w-full bg-slate-900 text-bg py-3 px-6 rounded-lg font-semibold hover:bg-slate-800 transition">
                     바로 구매
                   </button>
                 </div>
@@ -981,34 +981,34 @@ export function ListingDetail({ id }: { id?: string }) {
                 <div className="flex gap-2">
                   <button
                     onClick={() => setMainLiked((v) => !v)}
-                    className="flex-1 border-2 border-[#e0e0e0] text-gray-700 hover:border-gray-400 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-sm"
+                    className="flex-1 border-2 border-line text-muted hover:border-gray-400 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 transition text-sm"
                   >
                     <Heart className={`w-4 h-4 ${mainLiked ? 'fill-red-500 text-red-500' : ''}`} />
                     관심 제품
                   </button>
-                  <button className="flex-1 border-2 border-[#e0e0e0] text-gray-700 py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 hover:border-gray-400 transition text-sm">
+                  <button className="flex-1 border-2 border-line text-muted py-2 px-3 rounded-lg font-semibold flex items-center justify-center gap-1.5 hover:border-gray-400 transition text-sm">
                     <MessageCircle className="w-4 h-4" />
                     가격 제안
                   </button>
-                  <button className="border-2 border-[#e0e0e0] text-gray-700 py-2 px-3 rounded-lg hover:border-gray-400 transition">
+                  <button className="border-2 border-line text-muted py-2 px-3 rounded-lg hover:border-gray-400 transition">
                     <Share2 className="w-4 h-4" />
                   </button>
                 </div>
 
                 <div className="grid grid-cols-3 gap-2 text-xs text-gray-600 py-2">
                   <div className="text-center">
-                    <span className="font-bold text-gray-700">등록일:</span> 13일 전
+                    <span className="font-bold text-muted">등록일:</span> 13일 전
                   </div>
                   <div className="text-center">
-                    <span className="font-bold text-gray-700">조회수:</span> 197
+                    <span className="font-bold text-muted">조회수:</span> 197
                   </div>
                   <div className="text-center">
-                    <span className="font-bold text-gray-700">제안:</span> 3
+                    <span className="font-bold text-muted">제안:</span> 3
                   </div>
                 </div>
 
-                <div className="border-t border-t-[#e0e0e0] py-8 flex items-center gap-3 relative">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                <div className="border-t border-t-line py-8 flex items-center gap-3 relative">
+                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-500 to-pink-500 flex items-center justify-center text-bg font-bold text-lg flex-shrink-0">
                     몽
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1016,14 +1016,14 @@ export function ListingDetail({ id }: { id?: string }) {
                       <span className="font-bold">몽키타르</span>
                       <div className="relative group/badge2 inline-block">
                         <BadgeCheck className="w-4 h-4 text-blue-500 fill-blue-100 cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-white text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-slate-900 text-bg text-xs rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
                           이 판매자는 뛰어난 서비스를 제공합니다.
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-[#000000]"></div>
+                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-fg"></div>
                         </div>
                       </div>
                       <div className="flex ml-1">
                         {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="w-3.5 h-3.5 fill-gray-700 text-gray-700" />
+                          <Star key={star} className="w-3.5 h-3.5 fill-muted text-muted" />
                         ))}
                       </div>
                       <span className="text-sm text-gray-600">(245)</span>
@@ -1036,17 +1036,17 @@ export function ListingDetail({ id }: { id?: string }) {
                   <button
                     onClick={() => setSellerSaved((v) => !v)}
                     aria-label="판매자 저장"
-                    className="flex items-center gap-1.5 px-3 py-2 border border-[#e0e0e0] hover:border-gray-400 rounded-full text-sm font-semibold text-gray-700 active:scale-95 transition flex-shrink-0"
+                    className="flex items-center gap-1.5 px-3 py-2 border border-line hover:border-gray-400 rounded-full text-sm font-semibold text-muted active:scale-95 transition flex-shrink-0"
                   >
                     <Heart
                       className={`w-4 h-4 ${
-                        sellerSaved ? 'fill-red-500 text-red-500' : 'text-gray-700'
+                        sellerSaved ? 'fill-red-500 text-red-500' : 'text-muted'
                       }`}
                     />
                     판매자 저장
                   </button>
                   <div
-                    className={`absolute left-0 right-0 bottom-0 h-px bg-[#e0e0e0] transition-all duration-500 ease-in-out ${
+                    className={`absolute left-0 right-0 bottom-0 h-px bg-line transition-all duration-500 ease-in-out ${
                       isStuck ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
                     }`}
                   />
@@ -1115,30 +1115,30 @@ export function ListingDetail({ id }: { id?: string }) {
                 return (
                   <div
                     key={idx}
-                    className="flex-shrink-0 w-[240px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-[#e0e0e0] relative"
+                    className="flex-shrink-0 w-[240px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-line relative"
                   >
                     <button
                       onClick={(e) => toggleSimilarLike(likedKey, e)}
                       aria-label="좋아요"
-                      className="absolute top-1.5 right-1.5 z-10 w-7 h-7 rounded-full bg-white/90 hover:bg-white shadow-md flex items-center justify-center active:scale-90 transition"
+                      className="absolute top-1.5 right-1.5 z-10 w-7 h-7 rounded-full bg-bg/90 hover:bg-bg shadow-md flex items-center justify-center active:scale-90 transition"
                     >
                       <Heart
                         className={`w-3.5 h-3.5 ${
                           likedSimilar.has(likedKey)
                             ? 'fill-red-500 text-red-500'
-                            : 'text-gray-700'
+                            : 'text-muted'
                         }`}
                       />
                     </button>
-                    <div className="aspect-square bg-[#f7f7f7]">
+                    <div className="aspect-square bg-surface">
                       <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
                     </div>
                     <div className="p-3">
                       <h4 className="text-sm font-semibold truncate">{item.title}</h4>
                       <p className="text-xs text-gray-600 mt-1">{item.condition}</p>
-                      <p className="text-base font-bold text-[#000000] mt-1">{item.price}</p>
+                      <p className="text-base font-bold text-fg mt-1">{item.price}</p>
                       {isNew && (
-                        <div className="flex items-center gap-1 mt-2 text-xs text-gray-700">
+                        <div className="flex items-center gap-1 mt-2 text-xs text-muted">
                           <Truck className="w-3 h-3" />
                           <span>무료 배송</span>
                         </div>
@@ -1152,16 +1152,16 @@ export function ListingDetail({ id }: { id?: string }) {
             <button
               onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: -400, behavior: 'smooth' })}
               aria-label="이전"
-              className="absolute left-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
+              className="absolute left-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
             >
-              <ChevronLeft className="w-5 h-5 text-gray-700" />
+              <ChevronLeft className="w-5 h-5 text-muted" />
             </button>
             <button
               onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: 400, behavior: 'smooth' })}
               aria-label="다음"
-              className="absolute right-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-white shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
+              className="absolute right-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
             >
-              <ChevronRight className="w-5 h-5 text-gray-700" />
+              <ChevronRight className="w-5 h-5 text-muted" />
             </button>
           </div>
         ))}

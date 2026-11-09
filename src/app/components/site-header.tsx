@@ -59,11 +59,11 @@ export function SiteHeader() {
   const isSell = pathname.startsWith('/sell');
 
   return (
-    <header className="border-b border-[#e0e0e0] bg-white sticky top-0 z-50">
+    <header className="border-b border-line bg-bg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
-            <button onClick={() => router.push('/')} className="text-2xl font-bold text-[#000000]">Resonance</button>
+            <button onClick={() => router.push('/')} className="text-2xl font-bold text-fg">Resonance</button>
 
             {/* Shop by Category 버튼 + 드롭다운 패널 (클릭으로 열림) */}
             <div>
@@ -71,8 +71,8 @@ export function SiteHeader() {
                 onClick={() => (megaOpen && !megaClosing ? closeMega() : setMegaOpen(true))}
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full border text-sm font-medium transition ${
                   megaOpen && !megaClosing
-                    ? 'border-[#000000] bg-[#000000] text-white'
-                    : 'border-[#e0e0e0] bg-white text-gray-800 hover:border-gray-400'
+                    ? 'border-fg bg-fg text-bg'
+                    : 'border-line bg-bg text-gray-800 hover:border-gray-400'
                 }`}
               >
                 <span>Shop by Category</span>
@@ -83,10 +83,10 @@ export function SiteHeader() {
               {(megaOpen || megaClosing) && (
                 <>
                   <div className="absolute left-0 right-0 top-full z-40">
-                    <div className={`${megaClosing ? 'mega-roll-up' : 'mega-unroll'} bg-white border-t border-[#e0e0e0] shadow-xl`}>
+                    <div className={`${megaClosing ? 'mega-roll-up' : 'mega-unroll'} bg-bg border-t border-line shadow-xl`}>
                       <div className="max-w-7xl mx-auto px-4 flex h-[560px] overflow-hidden">
                         {/* 좌측: 대분류 리스트 */}
-                        <div className="w-64 flex-shrink-0 border-r border-[#e0e0e0] py-4">
+                        <div className="w-64 flex-shrink-0 border-r border-line py-4">
                           {MEGA_CATS.map((cat) => {
                             const isActive = hoverCat === cat;
                             return (
@@ -99,13 +99,13 @@ export function SiteHeader() {
                                 }}
                                 className={`flex items-center justify-between w-full text-left px-6 py-3 text-sm transition ${
                                   isActive
-                                    ? 'font-bold text-[#000000]'
-                                    : 'font-medium text-[#000000] hover:bg-[#f7f7f7]'
+                                    ? 'font-bold text-fg'
+                                    : 'font-medium text-fg hover:bg-surface'
                                 }`}
                               >
                                 <span>{cat}</span>
                                 <ChevronRight
-                                  className={`w-4 h-4 text-[#000000] transition-opacity ${
+                                  className={`w-4 h-4 text-fg transition-opacity ${
                                     isActive ? 'opacity-100' : 'opacity-0'
                                   }`}
                                 />
@@ -118,20 +118,20 @@ export function SiteHeader() {
                         <div className="flex-1 px-8 py-6 overflow-y-auto">
                           {hoverCat && (
                             <>
-                              <div className="flex items-center gap-3 mb-5 pb-3 border-b border-[#e0e0e0]">
-                                <h3 className="text-xl font-bold text-[#000000]">{hoverCat}</h3>
+                              <div className="flex items-center gap-3 mb-5 pb-3 border-b border-line">
+                                <h3 className="text-xl font-bold text-fg">{hoverCat}</h3>
                                 <button
                                   onClick={() => {
                                     goBrowse(hoverCat);
                                     setMegaOpen(false);
                                   }}
-                                  className="flex items-center gap-1 px-3 py-1 rounded bg-[#f7f7f7] hover:bg-[#e0e0e0] text-xs font-medium text-gray-700"
+                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-xs font-medium text-muted"
                                 >
                                   Shop All <ChevronRight className="w-3 h-3" />
                                 </button>
                               </div>
                               <div>
-                                <h4 className="text-sm font-bold text-[#000000] uppercase tracking-wider mb-2">BY TYPE</h4>
+                                <h4 className="text-sm font-bold text-fg uppercase tracking-wider mb-2">BY TYPE</h4>
                                 <ul className="grid grid-cols-3 gap-x-6 gap-y-1.5">
                                   {subcategoriesFor(hoverCat).map((sub) => (
                                     <li key={sub}>
@@ -140,7 +140,7 @@ export function SiteHeader() {
                                           goBrowse(hoverCat, sub);
                                           setMegaOpen(false);
                                         }}
-                                        className="text-xs text-[#000000] hover:opacity-60 transition text-left"
+                                        className="text-xs text-fg hover:opacity-60 transition text-left"
                                       >
                                         {sub}
                                       </button>
@@ -163,7 +163,7 @@ export function SiteHeader() {
                               }}
                               className="group block w-full text-left animate-in fade-in duration-300"
                             >
-                              <div className="w-full aspect-square overflow-hidden bg-[#f7f7f7]">
+                              <div className="w-full aspect-square overflow-hidden bg-surface">
                                 <img
                                   src={MEGA_IMAGES[hoverCat] ?? '/images/no-image.png'}
                                   alt={hoverCat}
@@ -174,7 +174,7 @@ export function SiteHeader() {
                                 />
                               </div>
                               <div className="mt-3">
-                                <p className="text-xs text-gray-500 leading-relaxed group-hover:text-[#000000] transition-colors">
+                                <p className="text-xs text-gray-500 leading-relaxed group-hover:text-fg transition-colors">
                                   {megaDesc(hoverCat)}
                                 </p>
                               </div>
@@ -199,14 +199,14 @@ export function SiteHeader() {
           </div>
 
           <nav className="flex gap-6 items-center">
-            <button onClick={() => router.push('/')} className={`hover:text-[#000000] transition ${isHome ? 'text-[#000000] font-semibold' : 'text-gray-700'}`}>홈</button>
+            <button onClick={() => router.push('/')} className={`hover:text-fg transition ${isHome ? 'text-fg font-semibold' : 'text-muted'}`}>홈</button>
             <button
               onClick={() => router.push('/sell')}
-              className={`hover:text-[#000000] transition ${isSell ? 'text-[#000000] font-semibold' : 'text-gray-700'}`}
+              className={`hover:text-fg transition ${isSell ? 'text-fg font-semibold' : 'text-muted'}`}
             >
               판매
             </button>
-            <a href="#" className="text-gray-700 hover:text-[#000000]">장바구니</a>
+            <a href="#" className="text-muted hover:text-fg">장바구니</a>
           </nav>
         </div>
       </div>

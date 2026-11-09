@@ -95,12 +95,12 @@ export function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-b border-[#f7f7f7] last:border-b-0">
+    <div className="border-b border-surface last:border-b-0">
       <button
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between py-3.5"
       >
-        <h4 className="text-base font-bold text-[#000000]">{title}</h4>
+        <h4 className="text-base font-bold text-fg">{title}</h4>
         {open ? (
           <ChevronUp className="w-5 h-5 text-gray-500" />
         ) : (
@@ -138,13 +138,13 @@ export function CheckGroup({
         {visible.map((opt) => (
           <label
             key={opt}
-            className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer hover:text-[#000000]"
+            className="flex items-center gap-2 text-sm text-muted cursor-pointer hover:text-fg"
           >
             <input
               type="checkbox"
               checked={selected.has(opt)}
               onChange={() => onToggle(opt)}
-              className="accent-[#000000]"
+              className="accent-fg"
             />
             <span>{getLabel ? getLabel(opt) : opt}</span>
             {counts && <span className="text-gray-400">({counts[opt] ?? 0})</span>}
@@ -154,7 +154,7 @@ export function CheckGroup({
       {hasMore && (
         <button
           onClick={() => setShowAll((v) => !v)}
-          className="flex items-center gap-1 mt-2 text-sm font-medium text-gray-700 hover:text-[#000000]"
+          className="flex items-center gap-1 mt-2 text-sm font-medium text-muted hover:text-fg"
         >
           {showAll ? (
             <>
@@ -198,7 +198,7 @@ export function MinMaxRow({
   };
 
   return (
-    <div className="flex items-stretch border border-[#e0e0e0] rounded-lg overflow-hidden focus-within:border-[#000000] max-w-xs">
+    <div className="flex items-stretch border border-line rounded-lg overflow-hidden focus-within:border-fg max-w-xs">
       <input
         type={thousands ? 'text' : 'number'}
         inputMode="numeric"
@@ -210,7 +210,7 @@ export function MinMaxRow({
       />
       {!minOnly && (
         <>
-          <span className="w-px bg-[#e0e0e0]" />
+          <span className="w-px bg-line" />
           <input
             type={thousands ? 'text' : 'number'}
             inputMode="numeric"
@@ -537,15 +537,15 @@ export function FilterModal({
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
+        className="bg-bg rounded-xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}
-        <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-[#e0e0e0]">
-          <h3 className="text-lg font-bold text-[#000000]">필터</h3>
+        <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-b border-line">
+          <h3 className="text-lg font-bold text-fg">필터</h3>
           <button
             onClick={onClose}
-            className="w-8 h-8 rounded-full hover:bg-[#f7f7f7] flex items-center justify-center"
+            className="w-8 h-8 rounded-full hover:bg-surface flex items-center justify-center"
             aria-label="닫기"
           >
             <X className="w-5 h-5 text-gray-600" />
@@ -1076,13 +1076,13 @@ export function FilterModal({
 
         {/* 선택한 필터 칩 */}
         {draftChips.length > 0 && (
-          <div className="flex-shrink-0 border-t border-[#e0e0e0] px-5 py-3 max-h-28 overflow-y-auto">
+          <div className="flex-shrink-0 border-t border-line px-5 py-3 max-h-28 overflow-y-auto">
             <div className="flex flex-wrap gap-2">
               {draftChips.map((chip) => (
                 <button
                   key={chip.key}
                   onClick={chip.remove}
-                  className="inline-flex items-center gap-1 px-3 py-1 bg-[#f7f7f7] text-[#000000] border border-[#e0e0e0] rounded-full text-xs font-medium hover:bg-[#e0e0e0]"
+                  className="inline-flex items-center gap-1 px-3 py-1 bg-surface text-fg border border-line rounded-full text-xs font-medium hover:bg-line"
                 >
                   {chip.label}
                   <X className="w-3 h-3" />
@@ -1093,16 +1093,16 @@ export function FilterModal({
         )}
 
         {/* 푸터 */}
-        <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-t border-[#e0e0e0]">
+        <div className="flex-shrink-0 flex items-center justify-between px-5 py-4 border-t border-line">
           <button
             onClick={handleReset}
-            className="text-sm text-gray-600 hover:text-[#000000] font-medium"
+            className="text-sm text-gray-600 hover:text-fg font-medium"
           >
             필터 초기화
           </button>
           <button
             onClick={handleApply}
-            className="bg-[#000000] text-white text-sm font-semibold px-6 py-2 rounded-lg hover:bg-[#000000] transition"
+            className="bg-fg text-bg text-sm font-semibold px-6 py-2 rounded-lg hover:bg-fg transition"
           >
             적용하기 ({previewCount.toLocaleString('ko-KR')}건)
           </button>
