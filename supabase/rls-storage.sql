@@ -1,5 +1,5 @@
 -- ============================================================================
--- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT + keepalive 크론)
+-- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT + keepalive 크론 + 칸 추가)
 -- ----------------------------------------------------------------------------
 -- 실행 순서:  ① supabase/listings.sql  →  ② 이 파일
 -- 사용법:    Supabase 대시보드 → SQL Editor 에 전체를 붙여넣고 RUN.
@@ -153,6 +153,13 @@ select cron.schedule(
   $$insert into public.keepalive (id) values (1)
     on conflict (id) do update set pinged_at = now(), pings = keepalive.pings + 1$$
 );
+
+-- ----------------------------------------------------------------------------
+-- 6) 기존 테이블 칸 추가 — listings.sql 을 예전에 돌린 프로젝트용 (재실행 안전: if not exists)
+--    새 칸의 권한은 섹션 4 의 테이블 단위 GRANT 를 그대로 따르므로 추가 GRANT 없음
+-- ----------------------------------------------------------------------------
+-- 2026-11-09 통화 (krw / jpy, 기본 krw)
+alter table public.listings add column if not exists currency text not null default 'krw';
 
 -- ----------------------------------------------------------------------------
 -- (확인용, 선택) 적용 결과 보기 — 읽기만 하는 조회라 실행해도 변경 없음

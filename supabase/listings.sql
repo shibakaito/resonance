@@ -43,7 +43,8 @@ create table if not exists public.listings (
 
   -- 상태 / 가격
   condition     text        not null,  -- 영문 키 (new/nos/used_mint/...)
-  price         bigint      not null,  -- 원(KRW), 소수점 없음 → 정수
+  price         bigint      not null,  -- 금액, 소수점 없음 → 정수 (통화는 currency)
+  currency      text        not null default 'krw',  -- 통화 키 (krw / jpy). 가격 필터는 통화 구분 없이 숫자 비교
   compare_price bigint,                -- 비교가/정가
   accept_offers boolean     not null default true,
   ownership     text,                  -- single_owner / multiple_owners
@@ -119,3 +120,6 @@ create policy listings_select_all
 -- alter table public.listings
 --   add constraint listings_shipping_type_chk
 --   check (shipping_type in ('free','flat','calculated'));
+-- alter table public.listings
+--   add constraint listings_currency_chk
+--   check (currency in ('krw','jpy'));

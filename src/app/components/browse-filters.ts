@@ -11,7 +11,7 @@
 // 필터 값은 언어 중립 키 — 저장값과 같은 영문 키(또는 MM, 8Ω 같은 중립 글자). 화면 글자는 filterLabel(필드, 값)로만.
 //   앰프·스피커·턴테이블 옵션은 판매 폼 상수(category-specs.ts)의 저장값(optValues) — 단일 출처, 정규화 없음. mapRow 는 저장값을 그대로 넘김
 //   상태, 지역, 소유권, 제조국은 labels.ts 키 (DB 컬럼 값 그대로)
-import { LABELS, LOCATION_OPTS, LOCATION_COUNTRY_OPTS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
+import { LABELS, LOCATION_OPTS, LOCATION_COUNTRY_OPTS, CURRENCY_SYMBOLS, label, locationCountryOf, locationOptsFor } from '@/lib/labels';
 import { AMP_CHANNEL_OPTS, PREAMP_CHANNEL_OPTS, AMP_DEVICE_OPTS, AMP_OHM_OPTS, AMP_PHONO_OPTS, YES_NO_OPTS, AMP_VOLTAGE_OPTS, optLabel, optValues, SPEAKER_DETAIL_OPTS, SPEAKER_DRIVER_OPTS, SPEAKER_ENCLOSURE_OPTS, SPEAKER_OHM_OPTS, SPEAKER_WOOFER_BUCKETS, TT_DRIVE_OPTS, TT_TONEARM_OPTS, TT_CARTRIDGE_OPTS, TT_SPEED_OPTS, TT_AUTO_OPTS, TT_DUSTCOVER_OPTS } from '@/app/data/category-specs';
 
 // 상태 = labels.ts condition 키. 중고 등급(used_*)은 '중고' 단축 키(used)가 전체를 매칭함
@@ -143,8 +143,9 @@ export const PAIR_OPTS = ['단선', '페어', '세트'];
 // 차폐 필터가 의미 있는 케이블 종류 (RCA/XLR/디지털 동축/포노/파워)
 export const SHIELD_RELEVANT = ['RCA 케이블', 'XLR 케이블', '디지털 동축 케이블', '포노 케이블', '파워 케이블'];
 
-export function fmtPrice(v: number): string {
-  return '₩' + v.toLocaleString('ko-KR');
+// 가격 글자 — 통화 기호 + 천 단위 쉼표 (₩4,200,000 / ¥420,000). 환산 표시는 아직 없음(베타 3)
+export function fmtPrice(v: number, currency: string = 'krw'): string {
+  return (CURRENCY_SYMBOLS[currency] ?? '₩') + v.toLocaleString('ko-KR');
 }
 
 // "1963 - 1972년" 같은 문자열에서 시작 연도 추출
@@ -176,6 +177,7 @@ export type Listing = {
   description: string;
   images: string[];           // Supabase Storage 공개 URL 목록 (대표=인덱스 0). 없으면 []
   price: number;
+  currency: string;           // 통화 키 (krw / jpy) — 가격 표시 기호. 필터는 통화 구분 없이 숫자 비교
   condition: string;         // 상태 키 (used_good 등, 화면은 label('condition'))
   appearance: string;        // 외관 등급 (한글 라벨, 없으면 '')
   appearanceDetail: string;  // 외관 자유 입력 (없으면 '')
@@ -447,6 +449,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
       return false;
     });
   }
+  // ⚠️ 가격 필터는 통화를 가리지 않고 숫자만 비교함(베타 1은 전부 원화). 엔화 매물이 섞이면 같은 숫자라도 값어치가 달라 환산이 필요(베타 3)
   if (f.priceMin != null) r = r.filter((l) => l.price >= f.priceMin! * 10000);
   if (f.priceMax != null) r = r.filter((l) => l.price <= f.priceMax! * 10000);
   if (f.yearMin != null) r = r.filter((l) => l.releaseYear >= f.yearMin!);

@@ -25,6 +25,7 @@ type ListingRow = {
   categories: string[] | null;
   description: string | null;
   price: number;
+  currency: string | null;
   condition: string;
   location: string | null;
   ownership: string | null;
@@ -108,6 +109,7 @@ function mapRow(row: ListingRow): Listing {
     description: row.description ?? '',
     images: row.images ?? [],
     price: row.price,
+    currency: row.currency ?? 'krw', // 통화 키 (krw / jpy), 칸이 없던 옛 행은 원화
     condition: row.condition, // 상태 키 (used_good 등) — 필터가 키로 비교, 화면은 label('condition')
     // 외관/작동 상태 (참고용, specs에서)
     appearance: label('appearance', typeof s.appearance === 'string' ? s.appearance : ''),
@@ -225,6 +227,7 @@ export type ListingInput = {
   sku: string;
   youtubeLink: string;
   price: string;          // 폼 문자열 (콤마 등 포함 가능)
+  currency?: string;      // 통화 키 (krw / jpy). 없으면 krw
   comparePrice: string;
   acceptOffers: boolean;
   shippingType: 'free' | 'flat' | 'calculated' | ''; // 빈 문자열 = 미선택
@@ -262,6 +265,7 @@ export function toListingRow(form: ListingInput) {
     condition: form.condition,                              // 폼이 이미 영문 키
     ownership: form.ownership || null,                      // 폼이 이미 영문 키 (빈 값이면 null)
     price: toMoney(form.price) ?? 0,
+    currency: form.currency || 'krw',                         // 통화 키 (DB listings.currency, 기본 krw)
     compare_price: toMoney(form.comparePrice),
     accept_offers: form.acceptOffers,
     sku: form.sku || null,

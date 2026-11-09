@@ -15,6 +15,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
 import type { Listing } from './browse-filters';
+import { fmtPrice } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, optLabel, type SelectOption } from '@/app/data/category-specs';
@@ -934,7 +935,7 @@ export function ListingDetail({ id }: { id?: string }) {
 
                 <div className={`border-t border-t-[#e0e0e0] border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-[#e0e0e0]'}`}>
                   <div className="flex items-baseline gap-2">
-                    <span className="text-4xl font-bold">{listing ? `${listing.price.toLocaleString('ko-KR')}원` : ''}</span>
+                    <span className="text-4xl font-bold">{listing ? fmtPrice(listing.price, listing.currency) : ''}</span>
                   </div>
                 </div>
 

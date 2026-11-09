@@ -83,7 +83,7 @@ export function ListingGrid({
               {l.model}
             </h3>
             <p className="text-xs text-gray-500 mt-0.5 line-clamp-1">{l.year} · {l.category}</p>
-            <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price)}</p>
+            <p className="text-base font-bold text-[#000000] mt-2">{fmtPrice(l.price, l.currency)}</p>
             <div className="flex items-center justify-between text-xs text-gray-500 mt-1">
               {/* 매물의 상태, 지역은 키 → 화면 글자 */}
               <span>{label('condition', l.condition)}</span>

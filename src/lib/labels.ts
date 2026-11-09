@@ -59,12 +59,18 @@ export const LABELS: Record<string, LabelMap> = {
     multiple_owners: { ko: '2인 이상 소유' },
     unknown: { ko: '알 수 없음' },
   },
+  // 통화 (DB listings.currency, 기본 krw). 기호는 아래 CURRENCY_SYMBOLS
+  currency: { krw: { ko: '원' }, jpy: { ko: '엔' } },
   shipping_type: {
     free: { ko: '무료배송' },
     flat: { ko: '고정 배송비' },
     calculated: { ko: '배송비 별도' },
   },
 };
+
+// 통화 선택지와 기호 — 가격 표시는 browse-filters fmtPrice(값, 통화)
+export const CURRENCY_OPTS = Object.entries(LABELS.currency).map(([value, m]) => ({ value, label: m.ko ?? value })); // krw / jpy
+export const CURRENCY_SYMBOLS: Record<string, string> = { krw: '₩', jpy: '¥' };
 
 // 지역 선택지 (단일 출처) — 업로드 폼 배송 섹션 '국가', '지역' 칸과 둘러보기, 홈 필터가 같이 씀
 export const LOCATION_COUNTRY_OPTS = Object.entries(LABELS.locationCountry).map(([value, m]) => ({ value, label: m.ko ?? value })); // kr / jp

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
 import { insertListing, fetchListings } from '@/lib/listings';
-import { NEW_CONDITION_KEYS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf } from '@/lib/labels';
+import { NEW_CONDITION_KEYS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
@@ -876,6 +876,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [youtubeLink, setYoutubeLink] = useState('');
   const [price, setPrice] = useState('');
   const [comparePrice, setComparePrice] = useState('');
+  const [currency, setCurrency] = useState('krw'); // 통화 키 (krw / jpy, 기본 원) → DB listings.currency
   const [acceptOffers, setAcceptOffers] = useState(true);
   const [shippingType, setShippingType] = useState<'free' | 'flat' | 'calculated' | ''>('');
   const [shippingCost, setShippingCost] = useState('');
@@ -1051,7 +1052,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year, finish, country,
-        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice,
+        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency,
         acceptOffers, shippingType, shippingCost, localPickup, location,
         specs: specsToSave,
       });
@@ -2352,6 +2353,22 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </h2>
           <section className="bg-white border border-[#e0e0e0] rounded-none p-6">
             <div className="space-y-4">
+              {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
+              <div className="max-w-[12rem]">
+                <label className="block font-semibold mb-1">통화</label>
+                <div className="relative">
+                  <select
+                    value={currency}
+                    onChange={(e) => setCurrency(e.target.value)}
+                    className="w-full appearance-none border border-[#e0e0e0] rounded-none pl-3 pr-9 py-2 h-[42px] focus:outline-none focus:border-[#000000] bg-white"
+                  >
+                    {CURRENCY_OPTS.map((o) => (
+                      <option key={o.value} value={o.value} className="text-[#000000]">{o.label} ({CURRENCY_SYMBOLS[o.value]})</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
+                </div>
+              </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block font-semibold mb-1">
@@ -2364,7 +2381,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       placeholder=""
                       className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
-                    <span className="absolute right-3 top-2 text-gray-500">원</span>
+                    <span className="absolute right-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[currency]}</span>
                   </div>
                 </div>
                 <div>
@@ -2378,7 +2395,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       placeholder=""
                       className="w-full border border-[#e0e0e0] rounded-none pl-3 pr-12 py-2 focus:outline-none focus:border-[#000000]"
                     />
-                    <span className="absolute right-3 top-2 text-gray-500">원</span>
+                    <span className="absolute right-3 top-2 text-gray-500">{CURRENCY_SYMBOLS[currency]}</span>
                   </div>
                 </div>
               </div>

@@ -12,7 +12,7 @@ import {
   subcategoriesFor
 } from '../data/catalog';
 import type { Listing } from './browse-filters';
-import { USED_GRADES, USED_ALL, USED_ALL_KEY } from './browse-filters';
+import { USED_GRADES, USED_ALL, USED_ALL_KEY, fmtPrice } from './browse-filters';
 import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor } from '@/lib/labels';
 import { fetchListings } from '@/lib/listings';
 
@@ -927,7 +927,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                       <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
                         {l.brand} {l.model}
                       </p>
-                      <p className="font-bold text-[#000000]">{l.price.toLocaleString('ko-KR')}원</p>
+                      <p className="font-bold text-[#000000]">{fmtPrice(l.price, l.currency)}</p>
                     </div>
                   </button>
                 ))}
@@ -1004,7 +1004,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                   <p className="font-semibold mb-1 line-clamp-1 group-hover:text-[#000000] transition">
                     {l.brand} {l.model}
                   </p>
-                  <p className="font-bold text-[#000000] mb-1">{l.price.toLocaleString('ko-KR')}원</p>
+                  <p className="font-bold text-[#000000] mb-1">{fmtPrice(l.price, l.currency)}</p>
                 </div>
               </button>
             ))}
