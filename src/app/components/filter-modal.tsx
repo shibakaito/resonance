@@ -932,6 +932,7 @@ export function FilterModal({
               setMax={setYearMaxInput}
             />
           </Section>
+          {FEATURE_FLAGS.ownership && (
           <Section title="소유권">
             <CheckGroup
               options={OWNERSHIP_OPTS}
@@ -941,6 +942,7 @@ export function FilterModal({
               counts={counts.ownership}
             />
           </Section>
+          )}
           <Section title="제조국">
             <CheckGroup
               options={COUNTRY_OPTS}

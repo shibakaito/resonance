@@ -819,7 +819,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
 
               {/* 공통 */}
               <RangeSection label="출시 연도" noComma min={filters.yearMin} max={filters.yearMax} onApply={(m, x) => setFilters((prev) => ({ ...prev, yearMin: m, yearMax: x }))} defaultOpen={false} />
-              <FilterSection label="소유권" options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />
+              {FEATURE_FLAGS.ownership && <FilterSection label="소유권" options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />}
               <FilterSection label="제조국" options={COUNTRY_OPTS} selected={filters.country} getLabel={lab('country')} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
               {/* 국가 → 지역: 국가를 고르면 지역은 그 나라 것만 (안 고르면 전 국가, 한국 먼저 펼침) */}
               <FilterSection label="국가" options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false} />

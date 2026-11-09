@@ -20,6 +20,7 @@ import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
+import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 import { label, desc, locationText } from '@/lib/labels'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
 
 export function ListingDetail({ id }: { id?: string }) {
@@ -478,8 +479,13 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="font-bold">제조국</div>
                   <div className="break-words">{label('country', listing?.country)}</div>
 
-                  <div className="font-bold">소유권</div>
-                  <div className="break-words">{label('ownership', listing?.ownership)}</div>
+                  {/* 소유권 — FEATURE_FLAGS.ownership 꺼지면 줄 숨김 (docs/hidden.md) */}
+                  {FEATURE_FLAGS.ownership && (
+                    <>
+                      <div className="font-bold">소유권</div>
+                      <div className="break-words">{label('ownership', listing?.ownership)}</div>
+                    </>
+                  )}
 
                   {/* 구성품 — 체크한 것만 나열, 기타 구성품은 글 그대로 */}
                   {listing && (listing.components.length > 0 || listing.componentsOther) && (

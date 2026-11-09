@@ -462,7 +462,7 @@ export function applyFilters(list: Listing[], f: Filters, isAmp: boolean, isSpea
   if (f.priceMax != null) r = r.filter((l) => l.price <= f.priceMax! * 10000);
   if (f.yearMin != null) r = r.filter((l) => l.releaseYear >= f.yearMin!);
   if (f.yearMax != null) r = r.filter((l) => l.releaseYear <= f.yearMax!);
-  if (f.ownership.size > 0) r = r.filter((l) => f.ownership.has(l.ownership));
+  if (FEATURE_FLAGS.ownership && f.ownership.size > 0) r = r.filter((l) => f.ownership.has(l.ownership)); // 플래그 꺼짐: 소유권 필터 없음
   if (f.country.size > 0) r = r.filter((l) => f.country.has(l.country));
   if (f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
   if (f.region.size > 0) r = r.filter((l) => f.region.has(l.location));

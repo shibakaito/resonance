@@ -1493,7 +1493,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 {desc('condition', condition) && <p className="mt-1 text-xs text-gray-500">{desc('condition', condition)}</p>}
               </div>
 
-              {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님 */}
+              {/* 소유권 — 드롭다운(1인/다중). 중고 등급(used_*)일 때만 활성화. 필수 아님. FEATURE_FLAGS.ownership 꺼지면 칸만 숨김(저장 로직 그대로) */}
+              {FEATURE_FLAGS.ownership && (
               <div>
                 <label className={`block font-semibold mb-1 ${condition.startsWith('used_') ? '' : 'text-gray-400'}`}>소유권</label>
                 <div className="relative">
@@ -1513,6 +1514,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <ChevronDown className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
                 </div>
               </div>
+              )}
 
               {/* 8. 외관 상태 — 중고 등급(used_*)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김 */}
               {!usedFieldsHidden && (
