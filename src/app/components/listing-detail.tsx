@@ -583,7 +583,8 @@ export function ListingDetail({ id }: { id?: string }) {
                 const v = specs[f.key];
                 return Array.isArray(v) ? v.length > 0 : Boolean(v);
               });
-              if (rows.length === 0) return null;
+              const custom = listing?.customSpecs ?? []; // 자유 추가 사양 (프리앰프 등 상세 모드 'custom') — 정해진 칸 아래에 입력 순서대로
+              if (rows.length === 0 && custom.length === 0) return null;
               return (
                 <div>
                   <h2 className="text-2xl font-bold mb-4">기술 사양</h2>
@@ -600,9 +601,15 @@ export function ListingDetail({ id }: { id?: string }) {
                           <div className={`break-words${f.input?.kind === 'textarea' || f.key === 'otherSpecs' ? ' whitespace-pre-line' : ''}`}>{fmt(f, specs[f.key])}</div>
                         </Fragment>
                       ))}
+                      {custom.map((c, i) => (
+                        <Fragment key={`custom-${i}`}>
+                          <div className="font-bold break-words">{c.title}</div>
+                          <div className="break-words">{c.value}</div>
+                        </Fragment>
+                      ))}
                     </div>
 
-                    {!techSpecsExpanded && rows.length > 4 && (
+                    {!techSpecsExpanded && rows.length + custom.length > 4 && (
                       <>
                         <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-b from-transparent to-white pointer-events-none"></div>
                         <div className="absolute bottom-0 left-0 right-0 flex justify-center">

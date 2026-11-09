@@ -24,7 +24,7 @@ import { NEW_CONDITION_KEYS, desc, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locati
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
 import { SPEC_FIELDS } from '../data/spec-fields';
-import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, type CategorySpecField, optLabel, optLabels, optValue, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
+import { SPEC_FIELDS_BY_CATEGORY, CORE_SPEC_KEYS, ALWAYS_SPEC_KEYS, detailModeOf, hiddenByDetailMode, cleanCustomSpecs, type CustomSpecRow, type CategorySpecField, optLabel, optLabels, optValue, AMP_OHM_OPTS, AMP_DEVICE_SOLID, MAINTENANCE_OPTS, OTHER_SPECS_INPUT, TERMINAL_ALIASES, DRIVER_TYPES, DRIVER_STRUCT, DRIVER_MATERIAL, COAXIAL_BANDS, TUBE_ROLE_OPTS, TUBE_TYPE_MAP } from '../data/category-specs';
 import { buildPower, buildFreq, buildDims, buildValNotes, buildTubes, buildCrossover, buildAmpPower, buildNumSelect, driverSummary, driverDerived, AMP_POWER_TYPES, type DriverRow, type AmpPowerRow } from '@/lib/spec-builders';
 
 const CATEGORIES = TOP_CATEGORIES;
@@ -920,6 +920,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   const [crossoverValues, setCrossoverValues] = useState<{ value: string; unit: string }[]>([{ value: '', unit: 'Hz' }]);
   // 진공관 빌더 — 역할/종류/개수 행 배열 (1단계: 상태·조립만, UI는 2단계)
   const [tubeRows, setTubeRows] = useState<{ role: string; type: string; qty: string }[]>([{ role: '', type: '', qty: '' }]);
+  // 자유 추가 사양 [제목][내용] 줄들 — 상세 모드 'custom' 하위 카테고리(프리앰프)에서만 보임 → specs.tech.customSpecs (빈 줄 제외, 입력 순서)
+  const [customSpecs, setCustomSpecs] = useState<CustomSpecRow[]>([]);
   const toggleArr = (arr: string[], v: string) =>
     arr.includes(v) ? arr.filter((x) => x !== v) : [...arr, v];
   // 숫자(+소수점 1개)만 남김 — 정격출력/주파수/THD/S/N/댐핑/무게 등 수치 입력용
@@ -966,7 +968,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     category, subcategory, brand, model, title, titleEdited, year, yearApprox, yearUnknown, finish, country, handmade,
     condition, ownership, components, componentsOther, conditionAppearance, conditionAppearanceDetail, conditionWorking,
     conditionWorkingDetail, maintenance, specs, powerPairs, ranges, dims, valNotes, impedances, multiSel, driverRows,
-    ampPowerRows, crossoverValues, tubeRows, description, asDescribed, sku, youtubeLink, price, comparePrice, currency,
+    ampPowerRows, crossoverValues, tubeRows, customSpecs, description, asDescribed, sku, youtubeLink, price, comparePrice, currency,
     acceptOffers, shippingType, shippingCost, localPickup, locationCountry, location,
   };
   type DraftData = Partial<typeof draftData>;
@@ -1015,6 +1017,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (d.ampPowerRows) setAmpPowerRows(d.ampPowerRows);
     if (d.crossoverValues) setCrossoverValues(d.crossoverValues);
     if (d.tubeRows) setTubeRows(d.tubeRows);
+    setCustomSpecs(d.customSpecs ?? []);
     setDescription(d.description ?? ''); setAsDescribed(!!d.asDescribed); setSku(d.sku ?? ''); setYoutubeLink(d.youtubeLink ?? '');
     setPrice(d.price ?? ''); setComparePrice(d.comparePrice ?? ''); setCurrency(d.currency ?? 'krw'); setAcceptOffers(d.acceptOffers ?? true);
     setShippingType(d.shippingType ?? ''); setShippingCost(d.shippingCost ?? ''); setLocalPickup(!!d.localPickup);
@@ -1065,6 +1068,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         for (const f of catFields) {
           // 조건부 필드(형식·서브우퍼별): 화면에 안 보이는 필드는 저장하지 않음(전환 시 잔여값 방지)
           if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) continue;
+          if (hiddenByDetailMode(subcategory, f)) continue; // 상세 모드 'custom'(프리앰프): 정해진 상세 칸은 숨김 + 저장 안 함
           if (f.input.kind === 'auto') {
             // 타입: 카테고리에서 자동 입력된 값
             const v = (subcategory || category).trim();
@@ -1126,6 +1130,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       }
       // 정비 이력 — 제품 정보 공통 칸. 저장 자리는 예전 카세트 칸 그대로 specs.tech.maintenance (새 제품 상태면 저장 안 함)
       if (!usedFieldsHidden && maintenance.length > 0) tech.maintenance = maintenance;
+      // 자유 추가 사양 — 상세 모드 'custom'일 때만, 제목과 내용이 다 있는 줄만 입력 순서대로. 필터는 안 읽음
+      if (catFields && CORE_SPEC_KEYS[subcategory] && detailModeOf(subcategory) === 'custom') {
+        const cs = cleanCustomSpecs(customSpecs);
+        if (cs.length > 0) (tech as Record<string, unknown>).customSpecs = cs;
+      }
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
       const id = await insertListing({
@@ -2263,6 +2272,54 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 const always = fields.filter(isAlways);
                 const detail = fields.filter((f) => !isCore(f) && !isAlways(f));
                 const detailCount = detail.filter(visible).length;
+                // 상세 모드 'custom'(프리앰프): 상세 칸, 상세 버튼, 기타 사양 대신 [제목][내용] 자유 추가 (크기, 무게 빌더와 같은 칸 규칙)
+                if (detailModeOf(subcategory) === 'custom') {
+                  const updateRow = (i: number, patch: Partial<CustomSpecRow>) =>
+                    setCustomSpecs((rows) => rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+                  return (
+                    <>
+                      {core.map(renderSpecField)}
+                      {always.map(renderSpecField)}
+                      <div className="spec-field">
+                        <div className="space-y-2">
+                          {customSpecs.map((r, i) => (
+                            <div key={i} className="flex gap-1.5 items-center -mr-6">
+                              <input
+                                value={r.title}
+                                onChange={(e) => updateRow(i, { title: e.target.value })}
+                                placeholder="제목"
+                                aria-label={`사양 ${i + 1} 제목`}
+                                className="flex-[2_1_0] min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                              />
+                              <input
+                                value={r.value}
+                                onChange={(e) => updateRow(i, { value: e.target.value })}
+                                placeholder="내용"
+                                aria-label={`사양 ${i + 1} 내용`}
+                                className="flex-[3_1_0] min-w-0 h-[42px] border border-[#e0e0e0] rounded-none px-3 py-2 focus:outline-none focus:border-[#000000]"
+                              />
+                              <button
+                                type="button"
+                                aria-label="삭제"
+                                onClick={() => setCustomSpecs((rows) => rows.filter((_, idx) => idx !== i))}
+                                className="w-5 h-5 flex-shrink-0 flex items-center justify-center text-gray-400 hover:text-gray-700 rounded-full hover:bg-[#f7f7f7]"
+                              >
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ))}
+                          <button
+                            type="button"
+                            onClick={() => setCustomSpecs((rows) => [...rows, { title: '', value: '' }])}
+                            className="text-sm text-[#000000] font-semibold inline-flex items-center gap-1 hover:underline"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> 사양 추가
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  );
+                }
                 return (
                   <>
                     {core.map(renderSpecField)}

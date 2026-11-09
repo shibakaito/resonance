@@ -198,6 +198,7 @@ export type Listing = {
   components: string[];                // 구성품 키 배열 (labels.ts components, 없으면 [])
   componentsOther: string;             // 기타 구성품 자유 글 (없으면 '')
   techSpecs: Record<string, string | string[]>; // 기술 사양 (specs.tech key→값; 다중 선택은 배열)
+  customSpecs: { title: string; value: string }[]; // 자유 추가 사양 (specs.tech.customSpecs, 입력 순서). 필터는 안 읽음
   daysAgo: number;
   // 앰프 전용 속성 (앰프 카테고리에서만 사용)
   ampType: string;

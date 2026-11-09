@@ -569,6 +569,26 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear'], // 정비 이력은 제품 정보 공통 칸으로 옮김
 };
 
+// 하위 카테고리별 상세 모드 스위치 — 'fields'(기본) = 정해진 상세 칸 + '상세 사양 (N)' 버튼 + 기타 사양
+//   'custom' = 상세 칸(핵심, 크기, 무게 밖의 칸 전부, 기타 사양 포함)을 숨기고 저장도 안 함, 대신 [제목][내용] 자유 추가(specs.tech.customSpecs)
+//   칸 정의와 라벨은 그대로 남음. 다른 하위 카테고리도 여기 한 줄만 넣으면 켜짐 (CORE_SPEC_KEYS 에 있는 하위 카테고리만 의미 있음)
+//   2026-11-09: 프리앰프부터 (docs/hidden.md)
+export type DetailMode = 'fields' | 'custom';
+export const DETAIL_MODE_BY_SUB: Record<string, DetailMode> = {
+  프리앰프: 'custom',
+};
+export const detailModeOf = (sub: string): DetailMode => DETAIL_MODE_BY_SUB[sub] ?? 'fields';
+// 이 하위 카테고리에서 상세 모드 때문에 숨는 칸인가 (폼 그리기, 폼 저장, 시드 조립과 검사가 같이 씀)
+export const hiddenByDetailMode = (sub: string, f: CategorySpecField): boolean => {
+  const core = CORE_SPEC_KEYS[sub];
+  if (!core || detailModeOf(sub) !== 'custom') return false;
+  return f.input.kind !== 'auto' && !core.includes(f.key) && !ALWAYS_SPEC_KEYS.includes(f.key);
+};
+// 자유 추가 사양 한 줄 (specs.tech.customSpecs 원소). 제목이나 내용이 빈 줄은 저장 안 함
+export type CustomSpecRow = { title: string; value: string };
+export const cleanCustomSpecs = (rows: CustomSpecRow[]): CustomSpecRow[] =>
+  rows.map((r) => ({ title: r.title.trim(), value: r.value.trim() })).filter((r) => r.title && r.value);
+
 // 대분류(한글) → 스펙 필드 세트. 정의 없는 카테고리는 폼이 기존 SPEC_FIELDS로 폴백.
 export const SPEC_FIELDS_BY_CATEGORY: Record<string, CategorySpecField[]> = {
   앰프: AMP_SPEC_FIELDS,
