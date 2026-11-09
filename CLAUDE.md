@@ -11,7 +11,7 @@
 - 패턴: select는 영문키 저장+labels 변환, 조건부는 showWhen 술어(카테고리 __sub / 값 기반), 빈 값 저장·표시 제외, numSelect = 값+조건 조립, 빌더(크기/무게/드라이버/크로스오버/앰프출력 등)는 [값][비고]+"추가", X버튼 거터 규칙 동일
 - 새 카테고리 = 해당 대분류 배열에 블록 추가 + 게이트 술어 (앰프에 AVR, 소스기기에 카세트 추가한 방식)
 - 카테고리 노출은 CATEGORY_TREE(catalog.ts)의 숨김 표식(hidden: true)으로 관리. 켜기 = 표식 제거
-- 하위 카테고리별 상세 모드 스위치 DETAIL_MODE_BY_SUB(category-specs.ts): 'fields'(정해진 상세 칸 + 상세 사양 버튼 + 기타 사양, 기본) / 'custom'(상세 칸 숨김, [제목][내용] 자유 추가 → specs.tech.customSpecs). 지금 프리앰프만 'custom', 다른 하위 카테고리는 한 줄 추가로 켬
+- 상세 사양은 보이는 카테고리 전부 자유 추가(customSpecs). 정해진 칸 정의는 남아 있고 DETAIL_MODE_BY_SUB로 복귀 가능 (category-specs.ts, 'custom' = 상세 칸 숨김 + [제목][내용] → specs.tech.customSpecs, 'fields' = 정해진 칸. 숨긴 카테고리는 'fields', 켤 때 'custom' 한 줄. 숨는 칸 목록은 docs/hidden.md)
 - src/lib/listings.ts mapRow는 specs.tech만 읽음. 필터 옵션 = 폼 옵션의 저장값(optValues, 영문 키), 화면 글자는 browse-filters filterLabel / labels.ts label, 숫자는 미입력 null, 파생 키는 빌더에서 생성
 - 선택형 저장값은 영문 키(MM, 220V, ARC 같은 중립 글자는 그대로), 한글은 labels.ts에만. 시드 검증이 한글 저장값을 막음. 빌더 조립 글(진공관, 드라이버, 앰프 출력)은 아직 한글 포함(보류)
 ## 검증
