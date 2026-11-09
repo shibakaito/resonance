@@ -11,9 +11,6 @@ import {
   Check,
   ChevronDown,
   ChevronRight,
-  Bold,
-  Italic,
-  List,
   Youtube,
   HelpCircle
 } from 'lucide-react';
@@ -2267,31 +2264,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <section className="bg-bg border border-line rounded-none p-6">
             <h3 className="text-20 font-bold mb-4">항목을 설명하세요.</h3>
 
+            {/* 설명 — 서식 버튼(굵게, 기울임, 목록)은 누르는 동작이 없어 삭제(2026-11-10 디자인 3a). 글은 줄바꿈 그대로 저장 */}
             <Field label="이 상품과 그 상태에 대해 설명해 주세요" hint={`${description.length}자 입력됨`}>
-              {({ id, describedBy }) => (
-              <div className="border border-line rounded-none overflow-hidden focus-within:border-fg">
-                <div className="flex gap-1 px-2 py-2 border-b border-line bg-surface">
-                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-fg">
-                    <Bold className="w-4 h-4" />
-                  </button>
-                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-fg">
-                    <Italic className="w-4 h-4" />
-                  </button>
-                  <button className="w-7 h-7 rounded hover:bg-line flex items-center justify-center text-fg">
-                    <List className="w-4 h-4" />
-                  </button>
-                </div>
-                <textarea
-                  id={id}
-                  aria-describedby={describedBy}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder=""
-                  rows={6}
-                  className="w-full px-3 py-2 focus:outline-none resize-y"
-                />
-              </div>
-              )}
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} />
             </Field>
 
             <div className="mt-4 pt-4 border-t border-line">
