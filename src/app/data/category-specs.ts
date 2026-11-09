@@ -566,7 +566,7 @@ export const CORE_SPEC_KEYS: Record<string, string[]> = {
   서브우퍼: ['speakerDetail', 'driverComposition', 'enclosure', 'ampPower', 'freqResponse', 'voltage'],
   // 턴테이블 — 톤암은 기존 규칙대로 형식이 하이파이, DJ일 때만
   턴테이블: ['ttType', 'driveType', 'speeds', 'autoMode', 'tonearm', 'cartridge', 'phonoBuiltIn', 'voltage'],
-  '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear'], // 정비 이력은 제품 정보 공통 칸으로 옮김
+  '카세트 데크': ['headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear', 'voltage'], // 정비 이력은 제품 정보 공통 칸으로 옮김. 전원 전압은 2026-11-10 핵심으로
   // CD 플레이어, 튜너 — 원래 분리 없음(마감, 전원, 크기, 무게뿐). 2026-11-10 상세 모드 'custom'을 켜려고 전원 전압만 핵심으로
   'CD 플레이어': ['voltage'],
   튜너: ['voltage'],
