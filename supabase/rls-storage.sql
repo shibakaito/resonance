@@ -1,12 +1,13 @@
+-- 새 프로젝트에 이 파일을 위에서 아래로 돌리면 복원됨. 이미 있는 프로젝트에는 돌리지 말 것(정책 중복).
 -- ============================================================================
--- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT + keepalive 크론 + 칸 추가)
+-- rls-storage.sql — 새 Supabase 프로젝트 재생성용 ② (RLS 등록 정책 + Storage 버킷 + Data API GRANT + keepalive 크론)
 -- ----------------------------------------------------------------------------
 -- 실행 순서:  ① supabase/listings.sql  →  ② 이 파일
 -- 사용법:    Supabase 대시보드 → SQL Editor 에 전체를 붙여넣고 RUN.
 --            여러 번 실행해도 안전합니다 (drop ... if exists / on conflict).
 --
 -- ⚠️ 현재 상태(2026-09-30): kaito Project엔 이미 전부 적용돼 있음
---            (정책명 listings_select_all / listings_insert_temp, Storage 정책 2개).
+--            (정책 이름은 이 파일과 같음: listings_select_all, listings_insert_temp, Storage 정책 2개).
 --            섹션 5(keepalive 테이블 + pg_cron)는 2026-10-10 대시보드에서 적용됨.
 --            → 새 프로젝트 재생성 시에만 실행. 지금 프로젝트에는 돌리지 말 것.
 --
@@ -25,20 +26,15 @@
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1) listings 테이블 RLS — 누구나 조회 + 누구나 등록
+-- 1) listings 테이블 RLS — 누구나 등록 (조회는 listings.sql)
 -- ----------------------------------------------------------------------------
 alter table public.listings enable row level security;   -- 이미 켜져 있어도 안전
 
--- 조회 (listings.sql 에도 있음 — 중복 실행 안전)
-drop policy if exists listings_select_all on public.listings;
-create policy listings_select_all
-  on public.listings
-  for select
-  using (true);
+-- 조회 정책(listings_select_all)은 listings.sql 4절에 있음
 
 -- 등록 (listings.sql 에 없던 정책 — 앱의 .insert() 에 필수)
-drop policy if exists listings_insert_all on public.listings;
-create policy listings_insert_all
+drop policy if exists listings_insert_temp on public.listings;
+create policy listings_insert_temp
   on public.listings
   for insert
   with check (true);
@@ -68,15 +64,15 @@ on conflict (id) do update
 --    storage.objects 는 Supabase 가 기본으로 RLS 를 켜둡니다 (alter 불필요).
 -- ----------------------------------------------------------------------------
 -- 조회: public 버킷이라 공개 URL 은 정책 없이도 열리지만, list() 등 API 조회용으로 둠
-drop policy if exists storage_listings_select_all on storage.objects;
-create policy storage_listings_select_all
+drop policy if exists "Anyone can view listing images" on storage.objects;
+create policy "Anyone can view listing images"
   on storage.objects
   for select
   using (bucket_id = 'listings');
 
 -- 업로드: 앱의 supabase.storage.from('listings').upload(...) 에 필수
-drop policy if exists storage_listings_insert_all on storage.objects;
-create policy storage_listings_insert_all
+drop policy if exists "Anyone can upload listing images (temporary)" on storage.objects;
+create policy "Anyone can upload listing images (temporary)"
   on storage.objects
   for insert
   with check (bucket_id = 'listings');
@@ -106,14 +102,6 @@ grant usage on schema public to anon, authenticated, service_role;
 
 -- listings 테이블: 앱(anon 키)이 쓰는 조회 + 등록만. update/delete 는 주지 않음 (RLS 정책도 없음)
 grant select, insert on table public.listings to anon, authenticated;
-
--- service_role: 서버/관리 작업용 전체 권한.
---   (RLS 를 우회하는 관리자 키 — 브라우저/앱 코드에는 절대 넣지 말 것. 필요 없으면 이 줄 삭제)
-grant select, insert, update, delete on table public.listings to service_role;
-
--- 시퀀스: listings 는 id 가 uuid(gen_random_uuid) 라 시퀀스가 없어 지금은 아무것도 안 함(no-op).
---   나중에 serial/identity 컬럼을 추가하면 그 시퀀스 권한이 필요해서 미리 둠 (재실행 안전).
-grant usage, select on all sequences in schema public to anon, authenticated, service_role;
 
 -- ----------------------------------------------------------------------------
 -- 5) keepalive 테이블 + pg_cron 스케줄 — Free 플랜 일시정지 방지(주 장치)
@@ -155,13 +143,6 @@ select cron.schedule(
 );
 
 -- ----------------------------------------------------------------------------
--- 6) 기존 테이블 칸 추가 — listings.sql 을 예전에 돌린 프로젝트용 (재실행 안전: if not exists)
---    새 칸의 권한은 섹션 4 의 테이블 단위 GRANT 를 그대로 따르므로 추가 GRANT 없음
--- ----------------------------------------------------------------------------
--- 2026-11-09 통화 (krw / jpy, 기본 krw)
-alter table public.listings add column if not exists currency text not null default 'krw';
-
--- ----------------------------------------------------------------------------
 -- (확인용, 선택) 적용 결과 보기 — 읽기만 하는 조회라 실행해도 변경 없음
 -- ----------------------------------------------------------------------------
 -- select policyname, cmd from pg_policies where schemaname = 'public'  and tablename = 'listings';
@@ -172,3 +153,8 @@ alter table public.listings add column if not exists currency text not null defa
 -- select * from public.keepalive;                       -- pings 가 매시간 1씩 늘면 정상
 -- select jobid, jobname, schedule, active from cron.job;
 -- select status, return_message, start_time from cron.job_run_details order by start_time desc limit 5;
+
+-- ----------------------------------------------------------------------------
+-- (주석, 손으로만) 시험 행 삭제 — 대시보드 SQL Editor 에서. anon 키는 DELETE 정책이 없어 불가
+-- ----------------------------------------------------------------------------
+-- delete from public.listings where description like '[테스트]%';

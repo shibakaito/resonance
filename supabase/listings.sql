@@ -1,3 +1,4 @@
+-- 새 프로젝트에 이 파일을 위에서 아래로 돌리면 복원됨. 이미 있는 프로젝트에는 돌리지 말 것(정책 중복).
 -- ============================================================================
 -- listings 테이블 — Resonance(Grace) 매물 저장용
 -- ----------------------------------------------------------------------------
@@ -11,9 +12,6 @@
 --   · RLS 는 "누구나 조회"만 허용 (수정/삭제는 회원 기능 생길 때 추가)
 -- 이 스크립트는 여러 번 실행해도 안전합니다(if not exists / drop ... if exists).
 -- ============================================================================
-
--- gen_random_uuid() 를 쓰기 위한 확장 (Supabase엔 보통 이미 설치돼 있음)
-create extension if not exists pgcrypto;
 
 -- ----------------------------------------------------------------------------
 -- 1) 테이블
@@ -105,21 +103,3 @@ create policy listings_select_all
   using (true);
 -- insert/update/delete 정책 없음 → 일반(anon) 사용자는 읽기만 가능.
 -- 매물 추가는 지금은 대시보드나 서버(service_role 키)로. 회원 기능 생기면 정책 추가.
-
--- ----------------------------------------------------------------------------
--- (선택) 값 검증 CHECK 제약 — 더 엄격하게 막고 싶을 때만 주석 해제
---   ⚠️ 켜두면 나중에 새 선택지를 추가할 때 이 제약도 같이 고쳐야 함(ALTER).
--- ----------------------------------------------------------------------------
--- alter table public.listings
---   add constraint listings_status_chk
---   check (status in ('active','reserved','sold','draft'));
--- alter table public.listings
---   add constraint listings_condition_chk
---   check (condition in ('new','nos','used_mint','used_excellent',
---                        'used_good','used_fair','used_needs_service','used_not_working'));
--- alter table public.listings
---   add constraint listings_shipping_type_chk
---   check (shipping_type in ('free','flat','calculated'));
--- alter table public.listings
---   add constraint listings_currency_chk
---   check (currency in ('krw','jpy'));
