@@ -57,4 +57,7 @@ export const FEATURE_FLAGS = {
   formTips: false,
   // 등록 폼 설명 구간의 SKU 접기 칸. 끄면 안 보이고 SKU 는 빈 값으로 저장 (2026-11-10 끔)
   sku: false,
+  // 등록 폼 배송 구간의 '지역' 칸. 끄면 안 보이고 지역(DB location)은 저장 안 함(null). 카드와 상세는 지역이 비면 그 줄을 숨김.
+  //   둘러보기, 홈의 지역 필터는 그대로 (2026-11-10 끔. 회원 가입 도입 때 판매자 프로필 지역을 복사해 저장하는 방식으로 대체 예정)
+  listingRegion: false,
 } as const;

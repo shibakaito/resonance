@@ -962,7 +962,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
       // 일본 확장(FEATURE_FLAGS.japan) 꺼지면 원화, 한국 지역만 저장 (임시 저장본에 엔이나 일본 지역이 남아 있어도)
       const saveCurrency = FEATURE_FLAGS.japan ? currency : 'krw';
-      const saveLocation = FEATURE_FLAGS.japan || locationCountryOf(location) === 'kr' ? location : '';
+      const saveLocation = !FEATURE_FLAGS.listingRegion ? '' : FEATURE_FLAGS.japan || locationCountryOf(location) === 'kr' ? location : ''; // 지역 칸 꺼지면 저장 안 함(null)
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year: FEATURE_FLAGS.yearApprox && yearUnknown ? '' : year, finish, country,
         handmade, condition, ownership, description, sku: FEATURE_FLAGS.sku ? sku : '', youtubeLink, price, comparePrice, currency: saveCurrency,
@@ -2556,6 +2556,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <span className="font-bold">직거래 가능</span>
             </label>
             {/* 국가 + 지역 — 선택 사항. 지역 선택지는 국가에 따라(한국 17개 시/도, 일본 47개 도도부현). DB location 칸 하나에 국가 접두 키로 저장(kr_seoul, jp_tokyo) */}
+            {(FEATURE_FLAGS.japan || FEATURE_FLAGS.listingRegion) && (
             <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
               {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음). 지역은 17개, 47개라 드롭다운 그대로 */}
               {/* 일본 확장(FEATURE_FLAGS.japan) 꺼지면 국가 칸 숨김, 지역은 한국 17개 */}
@@ -2580,6 +2581,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 )}
               </Field>
               )}
+              {/* 지역 — FEATURE_FLAGS.listingRegion 꺼지면 숨김, 저장 안 함 */}
+              {FEATURE_FLAGS.listingRegion && (
               <Field label="지역">
                 <Select value={location} onChange={(e) => setLocation(e.target.value)} className={location ? '' : 'text-muted'}>
                   <option value="">선택</option>
@@ -2588,7 +2591,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   ))}
                 </Select>
               </Field>
+              )}
             </div>
+            )}
           </section>
 
           <div className="bg-bg border border-line rounded-none p-6">

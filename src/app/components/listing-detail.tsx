@@ -1028,10 +1028,13 @@ export function ListingDetail({ id }: { id?: string }) {
                       </div>
                       <span className="text-14 text-fg">(245)</span>
                     </div>
-                    <div className="flex items-center gap-1 text-14 text-fg mt-1">
-                      <MapPin className="w-3.5 h-3.5" />
-                      <span>{locationText(listing?.location)}</span>
-                    </div>
+                    {/* 지역이 비면 줄째 숨김 (FEATURE_FLAGS.listingRegion 꺼진 뒤 등록한 매물) */}
+                    {listing?.location && (
+                      <div className="flex items-center gap-1 text-14 text-fg mt-1">
+                        <MapPin className="w-3.5 h-3.5" />
+                        <span>{locationText(listing.location)}</span>
+                      </div>
+                    )}
                   </div>
                   <button
                     onClick={() => setSellerSaved((v) => !v)}

@@ -88,7 +88,7 @@ export function ListingGrid({
             <div className="flex items-center justify-between text-12 text-muted mt-1">
               {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
               <ConditionBadge listing={l} />
-              <span>{label('location', l.location)}</span>
+              {l.location && <span>{label('location', l.location)}</span>}
             </div>
           </div>
         </button>
