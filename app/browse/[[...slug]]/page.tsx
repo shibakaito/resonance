@@ -3,52 +3,37 @@
 // app/browse/[[...slug]]/page.tsx — 매물 탐색 경로
 // ----------------------------------------------------------------------------
 // "옵셔널 캐치올" 라우트라 아래 URL을 모두 이 한 파일이 처리합니다:
-//   /browse                  → slug = undefined        (전체)
-//   /browse/amps             → slug = ['amps']         (대분류=앰프)
-//   /browse/amps/preamp      → slug = ['amps','preamp'](앰프 > 프리앰프)
-// 영문 슬러그 → 한글 카테고리 변환은 category-slugs.ts의 categoryFromSlug 사용.
-// (예전 App.tsx의 정규식 파싱 [1]=대분류, [2]=하위 와 동일한 규칙)
+//   /browse                  → 전체
+//   /browse/amps             → 대분류=앰프
+//   /browse/amps/preamp      → 앰프 > 프리앰프 (하위 카테고리 1개. 2개 이상은 ?sub=a&sub=b)
+// 필터, 정렬, 하위 카테고리는 주소에 저장(browse-url.ts). 둘러보기 안에서 바꾸면 history.replaceState 로 주소만 바꿈
+//   Next 14 에서 replaceState 뒤 useParams 는 예전 값 그대로라(2026-11-10 확인) 경로는 usePathname 으로 읽음
+// 홈 조건 검색, 홈 '모두 보기'도 같은 쓰기 함수(browseHref)로 만든 주소로 들어옴
 // ============================================================================
 
 import { Suspense } from 'react';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { BrowsePage } from '@/app/components/browse-page';
-import { categoryFromSlug } from '@/app/data/category-slugs';
+import { browseHref, parseBrowsePath } from '@/app/components/browse-url';
 
 function BrowseInner() {
   const router = useRouter();
-  const params = useParams();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const slug = params.slug as string[] | undefined;
-
-  // 첫 번째 슬러그 = 대분류, 두 번째 = 하위 카테고리
-  const category = categoryFromSlug(slug?.[0]);
-  const initialSubCategory = categoryFromSlug(slug?.[1]);
-  // 검색어(?q) — 홈 메인 검색에서 넘어옴
+  const { category, pathSub } = parseBrowsePath(pathname);
+  const search = searchParams.toString();
+  // 검색어(?q) — 홈 메인 검색이나 둘러보기 검색 칸에서
   const searchQuery = searchParams.get('q') ?? undefined;
-  // 홈 조건 검색(검색 결과 N건 보기)에서 넘어온 조건 — 필터에 체크된 채로 시작
-  const initialCondition = searchParams.get('condition') ?? undefined;   // 상태 키 (new / unopened / nos / used)
-  const initialAppearance = searchParams.get('appearance') ?? undefined; // 외관 키 (mint 등)
-  const initialWorking = searchParams.get('working') ?? undefined;       // 작동 키 (working 등)
-  const initialBrand = searchParams.get('brand') ?? undefined;
-  const initialModel = searchParams.get('model') ?? undefined;
-  const initialLocCountry = searchParams.get('loc_country') ?? undefined; // 위치 국가 키 (kr / jp)
-  const initialRegion = searchParams.get('region') ?? undefined;          // 지역 키 (kr_seoul 등)
 
   return (
     <BrowsePage
-      // 매물 카드는 공통 Card 링크(/listing/{id})로 상세에 감 (2026-11-10, 예전 onSelect 이동 대신)
       category={category}
-      initialSubCategory={initialSubCategory}
+      pathSub={pathSub}
+      search={search}
+      urlKey={search ? `${pathname}?${search}` : pathname}
       searchQuery={searchQuery}
-      initialCondition={initialCondition}
-      initialAppearance={initialAppearance}
-      initialWorking={initialWorking}
-      initialBrand={initialBrand}
-      initialModel={initialModel}
-      initialLocCountry={initialLocCountry}
-      initialRegion={initialRegion}
-      onSearch={(q) => router.push(`/browse?q=${encodeURIComponent(q)}`)}
+      // 둘러보기 안에서 다시 검색 — 대분류는 유지, 필터와 하위 카테고리는 풂, 기록 쌓음(push)
+      onSearch={(q) => router.push(browseHref(category, {}, new URLSearchParams([['q', q]])))}
     />
   );
 }

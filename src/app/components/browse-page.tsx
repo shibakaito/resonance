@@ -1,5 +1,5 @@
 'use client';
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, type Dispatch, type SetStateAction } from 'react';
 import Link from 'next/link';
 import { ChevronRight, X, SlidersHorizontal, Search } from 'lucide-react';
 import { Button } from './ui/button';
@@ -10,20 +10,15 @@ import { subcategoriesFor, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATE
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
 import { metaFor } from '../data/category-meta';
+import { browseHref, readBrowseState, type BrowseState } from './browse-url'; // 필터 상태 ↔ 주소 (2026-11-10)
 
 interface BrowsePageProps {
-  category?: string | null;
-  initialSubCategory?: string | null;
-  searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어
+  category?: string | null;   // 경로 첫 슬러그의 대분류 (한글)
+  pathSub?: string | null;    // 경로 둘째 슬러그의 하위 카테고리 (한글)
+  search?: string;            // 주소의 물음표 뒤 (필터, 정렬, sub, q, 그 밖의 키)
+  urlKey?: string;            // 지금 주소(경로 + 물음표 뒤) — 다른 곳으로 이동해서 바뀌면 주소에서 다시 읽음
+  searchQuery?: string; // 검색어 (?q)
   onSearch?: (query: string) => void; // browse에서 검색어 수정·재검색
-  // 홈 조건 검색에서 넘어온 조건(주소 ?condition, ?appearance, ?working, ?brand, ?model) — 필터에 체크된 채로 시작
-  initialCondition?: string;  // ?condition=used (new / unopened / nos / used)
-  initialAppearance?: string; // ?appearance=excellent
-  initialWorking?: string;    // ?working=working
-  initialBrand?: string;
-  initialModel?: string;
-  initialLocCountry?: string; // ?loc_country=kr
-  initialRegion?: string;     // ?region=kr_seoul
 }
 
 // ── 분리: 필터 로직/데이터/타입은 browse-filters.ts로 이동했습니다 ──
@@ -32,7 +27,6 @@ import {
   AMP_GROUPS,
   Counts,
   Filters,
-  LOCATIONS,
   Listing,
   filterVisibility,
   isFilterKeyVisible,
@@ -68,7 +62,7 @@ import { FILTER_LABELS as FL, FILTER_CHIP_PREFIX } from '@/lib/labels'; // 필�
 // 결과 카드 한 번에 보이는 장 수 (4열 × 6줄). 더 있으면 '더 보기'
 const PAGE_SIZE = 24;
 
-export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch, initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
+export function BrowsePage({ category, pathSub, search = '', urlKey = '', searchQuery, onSearch }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -87,7 +81,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
 
   // 문서 <title>·메타 디스크립션을 카테고리 컨텍스트에 맞춰 동기화 (SEO + 공유 URL용)
   useEffect(() => {
-    const meta = metaFor(category ?? null, initialSubCategory ?? null);
+    const meta = metaFor(category ?? null, pathSub ?? null);
     if (meta) {
       document.title = meta.docTitle ?? `${meta.title} | Resonance`;
       if (meta.metaDesc) {
@@ -102,7 +96,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
     } else {
       document.title = 'Resonance';
     }
-  }, [category, initialSubCategory]);
+  }, [category, pathSub]);
 
   // 선택된 대분류에 속하는 세부 카테고리 목록 (없으면 전체)
   const categorySubs = useMemo(
@@ -120,19 +114,42 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
   // 턴테이블 단독 선택 시 턴테이블 전용 필터 활성
   // (계산은 subCategories 선언 후로 미룸 — 아래 useEffect 뒤에서)
 
-  // 하위 카테고리 다중 선택 (프리앰프, 파워앰프 등). 비어있으면 대분류 전체
-  const [subCategories, setSubCategories] = useState<Set<string>>(
-    () => (initialSubCategory ? new Set([initialSubCategory]) : new Set())
-  );
+  // ── 둘러보기 상태(필터, 하위 카테고리, 정렬)의 원본은 주소 (browse-url.ts, 2026-11-10) ──
+  //   처음 열 때와 다른 곳으로 이동해서 주소가 바뀔 때(뒤로 가기, 링크) 주소에서 읽음. 열자마자 주소를 고쳐 쓰지는 않음
+  //   화면에서 바꾸면 화면 상태(ui)를 바로 바꾸고 주소를 replace(기록 안 쌓음)로 씀. 맡지 않은 키(q, utm 등)는 그대로
+  //   Next 14 에서 replaceState 뒤 useParams 는 안 바뀌어서 경로는 usePathname 으로 읽음(app/browse 경로 파일)
+  const readFromUrl = () => readBrowseState(category ?? null, pathSub ?? null, new URLSearchParams(search));
+  const [ui, setUi] = useState<BrowseState>(readFromUrl);
+  const latest = useRef(ui); // 한 번의 클릭에서 여러 번 바꿔도 앞의 변경을 잃지 않게
+  latest.current = ui;
+  const lastWritten = useRef(urlKey); // 우리가 쓴 주소 — 이 주소로 바뀐 것은 다시 읽지 않음
   useEffect(() => {
-    setSubCategories(initialSubCategory ? new Set([initialSubCategory]) : new Set());
-  }, [category, initialSubCategory]);
+    if (urlKey === lastWritten.current) return;
+    lastWritten.current = urlKey;
+    const next = readFromUrl();
+    latest.current = next;
+    setUi(next);
+  }, [urlKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const commit = (next: BrowseState) => {
+    latest.current = next;
+    setUi(next);
+    const href = browseHref(category ?? null, next, new URLSearchParams(window.location.search));
+    lastWritten.current = href;
+    window.history.replaceState(null, '', href);
+  };
+  const subCategories = ui.subs;
+  const filters = ui.filters;
+  const sort = ui.sort;
+  const setFilters: Dispatch<SetStateAction<Filters>> = (action) => {
+    const cur = latest.current;
+    commit({ ...cur, filters: typeof action === 'function' ? action(cur.filters) : action });
+  };
+  const setSort = (s: string) => commit({ ...latest.current, sort: s });
 
   // 하위 카테고리 선택 바꾸기 — 바뀐 선택에서 화면에서 사라지는 필터 칸의 값도 같이 비움(pruneHiddenFilters, 칩 안 남음, 2026-11-10)
-  //   대분류를 바꿀 때(위 effect)는 예전처럼 하위 카테고리만 비움
   const changeSubCategories = (next: Set<string>) => {
-    setSubCategories(next);
-    setFilters((prev) => pruneHiddenFilters(prev, filterVisibility(category, next)));
+    const cur = latest.current;
+    commit({ ...cur, subs: next, filters: pruneHiddenFilters(cur.filters, filterVisibility(category, next)) });
   };
   const toggleSubCategory = (v: string) => {
     const next = new Set(subCategories);
@@ -344,24 +361,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
   // 카테고리 묶음 선택지 — 예전 사이드바 그룹(소스기기의 아날로그, 디지털, 튜너 등)을 그 순서대로 한 묶음으로 (2026-11-10 시안)
   const categoryOptions = useMemo(() => sidebarCategoryGroups.flatMap((g) => g.items), [sidebarCategoryGroups]);
 
-  // 홈 조건 검색에서 넘어온 조건을 넣은 필터 (없으면 빈 필터)
-  const filtersFromHome = (): Filters => {
-    const f = emptyFilters();
-    if (initialCondition) f.condition.add(initialCondition);    // 주소의 키(new / unopened / nos / used) = 필터 값 그대로
-    if (initialAppearance) f.appearance.add(initialAppearance); // 외관 키 (mint 등)
-    if (initialWorking) f.working.add(initialWorking);          // 작동 키 (working 등)
-    if (initialBrand) f.brand.add(initialBrand);
-    if (initialModel) f.model.add(initialModel);
-    // 국가(?loc_country)는 FEATURE_FLAGS.japan 켜졌을 때만, 지역은 지금 선택지에 있는 키만 (일본 확장 꺼지면 일본 지역 무시)
-    if (initialLocCountry && FEATURE_FLAGS.japan) f.locationCountry.add(initialLocCountry);
-    if (initialRegion && LOCATIONS.includes(initialRegion)) f.region.add(initialRegion);
-    return f;
-  };
-  const [filters, setFilters] = useState<Filters>(filtersFromHome);
-  // 주소의 조건이 바뀌면(홈에서 다시 넘어오는 등) 그 조건으로 새로 시작
-  useEffect(() => { setFilters(filtersFromHome()); }, [initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [sort, setSort] = useState(SORT_OPTIONS[0]);
   const [liked, setLiked] = useState<Set<string>>(new Set());
 
   // 필터 값(키) → 화면 글자 (사이드바 칸, 칩 공용)
@@ -517,10 +517,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
 
   const filterCount = countFilters(filters);
 
-  const resetAll = () => {
-    setFilters(emptyFilters());
-    setSubCategories(new Set());
-  };
+  const resetAll = () => commit({ ...latest.current, filters: emptyFilters(), subs: new Set() });
 
   // 경로와 제목 — 하위 카테고리를 하나만 고르면 경로에 그 이름까지, 제목도 그 이름 (category-meta)
   const activeSub = subCategories.size === 1 ? [...subCategories][0] : null;
@@ -681,8 +678,8 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
           brandOptions={brandsByCount}
           listings={baseCategoryListings}
           onApply={(next, subs) => {
-            setFilters(pruneHiddenFilters(next, filterVisibility(category, subs))); // 대화상자에서도 사라진 칸 값은 비워서 넘어오지만 한 번 더
-            setSubCategories(subs);
+            // 대화상자에서도 사라진 칸 값은 비워서 넘어오지만 한 번 더
+            commit({ ...latest.current, subs, filters: pruneHiddenFilters(next, filterVisibility(category, subs)) });
           }}
           onClose={() => setModalOpen(false)}
         />
