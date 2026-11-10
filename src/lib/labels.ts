@@ -171,6 +171,11 @@ export const SPEC_LABELS: Record<string, LabelMap> = {
 // ── 필터와 홈 조건 검색의 칸 이름 (2026-11-10 모음) ──
 //   FILTER_LABELS: 필터 키 → 칸 이름. 둘러보기 사이드바 제목, 필터 모달 제목, 활성 필터 칩(범위), 홈 검색 박스가 같이 씀
 //   단위 꼬리('(W)', '(W·8Ω)' 등)는 부르는 곳이 붙임. 값의 글자는 위 LABELS / SPEC_LABELS 표
+// 홈 조건 검색에서만 다른 칸 이름 (2026-11-10 홈 시안). 값과 주소 이름(appearance)은 그대로
+export const HOME_LABELS = {
+  appearance: '등급', // 외관 상태
+} as const;
+
 export const FILTER_LABELS = {
   condition: '상태',
   appearance: '외관 상태',
