@@ -1,7 +1,7 @@
 'use client';
 // 상태(useState)·효과(useEffect)·DOM 이벤트를 쓰므로 클라이언트 컴포넌트.
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Search, TrendingUp, Heart, Tag, Truck, ChevronRight, ArrowRight, ChevronDown } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Search, ArrowRight } from 'lucide-react';
 // 사전(searchCatalog, searchBrands, POPULAR_BRANDS)은 '내 매물 등록하기' 탭(판매자 쪽)만 씀. 손님 쪽 조건 검색은 매물에서 뽑음
 import {
   POPULAR_BRANDS,
@@ -18,7 +18,7 @@ import { keyFor, label, FILTER_LABELS as FL, HOME_LABELS } from '@/lib/labels'; 
 import { fetchListings } from '@/lib/listings';
 import Link from 'next/link';
 import { Card } from './ui/card'; // 매물 카드 (2026-11-10 홈 시안)
-import { Button } from './ui/button';
+import { Button, buttonClass } from './ui/button';
 import { Field, Select } from './ui/field'; // 조건 검색 칸 — 등록 폼과 같은 부품
 import { Input } from './ui/input';
 import { Autocomplete } from './ui/autocomplete';
@@ -31,17 +31,6 @@ const BRAND_ALIASES_MAP: Record<string, string[]> = Object.fromEntries(
 );
 
 const CATEGORY_TABS = TOP_CATEGORIES; // 보이는 대분류만 (CATEGORY_TREE 숨김 표식)
-
-const TRENDING = [
-  '빈티지 맥킨토시 파워 앰프',
-  '1000만원 이하 인티앰프',
-  '마란츠 빈티지',
-  '야마하 하이파이',
-  '럭스만 인티앰프',
-  '액큐페이즈 프리앰프',
-  '네임 오디오',
-  '중고 턴테이블'
-];
 
 type SellData = {
   title?: string;
@@ -431,96 +420,19 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         )}
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-bg border border-line rounded-xl p-6 flex gap-4 items-center">
-            <div className="flex-1">
-              <p className="text-14 font-bold text-fg mb-1">내 컬렉션</p>
-              <h3 className="text-20 font-bold mb-2">내 장비를 한 곳에서</h3>
-              <p className="text-fg mb-4">
-                보유 · 판매 · 관심 매물을 한 번에 관리할 수 있어요.
-              </p>
-              <button className="border-2 border-line text-fg font-bold px-5 py-2 rounded-lg hover:border-muted transition">
-                컬렉션 만들기
-              </button>
-            </div>
-            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-lg overflow-hidden bg-surface shrink-0">
-              <img
-                src="/images/d4ba8a07c2a69.jpg"
-                alt="컬렉션"
-                className="w-full h-full object-cover"
-              />
-            </div>
+      {/* 판매 띠 (2026-11-10 홈 시안) — 1120 폭 검정 띠 하나, 안 여백 40 48, 사진 없음. 구간 위 64(아래 64는 푸터 위 여백)
+          예전 '내 컬렉션' 배너, 무료 배송, 최저가 보장, 구매자 보호 세 줄, '지금 인기 검색어' 8개는 삭제 */}
+      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+        <div className="flex flex-col gap-6 bg-fg px-12 py-10 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-14 font-medium text-line">매물 판매</p>
+            <h2 className="mt-2 text-24 font-bold text-bg">원하는 방식으로 판매하세요</h2>
+            <p className="mt-2 text-16 text-line">직접 등록하고 가격과 조건을 정해요. 등록은 몇 분이면 끝나요.</p>
           </div>
-
-          <div className="bg-fg text-bg rounded-xl p-6 flex gap-4 items-center">
-            <div className="flex-1">
-              <p className="text-14 font-bold text-line mb-1">매물 판매</p>
-              <h3 className="text-20 font-bold mb-2">원하는 방식으로 판매하세요</h3>
-              <p className="text-line mb-4">
-                즉시 견적을 받거나 직접 등록할 수 있어요. 가격도, 조건도 직접 정합니다.
-              </p>
-              <button
-                onClick={() => onSell()}
-                className="bg-fg border border-bg hover:bg-bg hover:text-fg text-bg font-bold px-5 py-2 rounded-lg"
-              >
-                매물 등록하기
-              </button>
-            </div>
-            <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-lg overflow-hidden bg-bg/10 shrink-0">
-              <img
-                src="/images/fd5b7a6adbead.jpg"
-                alt="판매"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-surface border-y border-line py-10">
-        <div className="max-w-7xl mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-line flex items-center justify-center shrink-0">
-                <Truck className="w-5 h-5 text-fg" />
-              </div>
-              <div>
-                <p className="font-bold mb-1">무료 배송</p>
-                <p className="text-14 text-fg">엄선된 매물에 무료 배송을 제공해요.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-line flex items-center justify-center shrink-0">
-                <Tag className="w-5 h-5 text-fg" />
-              </div>
-              <div>
-                <p className="font-bold mb-1">최저가 보장</p>
-                <p className="text-14 text-fg">더 낮은 가격을 찾으셨다면 동일 가격에 맞춰드려요.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="w-10 h-10 rounded-full bg-line flex items-center justify-center shrink-0">
-                <TrendingUp className="w-5 h-5 text-fg" />
-              </div>
-              <div>
-                <p className="font-bold mb-1">구매자 보호</p>
-                <p className="text-14 text-fg">모든 거래를 안심 보장으로 지켜드려요.</p>
-              </div>
-            </div>
-          </div>
-
-          <h2 className="text-20 font-bold mb-4">지금 인기 검색어</h2>
-          <div className="flex flex-wrap gap-2">
-            {TRENDING.map((t) => (
-              <button
-                key={t}
-                className="px-4 py-2 bg-bg border border-line rounded-full text-14 font-bold text-fg hover:border-fg hover:text-fg transition"
-              >
-                {t}
-              </button>
-            ))}
-          </div>
+          {/* 검정 면 위 버튼(inverse) — 링크라 새 탭 열기가 됨 */}
+          <Link href="/sell/upload" className={buttonClass({ variant: 'inverse', className: 'w-42 shrink-0' })}>
+            매물 등록하기
+          </Link>
         </div>
       </section>
     </div>
