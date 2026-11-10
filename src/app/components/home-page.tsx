@@ -16,6 +16,10 @@ import { CONDITIONS, APPEARANCE_OPTS, WORKING_OPTS, fmtPrice } from './browse-fi
 import { ConditionBadge } from './condition-badge';
 import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor, FILTER_LABELS as FL } from '@/lib/labels'; // FL = 칸 이름 (둘러보기 필터와 같은 표)
 import { fetchListings } from '@/lib/listings';
+import Link from 'next/link';
+import { Card } from './ui/card'; // 매물 카드 (2026-11-10 홈 시안)
+import { Button } from './ui/button';
+import { categorySlug } from '../data/category-slugs';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
@@ -273,12 +277,7 @@ const NO_IMAGE = '/images/no-image.png';
 // Catalog items don't yet carry their own images, so we fall back to the placeholder.
 const sellImgFor = (_model: string) => NO_IMAGE;
 
-// 매물 이미지 로딩 실패 시 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
-const onListingImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-  const img = e.currentTarget;
-  img.onerror = null;
-  img.src = NO_IMAGE;
-};
+// 매물 카드 사진이 없거나 깨지면 '사진 없음' 글자 — 공통 Card(ui/card.tsx)가 처리
 
 const CATEGORY_TABS = TOP_CATEGORIES; // 보이는 대분류만 (CATEGORY_TREE 숨김 표식)
 
@@ -302,14 +301,13 @@ type SellData = {
 };
 
 type HomePageProps = {
-  onViewItem: (id: string) => void;
   // conds = 홈 조건 검색에서 고른 상태, 외관, 작동, 브랜드, 모델 (둘러보기 필터로 넘김, 값은 키)
   onBrowse: (category: string | null, conds?: { condition?: string; appearance?: string; working?: string; brand?: string; model?: string; locCountry?: string; region?: string }) => void;
   onSell: (data?: SellData) => void;
   onSearch: (query: string) => void;
 };
 
-export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePageProps) {
+export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
   const [activeCat, setActiveCat] = useState(CATEGORY_TABS[0]);
   // ── Supabase 연동: 가짜 매물 대신 DB에서 매물을 불러옴 ──
   const [dbListings, setDbListings] = useState<Listing[]>([]);
@@ -325,8 +323,31 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
     const subs = subcategoriesFor(activeCat);
     return dbListings.filter((l) => l.categories.some((c) => subs.includes(c)));
   }, [dbListings, activeCat]);
-  // 관심 있게 본 매물: (로그인 기능 전이라) 임시로 최신 DB 매물 표시
-  const savedListings = useMemo(() => dbListings.slice(0, 4), [dbListings]);
+  // 새로 올라온 매물: 최신 4건 (fetchListings 가 등록 최신순으로 줌)
+  const latestListings = useMemo(() => dbListings.slice(0, 4), [dbListings]);
+  // 찜 — 이 화면 안에서만(둘러보기와 같음, 저장 안 함)
+  const [liked, setLiked] = useState<Set<string>>(new Set());
+  const toggleLike = (id: string) =>
+    setLiked((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  // 매물 카드 하나 — 공통 Card(사진, 상태 배지, 제목 2줄, 가격, 찜). 카드 전체가 상세 링크
+  const listingCard = (l: Listing) => (
+    <Card
+      key={l.id}
+      href={`/listing/${l.id}`}
+      image={l.images?.[0]}
+      imageAlt={`${l.brand} ${l.model}`}
+      badge={<ConditionBadge listing={l} className="" />}
+      title={`${l.brand} ${l.model}`}
+      price={fmtPrice(l.price, l.currency)}
+      liked={liked.has(l.id)}
+      onToggleLike={() => toggleLike(l.id)}
+    />
+  );
   const [query, setQuery] = useState('');
   const [heroTab, setHeroTab] = useState<'shop' | 'sell'>('shop');
   const [condition, setCondition] = useState('----');   // 상태 (글자)
@@ -915,125 +936,50 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-10">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-24 font-bold">관심 있게 본 매물</h2>
-          <button className="text-fg font-bold hover:underline flex items-center gap-1">
-            관심 매물 모두 보기 <ChevronRight className="w-4 h-4" />
-          </button>
+      {/* 새로 올라온 매물 — 최신 4건(fetchListings 가 등록 최신순), 한 줄 4장 (2026-11-10 홈 시안)
+          구간: 폭 1120(4칸 × 268 + 16), 위 64, 제목 줄 40(20/700) 아래 24 */}
+      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+        <div className="mb-6 flex h-10 items-center justify-between gap-4">
+          <h2 className="text-20 font-bold">새로 올라온 매물</h2>
+          {/* 둘러보기는 정렬을 주소로 받지 않아 기본 정렬(추천순)로 열림 — 둘러보기는 이번에 안 건드림 */}
+          <Link href="/browse" className="text-14 font-medium text-fg hover:underline">
+            모두 보기 →
+          </Link>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-8">
-            {savedListings.length === 0 ? (
-              <div className="bg-surface border border-line rounded-lg py-12 text-center text-muted">
-                아직 매물이 없습니다.
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {savedListings.map((l) => (
-                  <button
-                    key={l.id}
-                    onClick={() => onViewItem(l.id)}
-                    className="text-left border border-line rounded-lg overflow-hidden hover:shadow-lg transition group"
-                  >
-                    <div className="aspect-square bg-surface relative">
-                      <img
-                        src={l.images?.[0] ?? NO_IMAGE}
-                        alt={`${l.brand} ${l.model}`}
-                        className="w-full h-full object-contain"
-                        onError={onListingImgError}
-                      />
-                      <span className="absolute top-2 right-2 w-8 h-8 bg-bg/90 rounded-full flex items-center justify-center">
-                        <Heart className="w-4 h-4 fill-fg text-fg" />
-                      </span>
-                    </div>
-                    <div className="p-3">
-                      <p className="font-bold mb-1 line-clamp-1 group-hover:text-fg transition">
-                        {l.brand} {l.model}
-                      </p>
-                      <p className="font-bold text-fg">{fmtPrice(l.price, l.currency)}</p>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <div className="lg:col-span-4">
-            <div className="bg-surface border border-line rounded-xl p-5 h-full flex flex-col">
-              <p className="text-14 font-bold text-fg mb-1">내 계정</p>
-              <h3 className="text-20 font-bold mb-2">가격 알림 받기</h3>
-              <p className="text-fg mb-4 flex-1">
-                관심 매물의 가격이 변동되면 바로 알려드릴게요.
-              </p>
-              <button className="bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg font-bold py-2 px-4 rounded-lg">
-                관심 매물 관리
-              </button>
-            </div>
-          </div>
-        </div>
+        {latestListings.length === 0 ? (
+          <p className="border border-line bg-surface py-12 text-center text-14 text-muted">아직 매물이 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{latestListings.map(listingCard)}</div>
+        )}
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-10">
-        <h2 className="text-24 font-bold text-center mb-6">인기 카테고리</h2>
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {CATEGORY_TABS.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCat(cat)}
-              className={`px-4 py-2 rounded-full font-bold border-2 transition ${
-                activeCat === cat
-                  ? 'bg-fg text-bg border-fg'
-                  : 'bg-bg text-fg border-line hover:border-muted'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
-        <div className="mb-4 flex items-end justify-between">
-          <div>
-            <h3 className="text-20 font-bold">{activeCat} 추천 매물</h3>
-            <p className="text-fg">인기 판매자가 엄선한 매물</p>
-          </div>
-          <button className="text-fg font-bold hover:underline hidden sm:flex items-center gap-1">
-            {activeCat} 모두 보기 <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        {featuredListings.length === 0 ? (
-          <div className="bg-surface border border-line rounded-lg py-16 text-center text-muted">
-            {activeCat} 카테고리에 등록된 매물이 없습니다.
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {featuredListings.map((l) => (
-              <button
-                key={l.id}
-                onClick={() => onViewItem(l.id)}
-                className="text-left border border-line rounded-lg overflow-hidden hover:shadow-lg transition group"
+      {/* 인기 카테고리 — 제목 줄에 탭 3개(높이 40, 최소 폭 120, 좌우 24) + 오른쪽 '{카테고리} 모두 보기 →', 카드 4장 */}
+      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+        <div className="mb-6 flex min-h-10 flex-wrap items-center gap-4">
+          <h2 className="text-20 font-bold">인기 카테고리</h2>
+          {/* 탭 — 고른 것 fg 채움(마우스 올려도 그대로), 나머지 line 선(마우스 올리면 surface). 공통 Button */}
+          <div className="flex gap-2">
+            {CATEGORY_TABS.map((cat) => (
+              <Button
+                key={cat}
+                aria-pressed={activeCat === cat}
+                variant={activeCat === cat ? 'primary' : 'line'}
+                noHover
+                onClick={() => setActiveCat(cat)}
+                className="min-w-30 px-6"
               >
-                <div className="aspect-square bg-surface">
-                  <img
-                    src={l.images?.[0] ?? NO_IMAGE}
-                    alt={`${l.brand} ${l.model}`}
-                    className="w-full h-full object-contain"
-                    onError={onListingImgError}
-                  />
-                </div>
-                <div className="p-3">
-                  {/* 상태 배지 (외관 등급, 작동 경고 — 둘러보기 카드와 같은 conditionBadge) */}
-                  <div className="mb-1">
-                    <ConditionBadge listing={l} className="inline-block px-2 py-1 border border-line text-fg rounded text-12 font-bold" />
-                  </div>
-                  <p className="font-bold mb-1 line-clamp-1 group-hover:text-fg transition">
-                    {l.brand} {l.model}
-                  </p>
-                  <p className="font-bold text-fg mb-1">{fmtPrice(l.price, l.currency)}</p>
-                </div>
-              </button>
+                {cat}
+              </Button>
             ))}
           </div>
+          <Link href={categorySlug(activeCat) ? `/browse/${categorySlug(activeCat)}` : '/browse'} className="ml-auto text-14 font-medium text-fg hover:underline">
+            {activeCat} 모두 보기 →
+          </Link>
+        </div>
+        {featuredListings.length === 0 ? (
+          <p className="border border-line bg-surface py-12 text-center text-14 text-muted">{activeCat} 카테고리에 등록된 매물이 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{featuredListings.slice(0, 4).map(listingCard)}</div>
         )}
       </section>
 

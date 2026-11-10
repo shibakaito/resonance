@@ -19,8 +19,7 @@ export default function Page() {
 
   return (
     <HomePage
-      // 상품 카드 클릭 → 그 매물의 실제 id로 상세 페이지 이동
-      onViewItem={(id) => router.push(`/listing/${id}`)}
+      // 매물 카드는 링크(/listing/id)라 여기서 이동을 넘기지 않음 (2026-11-10 홈 시안, ui/card.tsx)
       // 카테고리 탐색 → /browse/{영문 슬러그}. 조건 검색이면 상태, 외관, 작동, 브랜드, 모델을 ?condition, ?appearance, ?working, ?brand, ?model 로 같이 넘김
       onBrowse={(cat, conds) => {
         const slug = categorySlug(cat);

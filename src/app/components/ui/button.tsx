@@ -9,6 +9,8 @@
 // noHover: primary 의 반전을 끔 (고른 상태를 보여 주는 버튼, 예: ChoiceField 의 고른 버튼)
 // 비활성: text-muted bg-surface. 각진 모서리, 그림자 없음, 애니메이션 없음. 포커스는 theme.css 전역 규칙
 // type 기본값은 "button" (폼 안에서 실수로 제출되지 않게)
+// 좌우 여백: 기본 md 16, sm 12. className 에 px-, pl-, pr- 가 있으면 기본 여백을 빼고 그것만 씀(같은 속성 클래스 두 개가 겹치지 않게)
+// buttonClass(): 링크(<a>, Next Link)를 버튼 모양으로 그릴 때 같은 클래스를 씀 — 이동은 링크라 새 탭 열기가 됨
 // ============================================================================
 import * as React from 'react';
 
@@ -33,13 +35,25 @@ const VARIANT: Record<Variant, string> = {
   line: 'bg-bg text-fg border-line enabled:hover:bg-surface',
 };
 const PRIMARY_STILL = 'bg-fg text-bg border-fg';
-const SIZE: Record<Size, string> = { md: 'h-10 px-4 text-14', sm: 'h-8 px-3 text-14' };
+const SIZE: Record<Size, string> = { md: 'h-10 text-14', sm: 'h-8 text-14' };
+const PAD: Record<Size, string> = { md: 'px-4', sm: 'px-3' };
 const ICON_SIZE: Record<Size, string> = { md: 'h-10 w-10 shrink-0 p-0', sm: 'h-8 w-8 shrink-0 p-0' };
+
+export function buttonClass({
+  variant = 'secondary',
+  size = 'md',
+  iconOnly = false,
+  noHover = false,
+  className = '',
+}: { variant?: Variant; size?: Size; iconOnly?: boolean; noHover?: boolean; className?: string }): string {
+  const ownPad = /(^|\s)(px-|pl-|pr-)/.test(className);
+  const box = iconOnly ? ICON_SIZE[size] : ownPad ? SIZE[size] : `${SIZE[size]} ${PAD[size]}`;
+  return [BASE, noHover && variant === 'primary' ? PRIMARY_STILL : VARIANT[variant], box, className].filter(Boolean).join(' ');
+}
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(function Button(
   { variant = 'secondary', size = 'md', iconOnly = false, noHover = false, className = '', type = 'button', ...rest },
   ref,
 ) {
-  const cls = [BASE, noHover && variant === 'primary' ? PRIMARY_STILL : VARIANT[variant], iconOnly ? ICON_SIZE[size] : SIZE[size], className].filter(Boolean).join(' ');
-  return <button ref={ref} type={type} className={cls} {...rest} />;
+  return <button ref={ref} type={type} className={buttonClass({ variant, size, iconOnly, noHover, className })} {...rest} />;
 });
