@@ -50,4 +50,11 @@ export const FEATURE_FLAGS = {
   //   국가 필터는 사이드바, 필터 모달, 주소(?loc_country)에서 빠짐. 데이터 구조(지역 키 접두, currency 칸)와 가격 표시 로직은 그대로
   // 2026-11-10 끔
   japan: false,
+  // 거래 기능 안내: 등록 폼 아래 상자의 'Resonance 판매 수수료', '배송 라벨' 줄과 가격 구간의 '구매자의 가격 제안 받기' 칸.
+  //   끄면 안 보이고 가격 제안은 false 로 저장 (2026-11-10 끔)
+  commerce: false,
+  // 등록 폼 아래 상자의 '등록 팁' 줄. commerce 와 둘 다 꺼지면 안내 상자 자체가 안 보임 (2026-11-10 끔)
+  formTips: false,
+  // 등록 폼 설명 구간의 SKU 접기 칸. 끄면 안 보이고 SKU 는 빈 값으로 저장 (2026-11-10 끔)
+  sku: false,
 } as const;

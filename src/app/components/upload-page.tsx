@@ -968,8 +968,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       const saveLocation = FEATURE_FLAGS.japan || locationCountryOf(location) === 'kr' ? location : '';
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year: FEATURE_FLAGS.yearApprox && yearUnknown ? '' : year, finish, country,
-        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency: saveCurrency,
-        acceptOffers, shippingType, shippingCost, localPickup, location: saveLocation,
+        handmade, condition, ownership, description, sku: FEATURE_FLAGS.sku ? sku : '', youtubeLink, price, comparePrice, currency: saveCurrency,
+        acceptOffers: FEATURE_FLAGS.commerce ? acceptOffers : false, shippingType, shippingCost, localPickup, location: saveLocation,
         specs: specsToSave,
       });
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* 무시 */ } // 등록 성공 → 임시 저장본 삭제
@@ -2285,6 +2285,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </label>
             </div>
 
+            {/* SKU — FEATURE_FLAGS.sku 꺼지면 숨김, 빈 값 저장 */}
+            {FEATURE_FLAGS.sku && (
             <div className="mt-4 pt-4 border-t border-line">
               {/* 접기 머리 — 제목 줄 모양이라 공통 Button 아님 */}
               <button
@@ -2305,6 +2307,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               )}
             </div>
+            )}
           </section>
 
           <section className="bg-bg border border-line rounded-none p-6">
@@ -2377,6 +2380,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   )}
                 </Field>
               </div>
+              {/* 가격 제안 — FEATURE_FLAGS.commerce 꺼지면 숨김, false 저장 */}
+              {FEATURE_FLAGS.commerce && (
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
@@ -2386,6 +2391,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
                 <span className="font-bold">구매자의 가격 제안 받기</span>
               </label>
+              )}
             </div>
           </section>
 
@@ -2597,7 +2603,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           <div className="bg-bg border border-line rounded-none p-6">
+            {/* 안내 상자 — 판매 수수료, 배송 라벨(FEATURE_FLAGS.commerce), 등록 팁(formTips). 둘 다 꺼지면 상자째 숨김 */}
+            {(FEATURE_FLAGS.commerce || FEATURE_FLAGS.formTips) && (
             <div className="rounded-none bg-gradient-to-br from-surface/60 via-bg to-surface border border-line p-4 space-y-3 mb-5">
+              {FEATURE_FLAGS.commerce && (
+              <>
               <div className="flex items-start gap-2">
                 <div className="w-8 h-8 rounded-none bg-line flex items-center justify-center flex-shrink-0">
                   <Tag className="w-4 h-4 text-fg" />
@@ -2616,6 +2626,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <p className="text-12 text-fg">결제 시 할인된 배송비 이용 가능</p>
                 </div>
               </div>
+              </>
+              )}
+              {FEATURE_FLAGS.formTips && (
               <div className="flex items-start gap-2">
                 <div className="w-8 h-8 rounded-none bg-line flex items-center justify-center flex-shrink-0">
                   <HelpCircle className="w-4 h-4 text-fg" />
@@ -2625,7 +2638,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   <p className="text-12 text-fg">자세한 사진과 정확한 설명일수록 빠르게 판매됩니다.</p>
                 </div>
               </div>
+              )}
             </div>
+            )}
 
             {submitError && (
               <div className="mb-3 rounded-none border border-line bg-bg px-4 py-3 text-14 text-danger">
@@ -2640,16 +2655,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 <Plus aria-hidden className="w-5 h-5" />
                 {submitting ? '등록 중…' : '등록하기'}
               </Button>
-              {/* 임시 저장 — 자동 저장(1초 뒤)과 같은 저장본에 바로 저장 */}
-              <Button
-                onClick={() => {
-                  if (draftPrompt && draftJson === initialDraftJson.current) return; // 안내가 떠 있고 아무것도 안 쳤으면 예전 저장본을 지우지 않음
-                  setDraftPrompt(null); setDraftReady(true); saveDraftNow(draftJson);
-                }}
-                className="flex-1"
-              >
-                임시 저장
-              </Button>
+              {/* '임시 저장' 단추는 2026-11-10 삭제 — 자동 저장(1초 뒤)과 이어서 작성 안내는 그대로 */}
             </div>
           </div>
         </div>
