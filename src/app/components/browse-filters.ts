@@ -2,7 +2,7 @@
 // browse-filters.ts — 매물 필터의 "두뇌"(데이터·타입·로직). 화면(JSX) 없음.
 // ----------------------------------------------------------------------------
 // browse-page.tsx(거대 파일)에서 분리해 온 부분입니다. 여기에는:
-//   - 각종 옵션 상수 (CONDITIONS, AMP_TYPES, 그룹 정의 등)
+//   - 각종 옵션 상수 (CONDITIONS, 그룹 정의 등)
 //   - 타입 (Listing=매물 1건, Filters=필터 상태, Counts=개수 집계)
 //   - applyFilters(): 매물 목록에 필터 적용
 //   - emptyFilters/cloneFilters/countFilters 등 헬퍼
@@ -32,7 +32,6 @@ export const COUNTRY_OPTS = ['us', 'jp', 'uk', 'de', 'fr', 'dk', 'ca', 'cn'];
 export const SORT_OPTIONS = ['추천순', '최신순', '가격 낮은순', '가격 높은순'];
 
 // 앰프 전용 필터 옵션
-export const AMP_TYPES = ['프리앰프', '파워앰프', '인티앰프', '포노 스테이지', '리시버', 'AV 리시버', '헤드폰 앰프'];
 // 채널 = 폼 채널 옵션 2종의 합집합 (파워 등: mono_block/stereo/multi_channel + 프리앰프: mono/stereo/multi_channel), 중복 제거·순서 유지
 const CHANNEL_OPTS = [...AMP_CHANNEL_OPTS, ...PREAMP_CHANNEL_OPTS];
 export const AMP_DETAILS = Array.from(new Set(optValues(CHANNEL_OPTS)));
@@ -250,7 +249,6 @@ export type Listing = {
   localPickup: boolean;        // 직거래 가능 (local_pickup)
   youtubeLink: string;         // 유튜브 주소 (youtube_link). 없으면 '' — 상세 '유튜브 영상' 구간
   // 앰프 전용 속성 (앰프 카테고리에서만 사용)
-  ampType: string;
   ampDetail: string;
   ampMethod: string;
   power: number | null; // 정격 출력 (W, 8Ω 기준). 미입력·해당없음 = null
@@ -327,7 +325,6 @@ export type Filters = {
   country: Set<string>;
   locationCountry: Set<string>; // 위치 국가 (kr / jp)
   region: Set<string>;
-  ampType: Set<string>;
   ampDetail: Set<string>;
   ampMethod: Set<string>;
   powerMin: number | null;
@@ -395,7 +392,6 @@ export const emptyFilters = (): Filters => ({
   country: new Set(),
   locationCountry: new Set(),
   region: new Set(),
-  ampType: new Set(),
   ampDetail: new Set(),
   ampMethod: new Set(),
   powerMin: null,
@@ -459,7 +455,6 @@ export function cloneFilters(f: Filters): Filters {
     country: new Set(f.country),
     locationCountry: new Set(f.locationCountry),
     region: new Set(f.region),
-    ampType: new Set(f.ampType),
     ampDetail: new Set(f.ampDetail),
     ampMethod: new Set(f.ampMethod),
     powerMin: f.powerMin,
@@ -512,7 +507,7 @@ export function cloneFilters(f: Filters): Filters {
 export function countFilters(f: Filters): number {
   const setKeys: (keyof Filters)[] = [
     'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
-    'ampType', 'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
+    'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
     'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
     'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn', 'cdDigitalOut', 'cdAnalogOut', 'tunerBand',
     'headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear',
@@ -582,7 +577,7 @@ export function filterVisibility(category: string | null | undefined, subs: Read
 // 필터 키 하나가 지금 보이는 칸인가 (칩, 자동 해제가 씀). 공통 필터(브랜드, 상태, 가격, 연도, 지역 등)는 늘 보임
 export function isFilterKeyVisible(key: keyof Filters, v: FilterVisibility): boolean {
   switch (key) {
-    case 'ampType': case 'ampMethod': case 'phono': case 'toneControl': case 'remote': return v.amp;
+    case 'ampMethod': case 'phono': case 'toneControl': case 'remote': return v.amp;
     case 'ampDetail': return v.channel;
     case 'powerMin': case 'powerMax': return v.power;
     case 'headphoneImp': return v.headphoneImp;
@@ -635,7 +630,6 @@ export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility)
   if (vis.locationCountry && f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
   if (f.region.size > 0) r = r.filter((l) => f.region.has(l.location));
   if (vis.amp) {
-    if (f.ampType.size > 0) r = r.filter((l) => f.ampType.has(l.ampType));
     if (f.ampMethod.size > 0) r = r.filter((l) => f.ampMethod.has(l.ampMethod));
     if (f.phono.size > 0) r = r.filter((l) => f.phono.has(l.phono));
     if (FEATURE_FLAGS.toneControlFilter && f.toneControl.size > 0) r = r.filter((l) => f.toneControl.has(l.toneControl)); // 플래그 꺼짐: 톤 컨트롤 필터 없음

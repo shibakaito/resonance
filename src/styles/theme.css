@@ -149,25 +149,4 @@
   }
 }
 
-/* ── 레퍼런스(SONUS) 에디토리얼 톤: 제품 정보(Basic) + 기술 사양(Spec) ── */
-/* 제품 정보 라벨: 대문자 회색 eyebrow */
-#section-info label,
-#section-info .field-label {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: var(--text-14); /* 예전 13px → 6단 중 14 */
-  font-weight: var(--font-weight-bold); /* 예전 600 → 700 */
-  color: var(--color-muted);
-}
 /* 입력칸 모양은 공통 부품(ui/input, ui/field 의 Select, ui/textarea, ui/autocomplete)이 정함 — 높이 40px, border-line, 흰 바탕, 포커스는 위 전역 규칙 (2026-11-10 디자인 3a) */
-/* 기술 사양 라벨 = 제품 정보와 동일한 eyebrow (라벨 위·입력 아래 1열). 2칸 분할 버전은 커밋 bd64ce1에 보관 */
-.spec-field label,
-.spec-field .field-label {
-  display: block;
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-size: var(--text-14); /* 예전 13px → 6단 중 14 */
-  font-weight: var(--font-weight-bold); /* 예전 600 → 700 */
-  color: var(--color-muted);
-}

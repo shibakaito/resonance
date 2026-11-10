@@ -164,7 +164,6 @@ function mapRow(row: ListingRow): Listing {
     localPickup: row.local_pickup ?? false,
     youtubeLink: row.youtube_link ?? '', // 상세 '유튜브 영상' 구간 (없으면 '' → 구간 숨김)
     // 앰프
-    ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
     // 앰프 — 저장값(영문 키 또는 MM, 220V 같은 중립 글자)을 그대로. 필터 옵션도 같은 키(browse-filters optValues), 화면 글자는 filterLabel
     ampDetail: techStr('channel'), // 채널 키: mono_block / mono / stereo / multi_channel
     ampMethod: techStr('device'),  // 증폭 방식 키: tube / solid_state / hybrid

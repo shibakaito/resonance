@@ -426,7 +426,6 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
       { key: 'country' },
       { key: 'locationCountry' },
       { key: 'region' },
-      { key: 'ampType' },
       { key: 'ampDetail' },
       { key: 'ampMethod' },
       { key: 'impedance' },
