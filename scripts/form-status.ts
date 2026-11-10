@@ -222,7 +222,7 @@ const common: CommonRow[] = [];
       common.push({ section, label: name, required: isRequired(attrs), note, boundVar: bound });
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);
-      common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: false, note: '체크박스' });
+      common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: /<RequiredMark\b/.test(chk), note: '체크박스', boundVar: /checked=\{\s*([A-Za-z_]\w*)/.exec(chk)?.[1] });
     } else if (h3 !== undefined && /aria-label="필수"|<RequiredMark\b/.test(h3)) {
       common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: /사진/.test(cleanJsx(h3)) ? 'images' : bound }); // 사진 칸은 input value 가 없어 images 로
     }

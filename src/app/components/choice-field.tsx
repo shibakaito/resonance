@@ -43,7 +43,7 @@ type Multi = Common & { multiple: true; values: string[]; onChange: Dispatch<Set
 // 각진 버튼 한 개 — 공통 Button(2026-11-10 디자인 3a): 선택 = primary(검정 바탕), 안 고름 = secondary(흰 바탕). 높이 40px
 function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <Button variant={on ? 'primary' : 'secondary'} aria-pressed={on} disabled={disabled} onClick={onClick} className="min-w-16">
+    <Button variant={on ? 'primary' : 'secondary'} noHover aria-pressed={on} disabled={disabled} onClick={onClick} className="min-w-16">
       {children}
     </Button>
   );

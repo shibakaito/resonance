@@ -10,7 +10,6 @@ import {
   Tag,
   Check,
   ChevronDown,
-  ChevronRight,
   Youtube,
   HelpCircle
 } from 'lucide-react';
@@ -865,6 +864,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     if (images.length === 0) { setSubmitError('사진을 1장 이상 올려 주세요.'); return; } // 필수: 브랜드, 모델, 카테고리, 상태, 가격, 사진 1장
+    if (!asDescribed) { setSubmitError('"설명한 그대로" 판매에 체크해 주세요.'); return; } // 필수 확인 체크 — 매물 저장(insertListing)에는 안 넣음, 임시 저장에만
     setSubmitting(true);
     try {
       // specs(jsonb)에 저장할 값들 — 비어있는 키는 제외 (DB 깔끔하게)
@@ -1034,8 +1034,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     <main className="bg-surface min-h-screen">
       <div className="max-w-7xl mx-auto px-4 py-6">
       <nav className="flex items-center gap-1 text-14 text-fg mb-4">
-        <button className="hover:text-fg">내 상품 목록</button>
-        <ChevronRight className="w-3 h-3" />
         <span className="text-fg font-medium truncate max-w-md">
           {title || '새 상품 등록'}
         </span>
@@ -2177,10 +2175,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </p>
 
             <div className="mb-5">
-              <div className="flex items-center justify-between mb-2">
-                <p className="text-14 font-bold text-fg">예시</p>
-                <button className="text-12 text-muted hover:text-fg">숨김</button>
-              </div>
+              <p className="text-14 font-bold text-fg mb-2">예시</p>
               <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
                 {PHOTO_EXAMPLES.map((ex) => (
                   <div key={ex.label} className="text-center">
@@ -2192,9 +2187,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 ))}
               </div>
               <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
-              <button className="text-14 text-fg hover:text-fg font-bold mt-3 inline-flex items-center gap-1">
-                최고 품질의 사진을 위한 팁 <ChevronRight className="w-3 h-3" />
-              </button>
             </div>
 
             {/* 실제 파일 선택용 input (숨김). 박스나 버튼을 클릭하면 이걸 트리거 */}
@@ -2278,7 +2270,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="mt-1 accent-fg w-4 h-4"
                 />
                 <div>
-                  <p className="font-bold text-14">이 상품은 "설명한 그대로" 판매됩니다.</p>
+                  <p className="font-bold text-14">이 상품은 "설명한 그대로" 판매됩니다.<RequiredMark /></p>
                   <p className="text-12 text-muted mt-1">
                     "설명대로" 판매한 상품은 설명 약관 정책에 따라 제외됩니다. 따라서 판매자는 정확하고 상세한 상품 설명을 작성하고, 좋은 사진을 제공하며, 설명된 상태 그대로 상품을 구매자에게 배송할 의무가 있습니다.
                   </p>
@@ -2316,10 +2308,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="space-y-3">
               <Field label="유튜브 영상 링크를 붙여넣으세요">
                 <Input value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
-              </Field>
-              {/* 검색 칸 — 값 저장과 검색 동작이 없음(죽은 칸, 2026-11-10 보고만 하고 둠) */}
-              <Field label="유튜브 영상을 검색하세요">
-                <Input />
               </Field>
             </div>
           </section>
@@ -2648,10 +2636,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 className="flex-1"
               >
                 임시 저장
-              </Button>
-              {/* 취소 — 누르는 동작이 없음(죽은 버튼, 2026-11-10 보고만 하고 둠) */}
-              <Button>
-                취소
               </Button>
             </div>
           </div>
