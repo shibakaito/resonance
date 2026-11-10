@@ -1,97 +1,40 @@
 'use client';
 // ============================================================================
-// listing-grid.tsx — 매물 카드 그리드 (검색 결과 카드 목록)
+// listing-grid.tsx — 둘러보기 결과 카드 격자
 // ----------------------------------------------------------------------------
-// browse-page.tsx에서 분리. 필터링된 매물 목록을 카드 격자로 그려줌.
-//   - 매물이 없으면 "조건에 맞는 매물이 없습니다" 안내 표시
-//   - 각 카드: 이미지(+찜 하트) / 브랜드 / 모델 / 연도·카테고리 / 가격 / 상태 배지·지역
-// 부모(browse-page)가 데이터와 동작(클릭/찜)을 props로 내려줌 → 이 컴포넌트는
-// "받은 걸 보여주기"만 하는 순수 표시용 컴포넌트.
+// 2026-11-10 시안: 홈과 같은 공통 Card(ui/card.tsx) — 사진 1:1, 사진 없으면 '사진 없음', 찜 32, 상태 배지, 제목 2줄, 가격
+//   카드 전체가 상세 링크(제목 링크가 카드를 덮음)라 링크 안 버튼(중첩) 없음. 찜은 링크 밖 버튼이라 눌러도 상세로 안 넘어감
+//   격자: 좁은 화면 2열 → 3열 → 넓은 화면 4열(각 212, 사이 16 = 결과 폭 896)
+// 빈 결과, 불러오는 중, '더 보기'는 browse-page.tsx 가 그림 (이 컴포넌트는 받은 매물만 그림)
 // ============================================================================
 
-import type { MouseEvent } from 'react';
-import { Heart } from 'lucide-react';
-import { Listing, fmtPrice, yearText } from './browse-filters';
-import { label } from '@/lib/labels';
+import { Listing, fmtPrice } from './browse-filters';
 import { ConditionBadge } from './condition-badge';
+import { Card } from './ui/card';
 
 export function ListingGrid({
-  listings,      // 화면에 보여줄 매물 목록 (이미 필터·정렬 끝난 상태)
+  listings,      // 화면에 보여줄 매물 목록 (이미 필터, 정렬, 장 수 자르기 끝난 상태)
   liked,         // 찜한 매물 id 집합
-  onToggleLike,  // 하트 클릭 시 호출 (찜 토글)
-  onSelect       // 카드 클릭 시 호출 (상세 페이지로 이동)
+  onToggleLike,  // 하트 누르면 (찜 토글)
 }: {
   listings: Listing[];
   liked: Set<string>;
-  onToggleLike: (id: string, e: MouseEvent) => void;
-  onSelect: (id: string) => void;
+  onToggleLike: (id: string) => void;
 }) {
-  // 결과가 하나도 없을 때
-  if (listings.length === 0) {
-    return (
-      <div className="bg-surface border border-line rounded-lg py-16 text-center text-muted">
-        조건에 맞는 매물이 없습니다. 필터를 조정해보세요.
-      </div>
-    );
-  }
-
-  // 결과가 있을 때: 반응형 격자(모바일 2열 → 데스크톱 4열)로 카드 나열
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
       {listings.map((l) => (
-        <button
+        <Card
           key={l.id}
-          onClick={() => onSelect(l.id)}
-          className="group text-left bg-bg border border-line rounded-lg overflow-hidden hover:border-fg hover:shadow-md transition"
-        >
-          <div className="relative aspect-square bg-surface flex items-center justify-center">
-            {l.images?.[0] ? (
-              <img
-                src={l.images[0]}
-                alt={`${l.brand} ${l.model}`}
-                className="w-full h-full object-contain"
-                onError={(e) => {
-                  // 깨진 URL이면 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
-                  const img = e.currentTarget as HTMLImageElement;
-                  img.onerror = null;
-                  img.src = '/images/no-image.png';
-                  img.classList.add('opacity-70');
-                }}
-              />
-            ) : (
-              <>
-                <img
-                  src="/images/no-image.png"
-                  alt={`${l.brand} ${l.model}`}
-                  className="w-full h-full object-contain opacity-70"
-                />
-                <span className="absolute text-12 text-muted">이미지 없음</span>
-              </>
-            )}
-            <button
-              onClick={(e) => onToggleLike(l.id, e)}
-              className="absolute top-2 right-2 w-8 h-8 bg-bg/90 hover:bg-bg rounded-full flex items-center justify-center shadow-sm"
-              aria-label="찜하기"
-            >
-              <Heart
-                className={`w-4 h-4 ${liked.has(l.id) ? 'fill-fg text-fg' : 'text-muted'}`}
-              />
-            </button>
-          </div>
-          <div className="p-3">
-            <p className="text-12 text-muted mb-1">{l.brand}</p>
-            <h3 className="text-14 font-bold text-fg line-clamp-1 group-hover:text-fg transition">
-              {l.model}
-            </h3>
-            <p className="text-12 text-muted mt-1 line-clamp-1">{yearText(l)} · {l.category}</p>
-            <p className="text-16 font-bold text-fg mt-2">{fmtPrice(l.price, l.currency)}</p>
-            <div className="flex items-center justify-between text-12 text-muted mt-1">
-              {/* 상태 배지(외관 등급, 작동 경고 — conditionBadge), 지역은 키 → 화면 글자 */}
-              <ConditionBadge listing={l} />
-              {l.location && <span>{label('location', l.location)}</span>}
-            </div>
-          </div>
-        </button>
+          href={`/listing/${l.id}`}
+          image={l.images?.[0]}
+          imageAlt={`${l.brand} ${l.model}`}
+          badge={<ConditionBadge listing={l} className="" />}
+          title={`${l.brand} ${l.model}`}
+          price={fmtPrice(l.price, l.currency)}
+          liked={liked.has(l.id)}
+          onToggleLike={() => onToggleLike(l.id)}
+        />
       ))}
     </div>
   );

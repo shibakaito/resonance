@@ -1,13 +1,16 @@
 'use client';
 import { useState, useMemo, useEffect } from 'react';
-import { ChevronDown, X, SlidersHorizontal, Search } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, X, SlidersHorizontal, Search } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Select } from './ui/field';
 import { subcategoriesFor, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES, isCategoryVisible } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
 import { metaFor } from '../data/category-meta';
 
 interface BrowsePageProps {
-  onSelect: (id: string) => void;
   category?: string | null;
   initialSubCategory?: string | null;
   searchQuery?: string; // 홈 메인 검색에서 넘어온 검색어
@@ -60,7 +63,10 @@ import { FILTER_LABELS as FL, FILTER_CHIP_PREFIX } from '@/lib/labels'; // 필�
 
 // 브랜드 검색 칸의 한글 별칭은 filter-panel.tsx 로 옮김 (2026-11-10)
 
-export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery, onSearch, initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
+// 결과 카드 한 번에 보이는 장 수 (4열 × 6줄). 더 있으면 '더 보기'
+const PAGE_SIZE = 24;
+
+export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch, initialCondition, initialAppearance, initialWorking, initialBrand, initialModel, initialLocCountry, initialRegion }: BrowsePageProps) {
   // DB에서 매물을 비동기로 불러옴 (영문 키 → 한글 변환은 fetchListings 안에서 처리)
   const [allListings, setAllListings] = useState<Listing[]>([]);
   const [listingsLoading, setListingsLoading] = useState(true);
@@ -367,8 +373,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     });
   };
 
-  const toggleLike = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const toggleLike = (id: string) => {
     setLiked((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -385,6 +390,10 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     else if (sort === '가격 높은순') sorted.sort((a, b) => b.price - a.price);
     return sorted;
   }, [categoryListings, filters, isAmp, isSpeaker, isTurntable, isPowerDevice, isCable, sort]);
+
+  // 결과 카드는 한 번에 PAGE_SIZE 장(4열 × 6줄). 더 있으면 아래 '더 보기'로 PAGE_SIZE 장씩. 조건, 정렬, 카테고리가 바뀌면 처음 장 수로
+  const [shown, setShown] = useState(PAGE_SIZE);
+  useEffect(() => { setShown(PAGE_SIZE); }, [filters, subCategories, sort, category, searchQuery]);
 
   // 선택한 모든 필터 값을 칩으로 표시 (연도 제외 천 단위 콤마)
   const rangeChipLabel = (min: number | null, max: number | null, suffix: string): string | null => {
@@ -556,88 +565,87 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     setSubCategories(new Set());
   };
 
+  // 경로와 제목 — 하위 카테고리를 하나만 고르면 경로에 그 이름까지, 제목도 그 이름 (category-meta)
+  const activeSub = subCategories.size === 1 ? [...subCategories][0] : null;
+  const pageTitle = searchQuery ? `‘${searchQuery}’ 검색 결과` : metaFor(category ?? null, activeSub)?.title ?? category ?? 'ALL';
+
   return (
-    <main className="max-w-7xl mx-auto px-4 py-6">
-      {/* 헤더 */}
-      <div className="mb-5">
-        <nav className="text-14 text-muted mb-2">
-          홈
+    <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+      {/* 경로 — '홈 › 앰프'(14 muted, 화살표 16). 하위 카테고리를 하나 골랐으면 대분류를 눌러 그 선택만 풂 */}
+      <nav aria-label="경로">
+        <ol className="flex flex-wrap items-center gap-1 text-14 text-muted">
+          <li>
+            <Link href="/" className="hover:text-fg">
+              홈
+            </Link>
+          </li>
           {category && (
-            <>
-              <span className="mx-1">›</span>
-              {subCategories.size === 1 ? (
-                <button
-                  onClick={() => changeSubCategories(new Set())}
-                  className="text-14 hover:text-fg"
-                >
+            <li className="flex items-center gap-1">
+              <ChevronRight aria-hidden className="h-4 w-4" />
+              {activeSub ? (
+                <button type="button" onClick={() => changeSubCategories(new Set())} className="hover:text-fg">
                   {category}
                 </button>
               ) : (
-                <span className="text-fg">{category}</span>
+                <span aria-current="page">{category}</span>
               )}
-            </>
+            </li>
           )}
-          {subCategories.size === 1 && (
-            <>
-              <span className="mx-1">›</span>
-              <span className="text-fg">{[...subCategories][0]}</span>
-            </>
+          {category && activeSub && (
+            <li className="flex items-center gap-1">
+              <ChevronRight aria-hidden className="h-4 w-4" />
+              <span aria-current="page">{activeSub}</span>
+            </li>
           )}
-        </nav>
-        {searchQuery ? (
-          <div>
-            <h1 className="text-32 font-bold mb-3">
-              ‘{searchQuery}’ 검색 결과{' '}
-              <span className="text-24 font-bold text-muted">{filtered.length.toLocaleString('ko-KR')}건</span>
-            </h1>
-            {/* "Did you mean?" — 결과 0건 + 비슷한 후보가 있을 때만 표시 */}
-            {suggestion && (
-              <p className="text-16 text-fg mb-3">
-                혹시{' '}
-                <button
-                  type="button"
-                  onClick={() => onSearch?.(suggestion.label)}
-                  className="text-fg underline font-bold"
-                >
-                  ‘{suggestion.label}’
-                </button>
-                를 찾으세요?
-              </p>
-            )}
-            {/* 0건인데 비슷한 판매중 브랜드도 없으면 추천 없이 안내만 */}
-            {!suggestion && !listingsLoading && searchedListings.length === 0 && (
-              <p className="text-16 text-fg mb-3">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
-            )}
-            {/* 편집 검색창 — 홈 안 거치고 바로 수정·재검색 */}
-            <form
-              onSubmit={(e) => { e.preventDefault(); if (searchInput.trim()) onSearch?.(searchInput.trim()); }}
-              className="relative max-w-md"
-            >
-              <input
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="검색어 수정"
-                className="w-full border border-line rounded-full pl-5 pr-10 py-3 focus:outline-none focus:border-fg"
-              />
-              <button
-                type="submit"
-                aria-label="검색"
-                className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full hover:bg-surface flex items-center justify-center"
-              >
-                <Search className="w-4 h-4 text-fg" />
-              </button>
-            </form>
-          </div>
-        ) : (() => {
-          const activeSub = subCategories.size === 1 ? [...subCategories][0] : null;
-          const meta = metaFor(category ?? null, activeSub);
-          const title = meta?.title ?? category ?? 'ALL';
-          return <h1 className="text-32 font-bold mb-1">{title}</h1>;
-        })()}
+        </ol>
+      </nav>
+
+      {/* 제목 줄 40 — 왼쪽 제목(24/700)과 건수(16 muted, 사이 12), 오른쪽 정렬(168, 칸 모양 select) */}
+      <div className="mt-2 flex min-h-10 flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="flex min-w-0 items-baseline gap-3">
+          <h1 className="text-24 font-bold">{pageTitle}</h1>
+          {!listingsLoading && <span className="shrink-0 text-16 text-muted">{filtered.length.toLocaleString('ko-KR')}건</span>}
+        </div>
+        <Select aria-label="정렬" value={sort} onChange={(e) => setSort(e.target.value)} wrapClassName="w-42 shrink-0">
+          {SORT_OPTIONS.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </Select>
       </div>
 
+      {/* 검색어로 왔을 때 — 비슷한 브랜드 추천, 검색어 고치기(공통 Input + 칸 속 돋보기 단추) */}
+      {searchQuery && (
+        <div className="mt-4">
+          {/* "Did you mean?" — 결과 0건 + 비슷한 후보가 있을 때만 표시 */}
+          {suggestion && (
+            <p className="mb-4 text-16 text-fg">
+              혹시{' '}
+              <button type="button" onClick={() => onSearch?.(suggestion.label)} className="font-bold text-fg underline">
+                ‘{suggestion.label}’
+              </button>
+              를 찾으세요?
+            </p>
+          )}
+          {/* 0건인데 비슷한 판매중 브랜드도 없으면 추천 없이 안내만 */}
+          {!suggestion && !listingsLoading && searchedListings.length === 0 && (
+            <p className="mb-4 text-16 text-fg">판매중인 매물에서 비슷한 브랜드를 찾지 못했어요. 다른 검색어로 찾아보세요.</p>
+          )}
+          <form
+            onSubmit={(e) => { e.preventDefault(); if (searchInput.trim()) onSearch?.(searchInput.trim()); }}
+            className="relative w-full max-w-100"
+          >
+            <Input aria-label="검색어 수정" value={searchInput} onChange={(e) => setSearchInput(e.target.value)} placeholder="검색어 수정" className="pl-3 pr-12" />
+            <button type="submit" aria-label="검색" className="absolute right-1 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center hover:bg-surface">
+              <Search aria-hidden className="h-4 w-4" />
+            </button>
+          </form>
+        </div>
+      )}
+
       {/* 2단 레이아웃: 왼쪽 필터 208 + 사이 16 + 오른쪽 결과 (2026-11-10 시안) */}
-      <div className="flex gap-4">
+      <div className="mt-6 flex gap-4">
         {/* 왼쪽 필터 사이드바 — 제목 줄 40 '필터'(16/700) + 걸린 필터가 있을 때만 '전체 해제', 아래 선 1. 묶음은 filter-panel.tsx */}
         <aside className="hidden lg:block w-52 shrink-0">
           <div className="flex h-10 items-center justify-between border-b border-line">
@@ -660,56 +668,48 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
           />
         </aside>
 
-        {/* 우측 결과 영역 */}
-        <div className="flex-1 min-w-0">
-          {/* 모바일 전용 필터 버튼 */}
-          <div className="lg:hidden mb-3">
-            <button
-              onClick={() => setModalOpen(true)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
-                filterCount > 0
-                  ? 'border-fg bg-surface text-fg'
-                  : 'border-line bg-bg text-fg hover:border-muted'
-              }`}
-            >
-              <SlidersHorizontal className="w-4 h-4" />
-              <span>필터</span>
-              {filterCount > 0 && (
-                <span className="bg-fg text-bg text-12 rounded-full px-2 py-1 leading-none">
-                  {filterCount}
-                </span>
-              )}
-            </button>
+        {/* 오른쪽 결과 — 칩 줄(최소 40) → 16 → 카드 4열(각 212, 사이 16) → 더 있으면 24 아래 '더 보기' */}
+        <div className="min-w-0 flex-1">
+          {/* 칩: 높이 32, 14/500, line 선, 왼쪽 12 오른쪽 8, 글자 뒤 8에 × 16(이름 '… 해제'), 칩 사이 8. 좁은 화면은 맨 앞에 '필터'(대화상자) */}
+          <div className="flex min-h-10 flex-wrap items-center gap-2">
+            <Button onClick={() => setModalOpen(true)} aria-haspopup="dialog" className="lg:hidden">
+              <SlidersHorizontal aria-hidden className="h-4 w-4" />
+              필터{filterCount > 0 ? ` ${filterCount}` : ''}
+            </Button>
+            {activeChips.map((chip) => (
+              <Button key={chip.key} variant="line" size="sm" onClick={chip.remove} aria-label={`${chip.label} 해제`} className="pl-3 pr-2">
+                <span>{chip.label}</span>
+                <X aria-hidden className="h-4 w-4" />
+              </Button>
+            ))}
           </div>
 
-          {/* 결과 수 + 정렬 */}
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-14 text-fg">
-              {listingsLoading
-                ? '매물을 불러오는 중…'
-                : <><b className="text-fg">{filtered.length.toLocaleString('ko-KR')}</b>건의 매물</>}
-            </p>
-            <div className="relative">
-              <select
-                value={sort}
-                onChange={(e) => setSort(e.target.value)}
-                className="appearance-none border border-line rounded-lg pl-4 pr-9 py-2 text-14 focus:outline-none focus:border-fg bg-bg"
-              >
-                {SORT_OPTIONS.map((s) => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-              <ChevronDown className="w-4 h-4 text-muted absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            </div>
+          <div className="mt-4">
+            {listingsLoading ? (
+              <p className="py-16 text-center text-16 text-muted">매물을 불러오는 중…</p>
+            ) : filtered.length === 0 ? (
+              // 빈 결과 — 가운데 안내(16) 아래 16에 '필터 전체 해제' secondary 168, 위아래 64. 풀 필터가 없으면 단추 없음
+              <div className="py-16 text-center">
+                <p className="text-16 text-fg">조건에 맞는 매물이 없어요</p>
+                {activeChips.length > 0 && (
+                  <Button onClick={resetAll} className="mt-4 w-42">
+                    필터 전체 해제
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <>
+                <ListingGrid listings={filtered.slice(0, shown)} liked={liked} onToggleLike={toggleLike} />
+                {filtered.length > shown && (
+                  <div className="mt-6 flex justify-center">
+                    <Button onClick={() => setShown((n) => n + PAGE_SIZE)} className="w-42">
+                      더 보기
+                    </Button>
+                  </div>
+                )}
+              </>
+            )}
           </div>
-
-          {/* 매물 그리드 (listing-grid.tsx로 분리) */}
-          <ListingGrid
-            listings={filtered}
-            liked={liked}
-            onToggleLike={toggleLike}
-            onSelect={onSelect}
-          />
         </div>
       </div>
 

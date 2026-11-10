@@ -37,8 +37,7 @@ function BrowseInner() {
 
   return (
     <BrowsePage
-      // 매물 카드 클릭 → 그 매물의 실제 id로 상세 페이지 이동
-      onSelect={(id) => router.push(`/listing/${id}`)}
+      // 매물 카드는 공통 Card 링크(/listing/{id})로 상세에 감 (2026-11-10, 예전 onSelect 이동 대신)
       category={category}
       initialSubCategory={initialSubCategory}
       searchQuery={searchQuery}
