@@ -1,58 +1,70 @@
 'use client';
 // ============================================================================
-// site-header.tsx — 사이트 공통 헤더 + 메가 메뉴 (모든 페이지 상단)
+// site-header.tsx — 사이트 공통 헤더 + 카테고리 메뉴 (모든 페이지 상단)
 // ----------------------------------------------------------------------------
 // 예전 App.tsx 안에 있던 <header>를 떼어내 Next.js 레이아웃에서 재사용.
 // 상태(메뉴 열림/닫힘)와 클릭 동작이 있으므로 'use client' (클라이언트 컴포넌트).
-// 페이지 이동은 react-router 대신 Next의 useRouter/usePathname 사용.
+// 2026-11-10 시안: 카테고리 메뉴
+//   단추 '카테고리' + 화살표 16(공통 Button). 닫힘 = line 선, 열림 = fg 채움 흰 글자에 화살표 위로
+//   패널: 헤더 바로 아래 폭 100% 흰 바탕, 아래 선 1, 안 여백 32 80, 안쪽 1120에 4열(앰프, 스피커, 소스기기, 빈 칸)
+//     칸마다 제목 16/700 → 8 → 보이는 하위 카테고리만 14, 줄 간격 32(각 둘러보기 링크) → 8 → '앰프 전체 보기 →'(14/500)
+//   Esc(단추로 포커스 돌아감)와 바깥 클릭으로 닫힘, 링크를 누르거나 다른 쪽으로 가면 닫힘. 링크는 단추 다음 Tab 순서라 키보드로 이동
+//   예전 사진, 'BY TYPE', 'Shop All', 설명 문구, 펼침 애니메이션과 흐린 배경은 삭제
 // ============================================================================
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { ChevronDown, ChevronUp } from 'lucide-react';
 import { subcategoriesFor, TOP_CATEGORIES } from '../data/catalog';
 import { categorySlug } from '../data/category-slugs';
+import { Button } from './ui/button';
 
-// 메가 메뉴 대분류 + 우측 이미지/설명 (예전 App.tsx와 동일)
-const MEGA_CATS = TOP_CATEGORIES; // 보이는 대분류만 (CATEGORY_TREE 숨김 표식)
-const MEGA_IMAGES: Record<string, string> = {
-  '앰프': '/images/2c6f7c1fc6fb6.jpg',
-  '스피커': '/images/bw-speakers-hero-new.jpg',
-  '소스기기': '/images/f4362b6cdce17.jpg',
-  '케이블': '/images/d4ba8a07c2a69.jpg',
-};
-// 대분류 설명 = 보이는 하위 카테고리 이름을 CATEGORY_TREE에서 읽어 만듦 (숨김 표식 반영, 켜면 자동으로 늘어남)
-const megaDesc = (cat: string): string => {
-  const subs = subcategoriesFor(cat);
-  return subs.length > 0 ? `${subs.join(', ')} 매물.` : '';
+// 메뉴 대분류 = 보이는 대분류만 (CATEGORY_TREE 숨김 표식). 하위 카테고리도 subcategoriesFor 가 보이는 것만 줌
+const MENU_CATS = TOP_CATEGORIES;
+
+// 대분류(+ 하위 카테고리) → 둘러보기 주소
+const browseHref = (cat: string, sub?: string) => {
+  const top = categorySlug(cat);
+  const subSlug = sub ? categorySlug(sub) : null;
+  if (top && subSlug) return `/browse/${top}/${subSlug}`;
+  if (top) return `/browse/${top}`;
+  return '/browse';
 };
 
 export function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // 카테고리/서브 → URL 슬러그로 변환해 이동
-  const goBrowse = (cat: string | null, sub: string | null = null) => {
-    const top = categorySlug(cat);
-    const subSlug = categorySlug(sub);
-    if (top && subSlug) router.push(`/browse/${top}/${subSlug}`);
-    else if (top) router.push(`/browse/${top}`);
-    else router.push('/browse');
-  };
+  // 카테고리 메뉴 열림/닫힘
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuAreaRef = useRef<HTMLDivElement>(null); // 단추 + 패널 (이 밖을 누르면 닫힘)
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMenu = () => setMenuOpen(false);
 
-  // 메가 메뉴 열림/닫힘 상태 + 마우스 오버 카테고리
-  const [megaOpen, setMegaOpen] = useState(false);
-  const [megaClosing, setMegaClosing] = useState(false); // 접히는 애니메이션 재생 중
-  const [hoverCat, setHoverCat] = useState<string | null>(MEGA_CATS[0]);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+    const onDown = (e: MouseEvent) => {
+      if (!menuAreaRef.current?.contains(e.target as Node)) setMenuOpen(false);
+    };
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onDown);
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onDown);
+    };
+  }, [menuOpen]);
 
-  // 메가 메뉴 닫기: 접히는 모션 재생 후 언마운트 (CSS .mega-roll-up 360ms와 동기화)
-  const closeMega = () => {
-    setMegaClosing(true);
-    window.setTimeout(() => {
-      setMegaOpen(false);
-      setMegaClosing(false);
-    }, 360);
-  };
+  // 다른 쪽으로 이동하면 닫음
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
 
   // 현재 경로 기준 네비게이션 활성 표시
   const isHome = pathname === '/';
@@ -65,135 +77,51 @@ export function SiteHeader() {
           <div className="flex items-center gap-6">
             <button onClick={() => router.push('/')} className="text-24 font-bold text-fg">Resonance</button>
 
-            {/* Shop by Category 버튼 + 드롭다운 패널 (클릭으로 열림) */}
-            <div>
-              <button
-                onClick={() => (megaOpen && !megaClosing ? closeMega() : setMegaOpen(true))}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full border text-14 font-medium transition ${
-                  megaOpen && !megaClosing
-                    ? 'border-fg bg-fg text-bg'
-                    : 'border-line bg-bg text-fg hover:border-muted'
-                }`}
+            {/* 카테고리 단추 + 패널 */}
+            <div ref={menuAreaRef}>
+              <Button
+                ref={menuButtonRef}
+                variant={menuOpen ? 'primary' : 'line'}
+                noHover={menuOpen}
+                aria-expanded={menuOpen}
+                aria-controls={menuOpen ? 'category-menu' : undefined}
+                onClick={() => setMenuOpen((v) => !v)}
               >
-                <span>Shop by Category</span>
-                <ChevronDown className={`w-4 h-4 transition ${megaOpen && !megaClosing ? 'rotate-180' : ''}`} />
-              </button>
+                카테고리
+                {menuOpen ? <ChevronUp aria-hidden className="h-4 w-4" /> : <ChevronDown aria-hidden className="h-4 w-4" />}
+              </Button>
 
-              {/* 드롭다운 패널 + 백드롭 (Apple 스타일 슬라이드 + 블러) */}
-              {(megaOpen || megaClosing) && (
-                <>
-                  <div className="absolute left-0 right-0 top-full z-40">
-                    <div className={`${megaClosing ? 'mega-roll-up' : 'mega-unroll'} bg-bg border-t border-line shadow-xl`}>
-                      <div className="max-w-7xl mx-auto px-4 flex h-[560px] overflow-hidden">
-                        {/* 좌측: 대분류 리스트 */}
-                        <div className="w-64 flex-shrink-0 border-r border-line py-4">
-                          {MEGA_CATS.map((cat) => {
-                            const isActive = hoverCat === cat;
-                            return (
-                              <button
-                                key={cat}
-                                onMouseEnter={() => setHoverCat(cat)}
-                                onClick={() => {
-                                  goBrowse(cat);
-                                  setMegaOpen(false);
-                                }}
-                                className={`flex items-center justify-between w-full text-left px-6 py-3 text-14 transition ${
-                                  isActive
-                                    ? 'font-bold text-fg'
-                                    : 'font-medium text-fg hover:bg-surface'
-                                }`}
-                              >
-                                <span>{cat}</span>
-                                <ChevronRight
-                                  className={`w-4 h-4 text-fg transition-opacity ${
-                                    isActive ? 'opacity-100' : 'opacity-0'
-                                  }`}
-                                />
-                              </button>
-                            );
-                          })}
-                        </div>
-
-                        {/* 중앙: 선택된 대분류의 하위 카테고리 (BY TYPE) */}
-                        <div className="flex-1 px-8 py-6 overflow-y-auto">
-                          {hoverCat && (
-                            <>
-                              <div className="flex items-center gap-3 mb-5 pb-3 border-b border-line">
-                                <h3 className="text-20 font-bold text-fg">{hoverCat}</h3>
-                                <button
-                                  onClick={() => {
-                                    goBrowse(hoverCat);
-                                    setMegaOpen(false);
-                                  }}
-                                  className="flex items-center gap-1 px-3 py-1 rounded bg-surface hover:bg-line text-12 font-medium text-fg"
-                                >
-                                  Shop All <ChevronRight className="w-3 h-3" />
-                                </button>
-                              </div>
-                              <div>
-                                <h4 className="text-14 font-bold text-fg uppercase tracking-wider mb-2">BY TYPE</h4>
-                                <ul className="grid grid-cols-3 gap-x-6 gap-y-2">
-                                  {subcategoriesFor(hoverCat).map((sub) => (
-                                    <li key={sub}>
-                                      <button
-                                        onClick={() => {
-                                          goBrowse(hoverCat, sub);
-                                          setMegaOpen(false);
-                                        }}
-                                        className="text-12 text-fg hover:opacity-60 transition text-left"
-                                      >
-                                        {sub}
-                                      </button>
-                                    </li>
-                                  ))}
-                                </ul>
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        {/* 우측: 대표 이미지 + 설명 (KEF 스타일) */}
-                        {hoverCat && (
-                          <div className="hidden lg:block w-[340px] flex-shrink-0 p-6">
-                            <button
-                              key={hoverCat}
-                              onClick={() => {
-                                goBrowse(hoverCat);
-                                setMegaOpen(false);
-                              }}
-                              className="group block w-full text-left animate-in fade-in duration-300"
-                            >
-                              <div className="w-full aspect-square overflow-hidden bg-surface">
-                                <img
-                                  src={MEGA_IMAGES[hoverCat] ?? '/images/no-image.png'}
-                                  alt={hoverCat}
-                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                  onError={(e) => {
-                                    (e.currentTarget as HTMLImageElement).src = '/images/no-image.png';
-                                  }}
-                                />
-                              </div>
-                              <div className="mt-3">
-                                <p className="text-12 text-muted leading-relaxed group-hover:text-fg transition-colors">
-                                  {megaDesc(hoverCat)}
-                                </p>
-                              </div>
-                            </button>
+              {/* 패널 — 헤더 바로 아래 폭 100%. 위 선은 헤더 아래 선과 같은 자리 */}
+              {menuOpen && (
+                <div id="category-menu" className="absolute left-0 right-0 top-full z-40 border-y border-line bg-bg">
+                  <div className="px-4 py-8 xl:px-20">
+                    <div className="mx-auto grid max-w-280 grid-cols-2 gap-4 lg:grid-cols-4">
+                      {MENU_CATS.map((cat) => {
+                        const headId = `category-menu-${categorySlug(cat) ?? cat}`;
+                        return (
+                          <div key={cat}>
+                            <p id={headId} className="text-16 font-bold text-fg">
+                              {cat}
+                            </p>
+                            <ul aria-labelledby={headId} className="mt-2">
+                              {subcategoriesFor(cat).map((sub) => (
+                                <li key={sub}>
+                                  <Link href={browseHref(cat, sub)} onClick={closeMenu} className="flex h-8 items-center text-14 text-fg hover:underline">
+                                    {sub}
+                                  </Link>
+                                </li>
+                              ))}
+                            </ul>
+                            <Link href={browseHref(cat)} onClick={closeMenu} className="mt-2 flex h-8 items-center text-14 font-medium text-fg hover:underline">
+                              {cat} 전체 보기 →
+                            </Link>
                           </div>
-                        )}
-                      </div>
+                        );
+                      })}
+                      {/* 4번째 칸은 비워 둠 (대분류가 늘면 채워짐) */}
                     </div>
-                    {/* 백드롭: 패널 아래에 붙어 슬라이드에 맞춰 함께 내려감/올라감 */}
-                    <div
-                      className={`h-screen bg-fg/20 backdrop-blur-sm ${
-                        megaClosing
-                          ? 'animate-out fade-out-0 fill-mode-forwards duration-300'
-                          : 'animate-in fade-in-0 duration-500'
-                      }`}
-                      onClick={closeMega}
-                    />
                   </div>
-                </>
+                </div>
               )}
             </div>
           </div>

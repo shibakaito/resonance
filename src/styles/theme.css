@@ -149,26 +149,6 @@
   }
 }
 
-/* 메가 메뉴: Apple 스토어 스타일 부드러운 슬라이드 다운 (패널이 위에서 펼쳐짐) */
-@keyframes megaUnroll {
-  from { max-height: 0; }
-  to { max-height: 560px; }
-}
-.mega-unroll {
-  overflow: hidden;
-  animation: megaUnroll 420ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
-}
-
-/* 메가 메뉴 닫기: 위로 말려 올라가며 접힘 */
-@keyframes megaRollUp {
-  from { max-height: 560px; }
-  to { max-height: 0; }
-}
-.mega-roll-up {
-  overflow: hidden;
-  animation: megaRollUp 360ms cubic-bezier(0.32, 0.72, 0, 1) forwards;
-}
-
 /* ── 레퍼런스(SONUS) 에디토리얼 톤: 제품 정보(Basic) + 기술 사양(Spec) ── */
 /* 제품 정보 라벨: 대문자 회색 eyebrow */
 #section-info label,
