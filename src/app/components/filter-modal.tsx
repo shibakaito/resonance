@@ -1053,6 +1053,7 @@ export function FilterModal({
               counts={counts.country}
             />
           </Section>
+          {draftVis.locationCountry && (
           <Section title={FL.locationCountry}>
             <CheckGroup
               options={LOCATION_COUNTRIES}
@@ -1062,6 +1063,7 @@ export function FilterModal({
               counts={counts.locationCountry}
             />
           </Section>
+          )}
           <Section title={FL.region}>
             <CheckGroup
               options={regionOptionsFor(draft.locationCountry)}

@@ -74,7 +74,7 @@ const SEEDS: Seed[] = [
       powerPairs: [P('120', '8Ω'), P('170', '4Ω'), P('240', '2Ω')], multi: { impedance: ['2Ω', '4Ω', '8Ω'] },
       customSpecs: [{ title: '동작 클래스', value: 'Class AB' }, { title: 'THD / S/N', value: '0.05% / 105dB' }, { title: '입출력 단자', value: '입력 RCA, XLR, Main In / 출력 스피커 단자, Pre Out, Headphone Out' }],
       dims: { dimensions: [D('465', '422', '181')] }, valNotes: { weight: [KG('24.6')] } } },
-  { category: '앰프', sub: '인티앰프', brand: 'Luxman', model: 'L-509X', year: '2018', condition: 'used', extras: { appearance: 'good', working: 'working' }, price: 680000, currency: 'jpy', country: '일본', ownership: 'multiple_owners', location: 'jp_tokyo',
+  { category: '앰프', sub: '인티앰프', brand: 'Luxman', model: 'L-509X', year: '2018', condition: 'used', extras: { appearance: 'good', working: 'working' }, price: 6200000, country: '일본', ownership: 'multiple_owners', location: 'kr_seoul',
     description: '일본 내수(100V) — 승압 트랜스 필요. 상판에 옅은 기스 1곳.',
     draft: { values: { channel: 'stereo', device: 'solid_state', phono: 'MM/MC', voltage: '100V' },
       powerPairs: [P('120', '8Ω'), P('240', '4Ω')], multi: { impedance: ['4Ω', '8Ω'] },
@@ -97,7 +97,7 @@ const SEEDS: Seed[] = [
         subsonic: 'yes', monoSwitch: 'no', inputSensitivity: '5', maxInput: '300', outputLevel: '1', outputLevelType: 'V', outputImpedance: '50', groundTerminal: 'yes', thd: '0.005', snr: '92', voltage: 'free_volt' },
       multi: { eqCurves: ['RIAA'], inputs: ['RCA', 'XLR'], outputs: ['RCA Out', 'XLR Out'] }, ranges: { freqResponse: { low: '10', high: '50' } },
       dims: { dimensions: [D('220', '215', '53')] }, valNotes: { weight: [KG('2')] } } },
-  { category: '앰프', sub: '헤드폰 앰프', brand: 'Sennheiser', model: 'HDV 820', year: '2018', condition: 'used', extras: { appearance: 'excellent', working: 'working' }, price: 248000, currency: 'jpy', country: '독일', ownership: 'single_owner', location: 'jp_tokyo',
+  { category: '앰프', sub: '헤드폰 앰프', brand: 'Sennheiser', model: 'HDV 820', year: '2018', condition: 'used', extras: { appearance: 'excellent', working: 'working' }, price: 2250000, country: '독일', ownership: 'single_owner', location: 'kr_gyeonggi',
     description: 'DAC 내장 밸런스 헤드폰 앰프. 4.4mm·XLR 출력.', // powerPairs 는 스키마의 헤드폰 전용 키 hpOutput(부하별 출력)로 저장됨 → power 필터엔 0
     draft: { values: { device: 'solid_state', opClass: 'Class AB', thd: '0.001', snr: '115', hpGain: '12', hpOutputImpedance: '0.5', hpDacChip: 'ESS SABRE ES9028', hpForm: 'desktop', voltage: 'free_volt' },
       powerPairs: [P('2.4', '32Ω'), P('0.48', '300Ω'), P('0.24', '600Ω')], ranges: { freqResponse: { low: '10', high: '100' }, hpImpedanceRange: { low: '16', high: '600' } },

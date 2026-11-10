@@ -69,8 +69,9 @@ export const CURRENCY_OPTS = Object.entries(LABELS.currency).map(([value, m]) =>
 export const CURRENCY_SYMBOLS: Record<string, string> = { krw: '₩', jpy: '¥' };
 
 // 지역 선택지 (단일 출처) — 업로드 폼 배송 섹션 '국가', '지역' 칸과 둘러보기, 홈 필터가 같이 씀
-export const LOCATION_COUNTRY_OPTS = Object.entries(LABELS.locationCountry).map(([value, m]) => ({ value, label: m.ko ?? value })); // kr / jp
-export const LOCATION_OPTS = Object.entries(LABELS.location).map(([value, m]) => ({ value, label: m.ko ?? value })); // 전 국가 지역 (한국 먼저)
+// FEATURE_FLAGS.japan 꺼지면 한국만 (선택지에서만 빠짐. label, locationText 는 일본 키도 그대로 읽음)
+export const LOCATION_COUNTRY_OPTS = Object.entries(LABELS.locationCountry).map(([value, m]) => ({ value, label: m.ko ?? value })).filter((o) => FEATURE_FLAGS.japan || o.value === 'kr'); // kr / jp
+export const LOCATION_OPTS = Object.entries(LABELS.location).map(([value, m]) => ({ value, label: m.ko ?? value })).filter((o) => FEATURE_FLAGS.japan || o.value.startsWith('kr_')); // 전 국가 지역 (한국 먼저)
 // 지역 키 → 국가 키 (kr_seoul → kr). 접두가 없는 옛 키는 ''
 export const locationCountryOf = (key: string | null | undefined): string => { const m = /^([a-z]{2})_/.exec(key ?? ''); return m ? m[1] : ''; };
 // 한 국가의 지역 선택지

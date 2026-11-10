@@ -843,9 +843,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (d.tubeRows) setTubeRows(d.tubeRows);
     setCustomSpecs(d.customSpecs ?? []);
     setDescription(d.description ?? ''); setAsDescribed(!!d.asDescribed); setSku(d.sku ?? ''); setYoutubeLink(d.youtubeLink ?? '');
-    setPrice(d.price ?? ''); setComparePrice(d.comparePrice ?? ''); setCurrency(d.currency ?? 'krw'); setAcceptOffers(d.acceptOffers ?? true);
+    setPrice(d.price ?? ''); setComparePrice(d.comparePrice ?? ''); setCurrency(FEATURE_FLAGS.japan ? d.currency ?? 'krw' : 'krw'); setAcceptOffers(d.acceptOffers ?? true);
     setShippingType(d.shippingType ?? ''); setShippingCost(d.shippingCost ?? ''); setLocalPickup(!!d.localPickup);
-    setLocationCountry(d.locationCountry ?? 'kr'); setLocation(d.location ?? '');
+    if (FEATURE_FLAGS.japan) { setLocationCountry(d.locationCountry ?? 'kr'); setLocation(d.location ?? ''); }
+    else { setLocationCountry('kr'); setLocation(locationCountryOf(d.location ?? '') === 'kr' ? d.location ?? '' : ''); }
     setDraftPrompt(null);
     setDraftReady(true);
   };
@@ -962,10 +963,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       }
       if (Object.keys(tech).length > 0) (specsToSave as Record<string, unknown>).tech = tech;
 
+      // 일본 확장(FEATURE_FLAGS.japan) 꺼지면 원화, 한국 지역만 저장 (임시 저장본에 엔이나 일본 지역이 남아 있어도)
+      const saveCurrency = FEATURE_FLAGS.japan ? currency : 'krw';
+      const saveLocation = FEATURE_FLAGS.japan || locationCountryOf(location) === 'kr' ? location : '';
       const id = await insertListing({
         images, title, category, subcategory, brand, model, year: FEATURE_FLAGS.yearApprox && yearUnknown ? '' : year, finish, country,
-        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency,
-        acceptOffers, shippingType, shippingCost, localPickup, location,
+        handmade, condition, ownership, description, sku, youtubeLink, price, comparePrice, currency: saveCurrency,
+        acceptOffers, shippingType, shippingCost, localPickup, location: saveLocation,
         specs: specsToSave,
       });
       try { localStorage.removeItem(DRAFT_KEY); } catch { /* 무시 */ } // 등록 성공 → 임시 저장본 삭제
@@ -2322,6 +2326,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="space-y-4">
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
+              {/* 일본 확장(FEATURE_FLAGS.japan) 꺼지면 통화 칸 숨김, 원화(krw)로 저장 */}
+              {FEATURE_FLAGS.japan && (
               <Field className="max-w-[12rem]" label="통화" group={choiceAsButtons(CURRENCY_OPTS.length, false, 'currency')}>
                 {({ id, labelId }) => (
                   <ChoiceField
@@ -2341,6 +2347,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   />
                 )}
               </Field>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <Field label="판매 가격" required>
                   {({ id }) => (
@@ -2556,6 +2563,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             {/* 국가 + 지역 — 선택 사항. 지역 선택지는 국가에 따라(한국 17개 시/도, 일본 47개 도도부현). DB location 칸 하나에 국가 접두 키로 저장(kr_seoul, jp_tokyo) */}
             <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
               {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음). 지역은 17개, 47개라 드롭다운 그대로 */}
+              {/* 일본 확장(FEATURE_FLAGS.japan) 꺼지면 국가 칸 숨김, 지역은 한국 17개 */}
+              {FEATURE_FLAGS.japan && (
               <Field label="국가" group={choiceAsButtons(LOCATION_COUNTRY_OPTS.length, false, 'locationCountry')}>
                 {({ id, labelId }) => (
                   <ChoiceField
@@ -2575,6 +2584,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   />
                 )}
               </Field>
+              )}
               <Field label="지역">
                 <Select value={location} onChange={(e) => setLocation(e.target.value)} className={location ? '' : 'text-muted'}>
                   <option value="">선택하세요</option>

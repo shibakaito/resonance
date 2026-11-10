@@ -393,8 +393,9 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
     if (initialWorking) f.working.add(initialWorking);          // 작동 키 (working 등)
     if (initialBrand) f.brand.add(initialBrand);
     if (initialModel) f.model.add(initialModel);
-    if (initialLocCountry) f.locationCountry.add(initialLocCountry);
-    if (initialRegion) f.region.add(initialRegion);
+    // 국가(?loc_country)는 FEATURE_FLAGS.japan 켜졌을 때만, 지역은 지금 선택지에 있는 키만 (일본 확장 꺼지면 일본 지역 무시)
+    if (initialLocCountry && FEATURE_FLAGS.japan) f.locationCountry.add(initialLocCountry);
+    if (initialRegion && LOCATIONS.includes(initialRegion)) f.region.add(initialRegion);
     return f;
   };
   const [filters, setFilters] = useState<Filters>(filtersFromHome);
@@ -884,7 +885,7 @@ export function BrowsePage({ onSelect, category, initialSubCategory, searchQuery
               {FEATURE_FLAGS.ownership && <FilterSection label={FL.ownership} options={OWNERSHIP_OPTS} selected={filters.ownership} getLabel={lab('ownership')} onToggle={toggleField('ownership')} counts={counts.ownership} defaultOpen={false} />}
               <FilterSection label={FL.country} options={COUNTRY_OPTS} selected={filters.country} getLabel={lab('country')} onToggle={toggleField('country')} counts={counts.country} defaultOpen={false} />
               {/* 국가 → 지역: 국가를 고르면 지역은 그 나라 것만 (안 고르면 전 국가, 한국 먼저 펼침) */}
-              <FilterSection label={FL.locationCountry} options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false} />
+              {vis.locationCountry && <FilterSection label={FL.locationCountry} options={LOCATION_COUNTRIES} selected={filters.locationCountry} getLabel={lab('locationCountry')} onToggle={(v) => setFilters((prev) => { const set = new Set(prev.locationCountry); if (set.has(v)) set.delete(v); else set.add(v); return pruneRegions({ ...prev, locationCountry: set }); })} counts={counts.locationCountry} defaultOpen={false}  />}
               <FilterSection label={FL.region} options={regionOptionsFor(filters.locationCountry)} selected={filters.region} getLabel={lab('region')} onToggle={toggleField('region')} counts={counts.region} defaultOpen={false} maxVisible={filters.locationCountry.size ? undefined : REGION_VISIBLE_ALL} />
             </div>
           </div>

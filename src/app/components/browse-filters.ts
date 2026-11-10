@@ -537,6 +537,7 @@ export type FilterVisibility = {
   power: boolean;        // 정격 출력 — 앰프, 프리앰프만, 헤드폰 앰프만 골랐을 때 빼고
   headphoneImp: boolean; // 내 헤드폰 임피던스 — 헤드폰 앰프만 골랐을 때
   impedance: boolean;    // 지원 임피던스 — 정격 출력과 같은 조건
+  locationCountry: boolean; // 국가 필터 — FEATURE_FLAGS.japan 켜졌을 때만 (끄면 한국뿐이라 숨김)
   voltage: boolean;      // 전원 전압 — 앰프, 스피커, 턴테이블, 카세트 데크, CD 플레이어, 튜너 (스피커는 액티브만 값이 있어 패시브는 안 걸림)
   turntable: boolean; cassette: boolean; cd: boolean; tuner: boolean;
   powerDevice: boolean; cable: boolean;
@@ -558,6 +559,7 @@ export function filterVisibility(category: string | null | undefined, subs: Read
     power: amp && !preampOnly && !headphoneOnly,
     headphoneImp: headphoneOnly,
     impedance: amp && !preampOnly && !headphoneOnly,
+    locationCountry: FEATURE_FLAGS.japan,
     voltage: amp || speaker || turntable || cassette || cd || tuner,
     turntable, cassette, cd, tuner,
     powerDevice: category === '액세서리' && [...subs].some((s) => POWER_DEVICE_ITEMS.includes(s)),
@@ -582,6 +584,7 @@ export function isFilterKeyVisible(key: keyof Filters, v: FilterVisibility): boo
     case 'ratedCapacityMin': case 'ratedCapacityMax': return v.powerDevice;
     case 'cableLengthMin': case 'cableLengthMax': case 'terminalIn': case 'terminalOut': case 'directional':
     case 'conductor': case 'plating': case 'shield': case 'pair': return v.cable;
+    case 'locationCountry': return v.locationCountry;
     default: return true;
   }
 }
@@ -616,7 +619,7 @@ export function applyFilters(list: Listing[], f: Filters, vis: FilterVisibility)
   if (f.yearMin != null || f.yearMax != null) r = r.filter((l) => inRange(l.releaseYear > 0 ? l.releaseYear : null, f.yearMin, f.yearMax));
   if (FEATURE_FLAGS.ownership && f.ownership.size > 0) r = r.filter((l) => f.ownership.has(l.ownership)); // 플래그 꺼짐: 소유권 필터 없음
   if (f.country.size > 0) r = r.filter((l) => f.country.has(l.country));
-  if (f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
+  if (vis.locationCountry && f.locationCountry.size > 0) r = r.filter((l) => f.locationCountry.has(l.locationCountry));
   if (f.region.size > 0) r = r.filter((l) => f.region.has(l.location));
   if (vis.amp) {
     if (f.ampType.size > 0) r = r.filter((l) => f.ampType.has(l.ampType));
