@@ -248,6 +248,7 @@ export type Listing = {
   shippingType: string;        // 배송 키 (free / flat / calculated, labels.ts shipping_type). 없으면 ''
   shippingCost: number | null; // 고정 배송비 (shipping_cost)
   localPickup: boolean;        // 직거래 가능 (local_pickup)
+  youtubeLink: string;         // 유튜브 주소 (youtube_link). 없으면 '' — 상세 '유튜브 영상' 구간
   // 앰프 전용 속성 (앰프 카테고리에서만 사용)
   ampType: string;
   ampDetail: string;

@@ -38,6 +38,7 @@ type ListingRow = {
   shipping_type: string | null;
   shipping_cost: number | null;
   local_pickup: boolean | null;
+  youtube_link: string | null; // 상세 '유튜브 영상' 구간
 };
 
 // 카테고리 슬러그 → 한글 (없으면 원본 그대로)
@@ -161,6 +162,7 @@ function mapRow(row: ListingRow): Listing {
     shippingType: row.shipping_type ?? '',
     shippingCost: row.shipping_cost ?? null,
     localPickup: row.local_pickup ?? false,
+    youtubeLink: row.youtube_link ?? '', // 상세 '유튜브 영상' 구간 (없으면 '' → 구간 숨김)
     // 앰프
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
     // 앰프 — 저장값(영문 키 또는 MM, 220V 같은 중립 글자)을 그대로. 필터 옵션도 같은 키(browse-filters optValues), 화면 글자는 filterLabel
