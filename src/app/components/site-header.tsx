@@ -69,7 +69,7 @@ export function SiteHeader() {
 
   // 현재 경로 기준 네비게이션 활성 표시
   const isHome = pathname === '/';
-  const isSell = pathname.startsWith('/sell');
+  const isSell = pathname === '/sell' || pathname.startsWith('/sell/'); // /seller 는 판매 메뉴가 아님
 
   return (
     <header className="sticky top-0 z-50 h-16 border-b border-line bg-bg">
