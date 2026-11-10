@@ -921,9 +921,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
       // 외관/작동 상태 — 새 제품 상태(새상품, 미개봉, NOS)면 칸이 숨겨지므로 저장 안 함
       if (!usedFieldsHidden) {
         if (conditionAppearance) specsToSave.appearance = conditionAppearance;
-        if (conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail;
+        if (FEATURE_FLAGS.conditionNotes && conditionAppearanceDetail) specsToSave.appearanceDetail = conditionAppearanceDetail; // 메모 칸 꺼지면 저장 안 함
         if (conditionWorking) specsToSave.working = conditionWorking;
-        if (conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
+        if (FEATURE_FLAGS.conditionNotes && conditionWorkingDetail) specsToSave.workingDetail = conditionWorkingDetail;
       }
       // 출시 연도 '대략' (모름이면 연도 자체를 비워 저장)
       if (FEATURE_FLAGS.yearApprox && yearApprox && !yearUnknown && year.trim()) (specsToSave as Record<string, unknown>).yearApprox = true;
@@ -1346,7 +1346,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 8. 외관 상태 — 중고(used)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김. 선택 사항
                   예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — [드롭다운][자세히 칸] 한 줄. 목록에서 빼면 버튼이 되고 자세히 칸은 아래 줄로 */}
-              {!usedFieldsHidden && (
+              {/* 외관, 작동 — 상태가 중고일 때만 칸이 생김(비었거나 다른 상태면 칸 자체가 없음, 2026-11-10 시안) */}
+              {condition === 'used' && (
               <Field className="col-span-2" label="외관 상태" disabled={condition !== 'used'} group={choiceAsButtons(APPEARANCE_OPTIONS.length, false, 'appearance')} hint={desc('appearance', conditionAppearance) || undefined}>
                 {({ id, labelId }) => {
                   const detailInput = (
@@ -1382,8 +1383,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           </Select>
                         }
                       />
-                      {/* 자세히(메모) 칸 — 2칸 폭 안에서 드롭다운 아래 8 */}
-                      {detailInput}
+                      {/* 자세히(메모) 칸 — FEATURE_FLAGS.conditionNotes 꺼지면 숨김, 저장 안 함. 켜면 2칸 폭 안에서 드롭다운 아래 8 */}
+                      {FEATURE_FLAGS.conditionNotes && detailInput}
                     </>
                   );
                 }}
@@ -1391,7 +1392,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
 
               {/* 9. 작동 상태 — 중고(used)일 때만 활성화, 새 제품 상태면 숨김. 선택 사항. 외관 상태와 같은 모양 */}
-              {!usedFieldsHidden && (
+              {condition === 'used' && (
               <Field className="col-span-2" label="작동 상태" disabled={condition !== 'used'} group={choiceAsButtons(WORKING_OPTIONS.length, false, 'working')} hint={desc('working', conditionWorking) || undefined}>
                 {({ id, labelId }) => {
                   const detailInput = (
@@ -1427,8 +1428,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                           </Select>
                         }
                       />
-                      {/* 자세히(메모) 칸 — 2칸 폭 안에서 드롭다운 아래 8 */}
-                      {detailInput}
+                      {/* 자세히(메모) 칸 — FEATURE_FLAGS.conditionNotes 꺼지면 숨김, 저장 안 함. 켜면 2칸 폭 안에서 드롭다운 아래 8 */}
+                      {FEATURE_FLAGS.conditionNotes && detailInput}
                     </>
                   );
                 }}
@@ -1494,7 +1495,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           >
             {techExpanded && (
             <div>
-            {SPEC_FIELDS_BY_CATEGORY[category] ? (
+            {!category ? (
+              // 카테고리를 고르기 전 — 칸 대신 안내 한 줄(14 muted). 예전 폴백 칸은 안 보임
+              <p className="text-14 text-muted">카테고리를 고르면 사양 칸이 나와요</p>
+            ) : SPEC_FIELDS_BY_CATEGORY[category] ? (
               // 4칸 격자 — 선택 버튼, 드롭다운, 줄 빌더는 4칸, 단위 붙은 한 칸 입력(임피던스, 감도 등)은 2칸
               <div className="grid grid-cols-4 gap-4">
                 {(() => {
@@ -2133,7 +2137,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             ) : (
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
               <div className="grid grid-cols-4 gap-4">
-                {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
+                {SPEC_FIELDS.map((f) => (
                   <Field key={f.key} className="col-span-4" label={f.label}>
                     {({ id }) =>
                       f.key === 'otherSpecs' ? (

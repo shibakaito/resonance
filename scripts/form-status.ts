@@ -193,43 +193,65 @@ const fieldName = (attrs: string): string => {
   return lab.value.trim().startsWith('<') ? cleanJsx(lab.value) : '';
 };
 const isRequired = (attrs: string) => /(?:^|\s)required(?=[\s=]|$)/.test(stripBraces(attrs));
-// 새 제품 상태(새상품, 미개봉, NOS)면 숨는 칸 — 폼의 {!usedFieldsHidden && ( 바로 뒤 <Field> (칸마다 따로 감쌈)
-const hiddenWhenNew = new Set<string>();
-for (const m of PAGE.matchAll(/\{!usedFieldsHidden && \(\s*<Field\b/g)) hiddenWhenNew.add(fieldName(openTag(PAGE, (m.index ?? 0) + m[0].length)));
+// 중고일 때만 생기는 칸 — 폼의 {condition === 'used' && ( 바로 뒤 <Field> (2026-11-10 시안: 다른 상태면 칸 자체가 없음)
+const usedOnly = new Set<string>();
+for (const m of PAGE.matchAll(/\{condition === 'used' && \(\s*<Field\b/g)) usedOnly.add(fieldName(openTag(PAGE, (m.index ?? 0) + m[0].length)));
 // 배송 방식 선택지 — SHIPPING_OPTS 의 label
 const shippingOpts = [...(/const SHIPPING_OPTS = \[([\s\S]*?)\];/.exec(UP)?.[1] ?? '').matchAll(/label: '([^']+)'/g)].map((x) => x[1]);
 type CommonRow = { section: string; label: string; required: boolean; note: string; boundVar?: string };
 const common: CommonRow[] = [];
+const sections: string[] = [];
 {
   let section = '';
-  const re = /<h2\b[^>]*>([\s\S]*?)<\/h2>|<Field\b|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>|<h3\b[^>]*>([\s\S]*?)<\/h3>/g;
+  // 구간 = <FormSection title="…"> 또는 heading={<h2>…</h2>} (2026-11-10 시안). 칸 = <Field>, 체크 = <FormCheckbox>(옛 label 체크도 같이)
+  const re = /<FormSection\b|<h2\b[^>]*>([\s\S]*?)<\/h2>|<Field\b|<FormCheckbox\b|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>/g;
   for (const m of PAGE.matchAll(re)) {
-    const [whole, h2, chk, h3] = m;
+    const [whole, h2, chk] = m;
     const at = m.index ?? 0;
     const before = PAGE.slice(Math.max(0, at - 300), at);
     const after = PAGE.slice(at, at + 700);
     const bound = /value=\{\s*([A-Za-z_]\w*)/.exec(after)?.[1];
-    if (h2 !== undefined) { section = cleanJsx(h2); continue; }
+    if (whole === '<FormSection') {
+      const attrs = openTag(PAGE, at + whole.length);
+      const t = attrOf(attrs, 'title');
+      if (!t) continue; // heading={…} 을 쓰는 구간 — 안의 <h2> 에서 이름을 읽음
+      const name = t.braced ? cleanJsx(t.value) : t.value;
+      section = name;
+      sections.push(name);
+      // 제목 자체가 필수 칸인 구간(사진) — 사진 칸은 input value 가 없어 images 로
+      if (t.braced && /<RequiredMark\b/.test(t.value)) common.push({ section, label: name, required: true, note: '', boundVar: /사진/.test(name) ? 'images' : undefined });
+      continue;
+    }
+    if (h2 !== undefined) {
+      section = cleanJsx(h2);
+      sections.push(section);
+      // 구간 제목 안 label htmlFor 가 칸 이름인 구간(설명)
+      const id = /<label htmlFor="([^"]+)"/.exec(h2)?.[1];
+      if (id) {
+        const tagAt = PAGE.indexOf(`id="${id}"`, at);
+        const ctl = tagAt >= 0 ? PAGE.slice(tagAt, tagAt + 400) : '';
+        common.push({ section, label: section, required: /<RequiredMark\b/.test(h2), note: /<Textarea\b/.test(PAGE.slice(Math.max(0, tagAt - 40), tagAt)) ? '여러 줄 글' : '', boundVar: /value=\{\s*([A-Za-z_]\w*)/.exec(ctl)?.[1] });
+      }
+      continue;
+    }
     if (whole === '<Field') {
       const attrs = openTag(PAGE, at + whole.length);
       const name = fieldName(attrs);
       if (!name) continue; // 기술 사양 칸(label={f.label}) — 아래 카테고리별 표에서
       const note = name === '배송 방식' ? `선택 부품(버튼): ${shippingOpts.join(' · ')}`
-        : hiddenWhenNew.has(name) ? '중고 상태일 때 활성. 새상품, 미개봉, NOS면 숨기고 저장 안 함'
+        : usedOnly.has(name) ? '상태가 중고일 때만 보임. 다른 상태면 칸이 없고 저장 안 함'
         : /condition !== 'used'/.test(attrs) ? '중고 상태일 때 활성'
         : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
       common.push({ section, label: name, required: isRequired(attrs), note, boundVar: bound });
+    } else if (whole === '<FormCheckbox') {
+      const attrs = openTag(PAGE, at + whole.length);
+      const bodyAt = at + whole.length + attrs.length + 1;
+      const body = PAGE.slice(bodyAt, PAGE.indexOf('</FormCheckbox>', bodyAt));
+      const t = cleanJsx(body);
+      common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: isRequired(attrs), note: '체크박스', boundVar: /checked=\{\s*([A-Za-z_]\w*)/.exec(attrs)?.[1] });
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);
       common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: /<RequiredMark\b/.test(chk), note: '체크박스', boundVar: /checked=\{\s*([A-Za-z_]\w*)/.exec(chk)?.[1] });
-    } else if (h3 !== undefined && /<label htmlFor=/.test(h3)) {
-      // Field 가 아닌 칸: 구간 제목 안 label htmlFor 가 칸 이름 (예: 설명 — 2026-11-10)
-      const id = /<label htmlFor="([^"]+)"/.exec(h3)?.[1];
-      const tagAt = id ? PAGE.indexOf(`id="${id}"`, at) : -1;
-      const ctl = tagAt >= 0 ? PAGE.slice(tagAt, tagAt + 400) : '';
-      common.push({ section, label: cleanJsx(h3), required: /<RequiredMark\b/.test(h3), note: /<Textarea\b/.test(PAGE.slice(Math.max(0, tagAt - 40), tagAt)) ? '여러 줄 글' : '', boundVar: /value=\{\s*([A-Za-z_]\w*)/.exec(ctl)?.[1] });
-    } else if (h3 !== undefined && /aria-label="필수"|<RequiredMark\b/.test(h3)) {
-      common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: /사진/.test(cleanJsx(h3)) ? 'images' : bound }); // 사진 칸은 input value 가 없어 images 로
     }
   }
 }
@@ -239,7 +261,8 @@ const submitVars = new Set([
   ...[...SUBMIT.matchAll(/!\s*([A-Za-z_]\w*)/g)].map((m) => m[1]),
   ...[...SUBMIT.matchAll(/([A-Za-z_]\w*)\.length === 0/g)].map((m) => m[1]), // 예: images.length === 0 (사진 1장 필수)
 ]);
-const sections = [...PAGE.matchAll(/<h2\b[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => cleanJsx(m[1]));
+// 구간 순서(sections)는 위 공통 항목을 읽을 때 같이 모음
+
 
 // ── 미완·보류 계산 ───────────────────────────────────────────────────────────
 function walk(dir: string): string[] {
