@@ -864,7 +864,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
     if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
     if (images.length === 0) { setSubmitError('사진을 1장 이상 올려 주세요.'); return; } // 필수: 브랜드, 모델, 카테고리, 상태, 가격, 사진 1장
-    if (!asDescribed) { setSubmitError('"설명한 그대로" 판매에 체크해 주세요.'); return; } // 필수 확인 체크 — 매물 저장(insertListing)에는 안 넣음, 임시 저장에만
+    if (!asDescribed) { setSubmitError('실제 상태와 같음을 확인해 주세요.'); return; } // 필수 확인 체크 — 매물 저장(insertListing)에는 안 넣음, 임시 저장에만
     setSubmitting(true);
     try {
       // specs(jsonb)에 저장할 값들 — 비어있는 키는 제외 (DB 깔끔하게)
@@ -2167,7 +2167,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           >
             <div className="flex items-baseline justify-between mb-1">
               <h3 className="text-20 font-bold">
-                장비 사진을 업로드하세요<RequiredMark />
+                사진<RequiredMark />
               </h3>
             </div>
             {/* 안내 문구 3곳(이 설명, 예시 이름, 5장 권장)은 FEATURE_FLAGS.photoSectionHints 꺼지면 숨김 (2026-11-10) */}
@@ -2257,11 +2257,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           <section className="bg-bg border border-line rounded-none p-6">
-            <h3 className="text-20 font-bold mb-4">항목을 설명하세요.</h3>
+            <h3 className="text-20 font-bold mb-4">설명</h3>
 
             {/* 설명 — 서식 버튼(굵게, 기울임, 목록)은 누르는 동작이 없어 삭제(2026-11-10 디자인 3a). 글은 줄바꿈 그대로 저장 */}
             <Field label="이 상품과 그 상태에 대해 설명해 주세요" hint={`${description.length}자 입력됨`}>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} />
+              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" />
             </Field>
 
             <div className="mt-4 pt-4 border-t border-line">
@@ -2273,9 +2273,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   className="mt-1 accent-fg w-4 h-4"
                 />
                 <div>
-                  <p className="font-bold text-14">이 상품은 "설명한 그대로" 판매됩니다.<RequiredMark /></p>
+                  <p className="font-bold text-14">사진과 설명이 실제 상태와 같음을 확인합니다<RequiredMark /></p>
                   <p className="text-12 text-muted mt-1">
-                    "설명대로" 판매한 상품은 설명 약관 정책에 따라 제외됩니다. 따라서 판매자는 정확하고 상세한 상품 설명을 작성하고, 좋은 사진을 제공하며, 설명된 상태 그대로 상품을 구매자에게 배송할 의무가 있습니다.
+                    실제와 다른 점이 있으면 거래 취소나 분쟁의 원인이 돼요. 흠집, 수리 이력, 소리 이상은 미리 적어 두는 게 안전해요
                   </p>
                 </div>
               </label>
