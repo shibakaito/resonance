@@ -669,7 +669,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
           />
         </aside>
 
-        {/* 오른쪽 결과 — 칩 줄(최소 40) → 16 → 카드 4열(각 212, 사이 16) → 더 있으면 24 아래 '더 보기' */}
+        {/* 오른쪽 결과 — 칩 줄(최소 40) → 16 → 카드 4열(남는 폭 4등분, 사이 16) → 더 있으면 24 아래 '더 보기' */}
         <div className="min-w-0 flex-1">
           {/* 칩: 높이 32, 14/500, line 선, 왼쪽 12 오른쪽 8, 글자 뒤 8에 × 16(이름 '… 해제'), 칩 사이 8. 좁은 화면은 맨 앞에 '필터'(대화상자) */}
           <div className="flex min-h-10 flex-wrap items-center gap-2">

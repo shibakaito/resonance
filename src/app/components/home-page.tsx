@@ -375,7 +375,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
       </section>
 
       {/* 새로 올라온 매물 — 최신 4건(fetchListings 가 등록 최신순), 한 줄 4장 (2026-11-10 홈 시안)
-          구간: 폭 1120(4칸 × 268 + 16), 위 64, 제목 줄 40(20/700) 아래 24 */}
+          구간: 폭 1360(4칸 × 328 + 16 × 3), 위 64, 제목 줄 40(20/700) 아래 24 */}
       <Container as="section" className="pt-16">
         <div className="mb-6 flex h-10 items-center justify-between gap-4">
           <h2 className="text-20 font-bold">새로 올라온 매물</h2>
@@ -422,7 +422,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         )}
       </Container>
 
-      {/* 판매 띠 (2026-11-10 홈 시안) — 1120 폭 검정 띠 하나, 안 여백 40 48, 사진 없음. 구간 위 64(아래 64는 푸터 위 여백)
+      {/* 판매 띠 (2026-11-10 홈 시안) — 1360 폭 검정 띠 하나, 안 여백 40 48, 사진 없음. 구간 위 64(아래 64는 푸터 위 여백)
           예전 '내 컬렉션' 배너, 무료 배송, 최저가 보장, 구매자 보호 세 줄, '지금 인기 검색어' 8개는 삭제 */}
       <Container as="section" className="pt-16">
         <div className="flex flex-col gap-6 bg-fg px-12 py-10 lg:flex-row lg:items-center lg:justify-between">

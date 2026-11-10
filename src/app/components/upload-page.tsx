@@ -1070,7 +1070,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
   return (
     <main className="bg-bg min-h-screen">
-      {/* 겉틀: 공통 Container(내용 1120) 안에서 왼쪽 목록 200 + 사이 80 + 폼 720 을 왼쪽 끝에 붙이고 오른쪽 120은 비움 (2026-11-10 레이아웃 통일)
+      {/* 겉틀: 공통 Container(내용 1360) 안에서 왼쪽 목록 200 + 사이 80 + 폼 720 을 왼쪽 끝에 붙이고 오른쪽 360은 비움 (2026-11-10 레이아웃 통일)
           위 48, 아래 80. 좁은 화면(lg 아래)은 목록이 위, 폼이 전체 폭 */}
       <Container className="pt-12 pb-20">
       <div className="lg:flex lg:gap-20">
