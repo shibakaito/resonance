@@ -390,10 +390,11 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         )}
       </section>
 
-      {/* 인기 카테고리 — 제목 줄에 탭 3개(높이 40, 최소 폭 120, 좌우 24) + 오른쪽 '{카테고리} 모두 보기 →', 카드 4장 */}
+      {/* 인기 카테고리 — 제목 줄에 탭 3개(높이 40, 최소 폭 120, 좌우 24) + 오른쪽 '{카테고리} 모두 보기 →', 카드 4장
+          시안대로 '인기 카테고리' 글자는 화면에서 뺌. 화면 읽기 프로그램용 제목(sr-only)으로만 남김 */}
       <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
         <div className="mb-6 flex min-h-10 flex-wrap items-center gap-4">
-          <h2 className="text-20 font-bold">인기 카테고리</h2>
+          <h2 className="sr-only">인기 카테고리</h2>
           {/* 탭 — 고른 것 fg 채움(마우스 올려도 그대로), 나머지 line 선(마우스 올리면 surface). 공통 Button */}
           <div className="flex gap-2">
             {CATEGORY_TABS.map((cat) => (
