@@ -20,6 +20,7 @@ import { subcategoriesFor, TOP_CATEGORIES } from '../data/catalog';
 import { categorySlug } from '../data/category-slugs';
 import { Button } from './ui/button';
 import { Container } from './ui/container';
+import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 // 메뉴 대분류 = 보이는 대분류만 (CATEGORY_TREE 숨김 표식). 하위 카테고리도 subcategoriesFor 가 보이는 것만 줌
 const MENU_CATS = TOP_CATEGORIES;
@@ -137,7 +138,8 @@ export function SiteHeader() {
             >
               판매
             </button>
-            <a href="#" className="text-fg hover:text-fg">장바구니</a>
+            {/* 장바구니 — 아직 갈 곳 없는 링크라 FEATURE_FLAGS.commerce 켜질 때만 (docs/hidden.md) */}
+            {FEATURE_FLAGS.commerce && <a href="#" className="text-fg hover:text-fg">장바구니</a>}
           </nav>
         </div>
       </Container>
