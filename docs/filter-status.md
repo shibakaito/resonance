@@ -1,7 +1,7 @@
 # 매물 필터 현황 (2026-11-10 다시 씀)
 
 > 지금 코드 기준이에요(커밋 `42635f8` 이후). 줄 번호 대신 파일과 함수 이름으로 적었어요.
-> 대상 파일: `src/lib/listings.ts`(DB → 매물), `src/app/components/browse-filters.ts`(필터 규칙, 보이는 칸, 거르기), `src/app/components/filter-panel.tsx`(필터 묶음 순서, 사이드바와 대화상자 공용), `src/app/components/browse-page.tsx`(둘러보기 화면), `src/app/components/filter-modal.tsx`(좁은 화면 필터 대화상자)
+> 대상 파일: `src/lib/listings.ts`(DB → 매물), `src/app/components/browse-url.ts`(필터 ↔ 주소), `src/app/components/browse-filters.ts`(필터 규칙, 보이는 칸, 거르기), `src/app/components/filter-panel.tsx`(필터 묶음 순서, 사이드바와 대화상자 공용), `src/app/components/browse-page.tsx`(둘러보기 화면), `src/app/components/filter-modal.tsx`(좁은 화면 필터 대화상자)
 
 ---
 
@@ -15,6 +15,7 @@
 | ④ 카테고리 | 대분류(주소 `/browse/amps` 등)로 거르고, 카테고리 묶음에서 하위 카테고리를 고르면 그것만 남겨요 | `browse-page.tsx` `baseCategoryListings`, `categoryListings` |
 | ⑤ 보이는 칸 | 대분류와 고른 하위 카테고리로 어떤 필터 칸이 보일지 한 곳에서 정해요. 사이드바, 대화상자, 칩, 사라진 칸 값 비우기, 거르기가 모두 이 결과를 써요 | `browse-filters.ts` `filterVisibility`, `isFilterKeyVisible`, `pruneHiddenFilters` |
 | ⑥ 거르기 | 고른 필터를 차례로 적용. 안 보이는 칸은 값이 남아 있어도 안 걸러요 | `browse-filters.ts` `applyFilters` |
+| ⑥-1 주소 | 필터, 하위 카테고리, 정렬은 주소에 저장돼요. 새로고침, 링크 공유, 뒤로 가기에도 같은 화면(6장) | `browse-url.ts` `readBrowseState`, `browseHref` |
 | ⑦ 정렬, 장 수 | 추천순(=DB 순서, 최신 등록순), 최신순, 가격 낮은순, 가격 높은순. 한 번에 24장, '더 보기'로 24장씩 | `browse-page.tsx` `filtered`, `PAGE_SIZE` |
 
 ### 판정 규칙
@@ -105,3 +106,50 @@
 | 턴테이블 | 핵심인데 필터 없음: 형식(ttType) | 핵심에서 뺌 (`FEATURE_FLAGS.turntableType` 로 숨긴 칸, 형식 필터는 만들지 않음) |
 | CD 플레이어 | 핵심인데 필터 없음: 전원 전압 | 필터 추가 |
 | 튜너 | 핵심인데 필터 없음: 전원 전압 | 필터 추가 |
+
+## 6. 주소(URL)에 저장 (2026-11-10)
+
+필터, 하위 카테고리, 정렬의 원본은 주소예요. 새로고침하거나 링크를 보내도 같은 필터 화면이 열려요.
+칸마다 코드를 따로 쓰지 않고 `browse-filters.ts` `FILTER_DEFS` 표 한 줄에서 주소 읽기와 쓰기가 같이 만들어져요(칸을 늘리면 표에 한 줄).
+
+규칙
+- 여러 개 고르면 같은 키를 반복해요: `brand=Accuphase&brand=Luxman`
+- 범위는 `키_min`, `키_max`. 가격은 원 단위(화면 칸은 만원): `price_min=1000000&price_max=5000000`
+- 빈 값은 주소에 안 써요. 정렬은 `sort=latest`(최신순), `price_asc`(가격 낮은순), `price_desc`(가격 높은순), 추천순은 안 써요
+- 하위 카테고리는 1개면 경로(`/browse/amps/preamp`), 2개 이상이면 `/browse/amps?sub=preamp&sub=power-amp`(메뉴 순서)
+- 둘러보기에서 고르면 주소를 덮어써요(replace, 뒤로 가기 기록이 안 쌓임). 상세에 갔다 뒤로 오면 고른 필터 그대로. 검색어와 대분류 이동은 기록을 쌓아요
+- 읽을 때 버리는 것: 선택지에 없는 값, 기능 플래그가 꺼진 칸, 그 카테고리에서 안 보이는 칸, 숫자가 아닌 범위 값. 열자마자 주소를 고쳐 쓰지는 않아요
+- 쓸 때 맡은 키만 다시 써요. `q`(검색어), `utm_source` 같은 다른 키는 그대로 남아요
+- 머리말 메뉴로 다른 대분류에 가면 필터가 풀려요. 둘러보기 안에서 다시 검색하면 대분류는 두고 필터와 하위 카테고리는 풀려요
+- 홈 조건 검색과 '모두 보기'도 같은 쓰기 함수로 주소를 만들어요(모두 보기는 `?sort=latest`)
+- 왕복 검사: `npx --yes tsx scripts/check-browse-url.ts` (쓰기 → 읽기 → 쓰기가 같은지, 정해진 경우 포함)
+
+주소 키 (키 이름은 저장 필드 이름을 snake_case 로. 지역과 국가만 예전 홈 주소 키 그대로)
+
+| 화면 이름 | 주소 키 | 값 |
+|---|---|---|
+| 카테고리(하위) | 경로 둘째 칸 또는 `sub` | 카테고리 슬러그 (preamp 등) |
+| 정렬 | `sort` | latest / price_asc / price_desc |
+| 검색어 | `q` | 글자 |
+| 브랜드, 모델 | `brand`, `model` | 글자 그대로 |
+| 상태, 외관 상태, 작동 상태 | `condition`, `appearance`, `working` | 키 (used, excellent, working 등) |
+| 가격 | `price_min`, `price_max` | 원 |
+| 출시 연도 | `year_min`, `year_max` | 연도 |
+| 제조국 | `country` | us, jp 등 |
+| 지역, 국가 | `region`, `loc_country` | kr_seoul 등 / kr, jp (국가는 일본 확장 켜졌을 때만) |
+| 소유권 | `ownership` | 플래그 꺼짐이라 지금은 안 씀 |
+| 채널, 증폭 방식 | `channel`, `device` | stereo 등 / tube, solid_state, hybrid |
+| 정격 출력 | `power_rated_min`, `power_rated_max` | W |
+| 내 헤드폰 임피던스 | `hp_impedance` | Ω |
+| 지원 임피던스, 포노 입력, 전원 전압 | `impedance`, `phono`, `voltage` | 8Ω, MM, 220V 등 |
+| 톤 컨트롤, 리모컨 포함 | `tone_control`, `remote` | 플래그 꺼짐이라 지금은 안 씀 |
+| 형식, 드라이버 구성, 인클로저 | `speaker_detail`, `driver_ways`, `enclosure` | passive, 2way, bass_reflex 등 |
+| 임피던스(스피커), 우퍼 크기 | `speaker_impedance`, `woofer_size` | 구간 키 (ohm_8, in_6_8 등) |
+| 감도, 권장 앰프 출력 | `sensitivity_min`/`_max`, `rec_power_min`/`_max` | dB / W (권장 출력은 플래그 꺼짐) |
+| 구동 방식, 회전수, 조작 방식 | `drive_type`, `speeds`, `auto_mode` | belt_drive, 33, full_auto 등 |
+| 톤암, 카트리지, 포노앰프 내장, 더스트 커버 | `tonearm`, `cartridge`, `phono_built_in`, `dust_cover` | included 등 (더스트 커버는 플래그 꺼짐) |
+| 디지털 출력, 아날로그 출력, 수신 밴드 | `cd_digital_out`, `cd_analog_out`, `tuner_band` | coaxial, rca, am_fm 등 |
+| 헤드 수, 오토리버스, 캡스턴 | `head_count`, `auto_reverse`, `capstan` | two_head 등 |
+| 노이즈 리덕션, 녹음 가능 테이프, 헤드 상태 | `noise_reduction`, `tape_type_rec`, `head_wear` | dolby_b, type_2, good 등 |
+| 정격 용량, 케이블 길이 | `rated_capacity_min`/`_max`, `cable_length_min`/`_max` | 숨긴 카테고리 |
+| 입력 단자, 출력 단자, 방향성, 도체, 도금, 차폐, 페어 | `terminal_in`, `terminal_out`, `directional`, `conductor`, `plating`, `shield`, `pair` | 숨긴 카테고리 (케이블) |
