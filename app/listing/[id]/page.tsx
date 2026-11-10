@@ -2,10 +2,11 @@
 // ============================================================================
 // app/listing/[id]/page.tsx — 상품 상세(PDP) 경로 (/listing/<id>)
 // ----------------------------------------------------------------------------
-// ListingDetail을 next/dynamic 으로 ssr:false 로드합니다.
-//   - react-slick(이미지 캐러셀)이 서버에서 렌더되지 않게 함 → SSR 문제 회피
+// ListingDetail을 next/dynamic 으로 ssr:false 로드합니다 (매물은 브라우저에서 Supabase로 불러옴).
+//   - 예전엔 react-slick(이미지 캐러셀)을 서버에서 안 그리려고 썼고, 2026-11-10 상세 시안에서 캐러셀은 빠짐
 //   - ssr:false 는 클라이언트 컴포넌트에서만 쓸 수 있어 이 페이지는 'use client'
 // URL의 [id]를 읽어 ListingDetail로 넘기면, 그 id로 Supabase에서 매물을 불러옴.
+// key={id}: 상세에서 다른 매물로 넘어가면 화면 상태(고른 사진, 찜, 더 보기)를 새로 시작
 // ============================================================================
 
 import dynamic from 'next/dynamic';
@@ -19,5 +20,5 @@ const ListingDetail = dynamic(
 export default function ListingRoute() {
   const params = useParams();
   const id = params.id as string;
-  return <ListingDetail id={id} />;
+  return <ListingDetail key={id} id={id} />;
 }

@@ -33,6 +33,11 @@ type ListingRow = {
   handmade: boolean | null;
   images: string[] | null;
   specs: Record<string, any> | null;
+  // 상세 페이지 오른쪽 열 (2026-11-10)
+  compare_price: number | null;
+  shipping_type: string | null;
+  shipping_cost: number | null;
+  local_pickup: boolean | null;
 };
 
 // 카테고리 슬러그 → 한글 (없으면 원본 그대로)
@@ -150,6 +155,12 @@ function mapRow(row: ListingRow): Listing {
     daysAgo: row.created_at
       ? Math.max(0, Math.floor((Date.now() - new Date(row.created_at).getTime()) / 86400000))
       : 0,
+    // 상세 페이지 오른쪽 열 (2026-11-10 상세 시안)
+    createdAt: row.created_at ?? '',
+    comparePrice: row.compare_price ?? null,
+    shippingType: row.shipping_type ?? '',
+    shippingCost: row.shipping_cost ?? null,
+    localPickup: row.local_pickup ?? false,
     // 앰프
     ampType: cat(s.ampType), // ampType은 카테고리 슬러그 재사용
     // 앰프 — 저장값(영문 키 또는 MM, 220V 같은 중립 글자)을 그대로. 필터 옵션도 같은 키(browse-filters optValues), 화면 글자는 filterLabel

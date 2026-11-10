@@ -189,6 +189,12 @@ export function fmtPrice(v: number, currency: string = 'krw'): string {
   return (CURRENCY_SYMBOLS[currency] ?? '₩') + v.toLocaleString('ko-KR');
 }
 
+// 날짜 글자 — '2026년 11월 10일' (보는 사람의 시간대). 상세 등록일, 판매자 리뷰 날짜. 읽을 수 없는 값은 ''
+export function fmtDate(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? '' : `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
+}
+
 // "1963 - 1972년" 같은 문자열에서 시작 연도 추출
 export function parseYear(s: string): number {
   const m = s.match(/\d{4}/);
@@ -236,6 +242,12 @@ export type Listing = {
   techSpecs: Record<string, string | string[]>; // 기술 사양 (specs.tech key→값; 다중 선택은 배열)
   customSpecs: { title: string; value: string }[]; // 자유 추가 사양 (specs.tech.customSpecs, 입력 순서). 필터는 안 읽음
   daysAgo: number;
+  // 상세 페이지 오른쪽 열 (2026-11-10 상세 시안) — DB 컬럼 그대로
+  createdAt: string;           // 등록 시각 (created_at, ISO) — 상세 '등록일'
+  comparePrice: number | null; // 정가 (compare_price). 없으면 null → 상세 정가 줄 없음
+  shippingType: string;        // 배송 키 (free / flat / calculated, labels.ts shipping_type). 없으면 ''
+  shippingCost: number | null; // 고정 배송비 (shipping_cost)
+  localPickup: boolean;        // 직거래 가능 (local_pickup)
   // 앰프 전용 속성 (앰프 카테고리에서만 사용)
   ampType: string;
   ampDetail: string;

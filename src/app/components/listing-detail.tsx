@@ -1,58 +1,106 @@
 'use client';
 // ============================================================================
-// listing-detail.tsx — 상품 상세(PDP) 화면
+// listing-detail.tsx — 상품 상세(PDP) 화면 (/listing/[id])
 // ----------------------------------------------------------------------------
-// 예전 App.tsx에 인라인돼 있던 상품 상세 영역(<main>)을 떼어낸 컴포넌트.
-// react-slick(이미지 캐러셀)을 쓰므로 클라이언트 컴포넌트이며,
-// app/listing/[id]/page.tsx에서 next/dynamic(ssr:false)로 로드됩니다.
-// → react-slick이 서버에서 렌더되지 않아 SSR 문제를 피하고,
-//   Slider는 이 파일 내부 정적 import라 sliderRef(썸네일 클릭 이동)도 정상 작동.
+// app/listing/[id]/page.tsx 가 next/dynamic(ssr:false)로 불러옴. 매물은 브라우저에서 Supabase로 읽음
+// 2026-11-10 상세 시안: 가짜 데이터 없이 매물에 저장된 값만 보여 줌. 토큰 6개와 공통 부품(Button, Badge, Card)만
+//   폭 1120. 위 32에 경로 '홈 › 대분류 › 세부 카테고리'(14 muted, 화살표 16, 홈과 대분류는 둘러보기 링크) → 24 → 두 열
+//   두 열: 왼쪽 640(갤러리, 아래 정보 구간) + 사이 16 + 오른쪽 464. 좁은 화면은 한 줄(갤러리 → 오른쪽 열 → 정보 구간)
+//   갤러리: 썸네일 세로 줄(64 정사각, 사이 8, line 선, 고른 것 fg 선, 사진 수만큼, 큰 사진보다 길면 아래로 이어짐)
+//     + 큰 사진 568 정사각(line 선, 바탕 surface, cover). 오른쪽 위 8에 찜 32, 오른쪽 아래 8에 'N / 전체'
+//     사진이 없거나 깨지면 '사진 없음'(14 muted)
+//   오른쪽 열: 제목(24/700, 매물 title) → 12 → 배지(상태, 외관 상태, 작동 상태 중 값 있는 것. 작동이 점검 필요나 수리 필요면 danger)
+//     → 24, 위 선, 24 → 가격 32/700 → 4 → 정가(있을 때만, 14 muted 줄 그음) → 24 → 메시지 보내기(FEATURE_FLAGS.messaging)
+//     → 8 → [관심 제품][주소 복사 40] → 24 → 위 선 → 메타 표(라벨 96 + 값 14, 줄 40): 등록일, 배송, 직거래(가능일 때만), 지역(있을 때만)
+//   바로 구매, 장바구니 담기, 가격 제안, 판매자 저장은 FEATURE_FLAGS.commerce 로 숨김 (docs/hidden.md)
+// 예전 가짜 요소(장바구니 담은 사람 수, 하트 수, 별점과 리뷰 수, 조회수, 제안 수, 시세 카드, 비슷한 제품 광고 목록,
+//   등급 기준 링크)와 react-slick 캐러셀, 사진 확대는 삭제
 // ============================================================================
 
-import { useState, useEffect, useRef, Fragment } from 'react';
-import Slider from 'react-slick';
-import 'slick-carousel/slick/slick.css';
-import 'slick-carousel/slick/slick-theme.css';
-import { Heart, Share2, Star, MapPin, MessageCircle, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, Tag, Info, TrendingUp, BadgeCheck, Truck, BookOpen, Package, ShieldAlert } from 'lucide-react';
+import { useState, useEffect, Fragment } from 'react';
+import Link from 'next/link';
+import { Heart, Check, Link as LinkIcon, MessageCircle, Star, MapPin, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, BadgeCheck, BookOpen, Package, ShieldAlert } from 'lucide-react';
 import type { Listing } from './browse-filters';
-import { fmtPrice, yearText } from './browse-filters';
+import { fmtPrice, fmtDate, yearText, WORKING_WARN_KEYS } from './browse-filters';
 import { fetchListingById } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
+import { categorySlug } from '@/app/data/category-slugs';
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 import { label, desc, locationText } from '@/lib/labels';
-import { ConditionBadge } from './condition-badge'; // 매물의 상태, 지역, 소유권, 제조국은 키 → 화면 글자
+import { Button } from './ui/button';
+import { Badge } from './ui/badge';
+
+// 대분류 → 둘러보기 주소 (경로 줄)
+const browseHref = (top: string) => {
+  const slug = categorySlug(top);
+  return slug ? `/browse/${slug}` : '/browse';
+};
+
+// 배송 글자: 무료 배송 / 고정 배송비 ₩N / 배송비 별도. 고르지 않은 매물은 '' (줄 없음)
+const shippingText = (l: Listing): string => {
+  if (!l.shippingType) return '';
+  const name = label('shipping_type', l.shippingType);
+  return l.shippingType === 'flat' && l.shippingCost ? `${name} ${fmtPrice(l.shippingCost, l.currency)}` : name;
+};
 
 export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
   const [listing, setListing] = useState<Listing | null>(null);
+  const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   useEffect(() => {
     if (!id) return;
     let active = true;
     fetchListingById(id)
-      .then((row) => { if (active) setListing(row); })
-      .catch((err) => console.error('매물 불러오기 실패:', err));
+      .then((row) => {
+        if (!active) return;
+        setListing(row);
+        setLoadState(row ? 'ready' : 'missing');
+      })
+      .catch((err) => {
+        console.error('매물 불러오기 실패:', err);
+        if (active) setLoadState('error');
+      });
     return () => { active = false; };
   }, [id]);
 
-  const [mainImage, setMainImage] = useState(0);
+  // 갤러리 — 고른 사진, 불러오지 못한 사진 번호
+  const [current, setCurrent] = useState(0);
+  const [broken, setBroken] = useState<Set<number>>(new Set());
+  const markBroken = (i: number) => setBroken((prev) => new Set(prev).add(i));
+
+  // 찜(사진 위 하트)과 관심 제품은 같은 상태 — 이 화면 안에서만(홈, 둘러보기와 같음, 저장 안 함)
+  const [liked, setLiked] = useState(false);
+  const toggleLike = () => setLiked((v) => !v);
+
+  // 주소 복사 — 복사되면 2초 동안 체크 아이콘, 화면 읽기 프로그램에는 aria-live 로 알림
+  const [copied, setCopied] = useState(false);
+  const [copyMsg, setCopyMsg] = useState('');
+  const copyUrl = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopyMsg('주소를 복사했어요');
+      setCopied(true);
+    } catch {
+      setCopyMsg('주소를 복사하지 못했어요');
+    }
+  };
+  useEffect(() => {
+    if (!copyMsg) return;
+    const t = setTimeout(() => {
+      setCopied(false);
+      setCopyMsg('');
+    }, 2000);
+    return () => clearTimeout(t);
+  }, [copyMsg]);
+
+  // 판매자 저장 (FEATURE_FLAGS.commerce 켜졌을 때만 보이는 버튼)
+  const [sellerSaved, setSellerSaved] = useState(false);
+
   const [reviewTab, setReviewTab] = useState<'all' | 'seller' | 'buyer'>('all');
   const [reviewSort, setReviewSort] = useState<'latest' | 'rating-high' | 'rating-low'>('latest');
   const [reviewPage, setReviewPage] = useState(1);
-  const [likedSimilar, setLikedSimilar] = useState<Set<number>>(new Set());
-  const [mainLiked, setMainLiked] = useState(false);
-  const mainLikeCount = 15 + (mainLiked ? 1 : 0);
-
-  const toggleSimilarLike = (idx: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setLikedSimilar(prev => {
-      const next = new Set(prev);
-      if (next.has(idx)) next.delete(idx);
-      else next.add(idx);
-      return next;
-    });
-  };
 
   const allReviews = [
     { id: 1, name: '최태원', rating: 5, daysAgo: 3, type: 'seller', text: '최고의 판매자입니다! 기타가 설명 그대로 도착했고 포장도 매우 꼼꼼했습니다. 빠른 배송과 친절한 소통이 인상적이었습니다.', product: '1965 펜더 텔레캐스터' },
@@ -99,367 +147,203 @@ export function ListingDetail({ id }: { id?: string }) {
     return `${Math.floor(days / 365)}년 전`;
   };
 
-  const sellerCount = allReviews.filter(r => r.type === 'seller').length;
-  const buyerCount = allReviews.filter(r => r.type === 'buyer').length;
-  const [priceHistoryOpen, setPriceHistoryOpen] = useState(false);
   const [specsExpanded, setSpecsExpanded] = useState(false);
   const [techSpecsExpanded, setTechSpecsExpanded] = useState(false);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
   const [sellerReviewsOpen, setSellerReviewsOpen] = useState(false);
   const [sellerDescExpanded, setSellerDescExpanded] = useState(false);
-  const [sellerSaved, setSellerSaved] = useState(false);
-  const [isStuck, setIsStuck] = useState(false);
-  const [isZooming, setIsZooming] = useState(false);
-  const [zoomPos, setZoomPos] = useState({ x: 50, y: 50 });
-  const sentinelRef = useRef<HTMLDivElement>(null);
-  const sliderRef = useRef<Slider>(null);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
-  const thumbnailsRef = useRef<HTMLDivElement>(null);
 
-  const handleZoomMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!imageContainerRef.current) return;
-    const rect = imageContainerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-    setZoomPos({
-      x: Math.max(0, Math.min(100, x)),
-      y: Math.max(0, Math.min(100, y))
-    });
-  };
-
-  const scrollThumbnails = (direction: 'up' | 'down') => {
-    if (!thumbnailsRef.current) return;
-    const amount = direction === 'up' ? -160 : 160;
-    thumbnailsRef.current.scrollBy({ top: amount, behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    // 이 컴포넌트는 PDP 전용이라 항상 관찰 (예전 page !== 'pdp' 분기 제거)
-    const sentinel = sentinelRef.current;
-    if (!sentinel) return;
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsStuck(!entry.isIntersecting),
-      { rootMargin: '-80px 0px 0px 0px', threshold: [0] }
+  // 불러오는 중, 없는 매물, 불러오기 실패
+  if (!listing) {
+    return (
+      <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+        <p role="status" className="text-14 text-muted">
+          {loadState === 'loading' ? '불러오는 중…' : loadState === 'missing' ? '매물을 찾을 수 없어요.' : '매물을 불러오지 못했어요.'}
+        </p>
+      </main>
     );
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, []);
+  }
 
-  // 매물 사진 — listing.images에서 가져옴. 비어있거나 listing 로딩 전이면 NO_IMAGE 1장.
-  const NO_IMAGE = '/images/no-image.png';
-  const images =
-    listing?.images && listing.images.length > 0 ? listing.images : [NO_IMAGE];
+  const top = topCategoryOf(listing.category); // 대분류 (예: 앰프)
+  const sub = listing.category;                // 세부 카테고리 (예: 인티앰프)
+  const name = `${listing.brand} ${listing.model}`;
+  const images = listing.images;
+  const showPhoto = images.length > 0 && !broken.has(current);
 
-  // 깨진 URL이면 NO_IMAGE로 fallback (onerror 무효화로 무한 루프 방지)
-  const onImgError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    const img = e.currentTarget;
-    img.onerror = null;
-    img.src = NO_IMAGE;
-  };
+  // 배지 — 상태, 외관 상태, 작동 상태 중 값 있는 것
+  const badges = [
+    { text: label('condition', listing.condition), danger: false },
+    { text: label('appearance', listing.appearance), danger: false },
+    { text: label('working', listing.working), danger: WORKING_WARN_KEYS.includes(listing.working) },
+  ].filter((b) => b.text);
 
-  const PrevArrow = ({ onClick }: { onClick?: () => void }) => (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-      aria-label="이전 사진"
-      className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
-    >
-      <ChevronLeft className="w-5 h-5 text-fg" />
-    </button>
-  );
-
-  const NextArrow = ({ onClick }: { onClick?: () => void }) => (
-    <button
-      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
-      aria-label="다음 사진"
-      className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-bg/90 hover:bg-bg shadow-md hover:shadow-lg active:scale-90 active:bg-line active:shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200"
-    >
-      <ChevronRight className="w-5 h-5 text-fg" />
-    </button>
-  );
-
-  const sliderSettings = {
-    dots: false,
-    arrows: true,
-    infinite: true,
-    speed: 0,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    draggable: false,
-    swipe: false,
-    touchMove: false,
-    beforeChange: (current: number, next: number) => setMainImage(next),
-    prevArrow: <PrevArrow />,
-    nextArrow: <NextArrow />
-  };
+  // 메타 표 — 값 있는 줄만
+  const metaRows: [string, string][] = (
+    [
+      ['등록일', fmtDate(listing.createdAt)],
+      ['배송', shippingText(listing)],
+      ['직거래', listing.localPickup ? '가능' : ''],
+      ['지역', label('location', listing.location)],
+    ] as [string, string][]
+  ).filter(([, v]) => v);
 
   return (
-      <main className="max-w-7xl mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div className="lg:col-span-7 space-y-12 pt-6">
-            <div className="flex gap-3 relative">
-              <div className="relative group/thumbs flex-shrink-0">
-                <button
-                  onClick={() => scrollThumbnails('up')}
-                  aria-label="썸네일 위로"
-                  className="absolute top-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
-                >
-                  <ChevronUp className="w-4 h-4 text-fg" />
-                </button>
+    <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+      {/* 경로 — 홈 › 대분류 › 세부 카테고리. 홈과 대분류는 링크 */}
+      <nav aria-label="경로">
+        <ol className="flex flex-wrap items-center gap-1 text-14 text-muted">
+          <li>
+            <Link href="/" className="hover:text-fg">
+              홈
+            </Link>
+          </li>
+          <li className="flex items-center gap-1">
+            <ChevronRight aria-hidden className="h-4 w-4" />
+            <Link href={browseHref(top)} className="hover:text-fg">
+              {top}
+            </Link>
+          </li>
+          {sub && sub !== top && (
+            <li className="flex items-center gap-1">
+              <ChevronRight aria-hidden className="h-4 w-4" />
+              <span>{sub}</span>
+            </li>
+          )}
+        </ol>
+      </nav>
 
-                <div
-                  ref={thumbnailsRef}
-                  className="flex flex-col gap-2 max-h-[480px] overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-                >
-                  {images.map((img, idx) => (
-                    <button
-                      key={idx}
-                      onMouseEnter={() => {
-                        setIsZooming(false);
-                        sliderRef.current?.slickGoTo(idx, true);
-                      }}
-                      onClick={() => {
-                        setIsZooming(false);
-                        sliderRef.current?.slickGoTo(idx, true);
-                      }}
-                      className={`w-[72px] h-[72px] rounded-lg overflow-hidden border-2 bg-surface flex-shrink-0 ${
-                        mainImage === idx ? 'border-fg' : 'border-line'
-                      }`}
-                    >
-                      <img
-                        src={img}
-                        alt={`썸네일 ${idx + 1}`}
-                        className="w-full h-full object-contain"
-                        onError={onImgError}
-                      />
-                    </button>
-                  ))}
-                </div>
-
-                <button
-                  onClick={() => scrollThumbnails('down')}
-                  aria-label="썸네일 아래로"
-                  className="absolute bottom-0 left-0 right-0 z-10 h-7 bg-bg/90 hover:bg-bg shadow-md rounded-lg flex items-center justify-center opacity-0 group-hover/thumbs:opacity-100 active:scale-95 transition-all duration-200"
-                >
-                  <ChevronDown className="w-4 h-4 text-fg" />
-                </button>
-              </div>
-
-              <div
-                ref={imageContainerRef}
-                onClick={() => setIsZooming(prev => !prev)}
-                onMouseMove={handleZoomMouseMove}
-                className={`group relative bg-surface rounded-lg overflow-hidden flex-1 aspect-[4/3] ${isZooming ? 'cursor-zoom-out' : 'cursor-zoom-in'} [&_.slick-slider]:h-full [&_.slick-list]:h-full [&_.slick-track]:h-full [&_.slick-slide>div]:h-full [&_.slick-slide]:!block`}
-              >
-                <Slider {...sliderSettings} ref={sliderRef}>
-                  {images.map((img, idx) => (
-                    <div key={idx} className="h-full">
-                      <img
-                        src={img}
-                        alt={`제품 사진 ${idx + 1}`}
-                        className="w-full h-full object-contain block"
-                        onError={onImgError}
-                        style={
-                          isZooming && idx === mainImage
-                            ? {
-                                transform: 'scale(2.5)',
-                                transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`
-                              }
-                            : undefined
-                        }
-                      />
-                    </div>
-                  ))}
-                </Slider>
-
-                <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-fg text-bg text-12 font-bold rounded-full pointer-events-none">
-                  3명의 장바구니에 담음
-                </div>
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setMainLiked((v) => !v);
-                  }}
-                  aria-label="좋아요"
-                  className="absolute top-3 right-3 z-10 flex items-center gap-2 px-3 py-2 bg-bg border border-line hover:border-muted shadow-sm rounded-full active:scale-95 transition"
-                >
-                  <span className="text-14 font-bold text-fg">{mainLikeCount}</span>
-                  <Heart
-                    className={`w-4 h-4 ${
-                      mainLiked ? 'fill-fg text-fg' : 'text-fg'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative group/carousel">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-20 font-bold">비슷한 제품</h3>
-                <div className="flex items-center gap-1 text-12 text-muted">
-                  <span>광고</span>
-                  <Info className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div
-                id="similar-carousel"
-                className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-              >
-                {[
-                  { title: 'McIntosh MC275', price: '32,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
-                  { title: 'McIntosh MC312', price: '45,000,000원', img: '/images/4d097765a9285.jpg', condition: '새상품' },
-                  { title: 'McIntosh MA252', price: '38,200,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
-                  { title: 'McIntosh MC462', price: '60,500,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
-                  { title: 'McIntosh C2700', price: '42,800,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
-                  { title: 'McIntosh MA8950', price: '55,700,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 매우 좋음' },
-                  { title: 'McIntosh MC152 (블랙)', price: '24,900,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
-                  { title: 'McIntosh MA9000', price: '78,000,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' }
-                ].map((item, idx) => {
-                  const isNew = item.condition === '새상품';
-                  return (
-                    <div
-                      key={idx}
-                      className="flex-shrink-0 w-[170px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-line relative"
-                    >
-                      <button
-                        onClick={(e) => toggleSimilarLike(idx, e)}
-                        aria-label="좋아요"
-                        className="absolute top-2 right-2 z-10 w-8 h-8 rounded-full bg-bg/90 hover:bg-bg shadow-md flex items-center justify-center active:scale-90 transition"
-                      >
-                        <Heart
-                          className={`w-4 h-4 ${
-                            likedSimilar.has(idx)
-                              ? 'fill-fg text-fg'
-                              : 'text-fg'
-                          }`}
-                        />
-                      </button>
-                      <div className="aspect-square bg-surface">
-                        <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
-                      </div>
-                      <div className="p-3">
-                        <h4 className="text-14 font-bold truncate">{item.title}</h4>
-                        <p className="text-12 text-fg mt-1">{item.condition}</p>
-                        <p className="text-16 font-bold text-fg mt-1">{item.price}</p>
-                        {isNew && (
-                          <div className="flex items-center gap-1 mt-1 text-12 text-fg">
-                            <Truck className="w-3.5 h-3.5" />
-                            <span>무료 배송</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
+      {/* 두 열 — 넓은 화면: 왼쪽(갤러리 위, 정보 구간 아래) + 오른쪽 464. 좁은 화면: 갤러리 → 오른쪽 열 → 정보 구간 */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_464px] lg:grid-rows-[auto_1fr] lg:gap-x-4">
+        {/* 갤러리 — 썸네일 줄 64 + 사이 8 + 큰 사진 568 */}
+        <div className="flex max-w-160 items-start gap-2 lg:col-start-1 lg:row-start-1">
+          <div className="flex w-16 shrink-0 flex-col gap-2">
+            {images.map((src, i) => (
               <button
-                onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: -400, behavior: 'smooth' })}
-                aria-label="이전"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
+                key={`${i}-${src}`}
+                type="button"
+                aria-label={`사진 ${i + 1}`}
+                aria-pressed={i === current}
+                onClick={() => setCurrent(i)}
+                className={`h-16 w-16 overflow-hidden border bg-surface ${i === current ? 'border-fg' : 'border-line'}`}
               >
-                <ChevronLeft className="w-5 h-5 text-fg" />
-              </button>
-              <button
-                onClick={() => document.getElementById('similar-carousel')?.scrollBy({ left: 400, behavior: 'smooth' })}
-                aria-label="다음"
-                className="absolute right-0 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/carousel:opacity-100 transition-all duration-200 z-10"
-              >
-                <ChevronRight className="w-5 h-5 text-fg" />
-              </button>
-            </div>
-
-            <div className="border border-line rounded-lg p-6">
-              <h3 className="text-24 font-bold mb-6">
-                이 제품은 <span className="text-muted">합리적인 가격</span>이에요
-              </h3>
-
-              <div className="flex items-start gap-6">
-                <div className="flex-shrink-0">
-                  <p className="text-fg leading-relaxed">
-                    현재 평균 시장 가격대<br />
-                    안에 있어요
-                  </p>
-                  <Info className="w-5 h-5 mt-3 text-muted" />
-                </div>
-
-                <div className="flex-1 mt-2 relative pt-14">
-                  <div
-                    className="absolute top-0 -translate-x-1/2 px-4 py-2 bg-bg border border-line rounded-full shadow-sm text-16 font-bold whitespace-nowrap"
-                    style={{ left: '53.5%' }}
-                  >
-                    25,900,000원
-                    <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-bg border-r border-b border-line rotate-45"></div>
-                  </div>
-
-                  <div className="relative">
-                    <div className="flex h-1.5 gap-1">
-                      <div className="flex-1 bg-line rounded-l-full"></div>
-                      <div className="flex-[2] bg-muted"></div>
-                      <div className="flex-1 bg-fg rounded-r-full"></div>
-                    </div>
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-6 h-6 bg-bg border-2 border-muted rounded-full shadow-md flex items-center justify-center"
-                      style={{ left: '53.5%' }}
-                    >
-                      <div className="w-3 h-3 rounded-full bg-muted"></div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between text-14 text-muted mt-3 px-[12.5%]">
-                    <span>23,100,000원</span>
-                    <span>28,000,000원</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-line mt-6 pt-4">
-                <button
-                  onClick={() => setPriceHistoryOpen(!priceHistoryOpen)}
-                  className="w-full flex items-center justify-between"
-                >
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5" />
-                    <h4 className="text-20 font-bold">가격 변동 내역</h4>
-                  </div>
-                  {priceHistoryOpen ? (
-                    <ChevronUp className="w-5 h-5" />
-                  ) : (
-                    <ChevronDown className="w-5 h-5" />
-                  )}
-                </button>
-
-                {priceHistoryOpen && (
-                  <div className="mt-4">
-                    <div className="grid grid-cols-3 gap-4 text-14 font-bold pb-3">
-                      <div>날짜</div>
-                      <div>변동</div>
-                      <div className="text-right">가격</div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-14 py-3 border-t border-line items-center">
-                      <div>2026/04/15</div>
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4" />
-                        가격 인하
-                      </div>
-                      <div className="text-right font-bold">25,900,000원</div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-14 py-3 border-t border-line items-center">
-                      <div>2026/03/01</div>
-                      <div className="flex items-center gap-2">
-                        <Tag className="w-4 h-4" />
-                        등록
-                      </div>
-                      <div className="text-right font-bold">30,800,000원</div>
-                    </div>
-                    <p className="text-12 text-muted mt-4 pt-4 border-t border-line">
-                      가격 정보는 판매자가 제공한 가격 변동 내역 기준입니다.
-                    </p>
-                  </div>
+                {!broken.has(i) && (
+                  <img src={src} alt="" width={64} height={64} onError={() => markBroken(i)} className="block h-full w-full object-cover" />
                 )}
-              </div>
+              </button>
+            ))}
+          </div>
+          {/* 찜과 'N / 전체'는 선 밖 기준으로 8 (선 있는 사진 칸이 아니라 바깥 칸에 붙임) */}
+          <div className="relative min-w-0 flex-1">
+            <div className="aspect-square overflow-hidden border border-line bg-surface">
+              {showPhoto ? (
+                <img
+                  src={images[current]}
+                  alt={`${name} 사진 ${current + 1}`}
+                  width={568}
+                  height={568}
+                  onError={() => markBroken(current)}
+                  className="block h-full w-full object-cover"
+                />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-14 text-muted">사진 없음</div>
+              )}
             </div>
+            <Button
+              iconOnly
+              size="sm"
+              variant="line"
+              aria-label="찜하기"
+              aria-pressed={liked}
+              onClick={toggleLike}
+              className="absolute right-2 top-2 z-10"
+            >
+              <Heart aria-hidden className={`h-4 w-4 ${liked ? 'fill-fg' : ''}`} />
+            </Button>
+            {images.length > 0 && (
+              <span className="absolute bottom-2 right-2 inline-flex h-6 items-center border border-line bg-bg px-2 text-12">
+                {current + 1} / {images.length}
+              </span>
+            )}
+          </div>
+        </div>
 
+        {/* 오른쪽 열 — 제목, 배지, 가격, 버튼, 메타 */}
+        <div className="mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0">
+          <h1 className="text-24 font-bold">{listing.title || name}</h1>
+          {badges.length > 0 && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {badges.map((b) => (
+                <Badge key={b.text} variant={b.danger ? 'danger' : 'outline'}>
+                  {b.text}
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-6 border-t border-line pt-6">
+            <p className="text-32 font-bold">{fmtPrice(listing.price, listing.currency)}</p>
+            {listing.comparePrice != null && listing.comparePrice > 0 && (
+              <p className="mt-1 text-14 text-muted">
+                정가 <s>{fmtPrice(listing.comparePrice, listing.currency)}</s>
+              </p>
+            )}
+          </div>
+
+          <div className="mt-6 flex flex-col gap-2">
+            {/* 거래 기능 — FEATURE_FLAGS.commerce 꺼지면 안 보임 (docs/hidden.md) */}
+            {FEATURE_FLAGS.commerce && (
+              <>
+                <Button variant="primary" className="w-full">
+                  바로 구매
+                </Button>
+                <Button variant="secondary" className="w-full">
+                  장바구니 담기
+                </Button>
+                <div className="flex gap-2">
+                  <Button variant="secondary" className="min-w-0 flex-1">
+                    <MessageCircle aria-hidden className="h-4 w-4" />
+                    가격 제안
+                  </Button>
+                  <Button variant="secondary" aria-pressed={sellerSaved} onClick={() => setSellerSaved((v) => !v)} className="min-w-0 flex-1">
+                    <Heart aria-hidden className={`h-4 w-4 ${sellerSaved ? 'fill-fg' : ''}`} />
+                    판매자 저장
+                  </Button>
+                </div>
+              </>
+            )}
+            {/* 메시지 — FEATURE_FLAGS.messaging 꺼지면 안 보임 */}
+            {FEATURE_FLAGS.messaging && (
+              <Button variant="primary" className="w-full">
+                메시지 보내기
+              </Button>
+            )}
+            <div className="flex gap-2">
+              <Button variant="secondary" aria-pressed={liked} onClick={toggleLike} className="min-w-0 flex-1">
+                <Heart aria-hidden className={`h-4 w-4 ${liked ? 'fill-fg' : ''}`} />
+                관심 제품
+              </Button>
+              <Button iconOnly variant="secondary" aria-label="주소 복사" onClick={copyUrl}>
+                {copied ? <Check aria-hidden className="h-4 w-4" /> : <LinkIcon aria-hidden className="h-4 w-4" />}
+              </Button>
+            </div>
+            <p aria-live="polite" className="sr-only">
+              {copyMsg}
+            </p>
+          </div>
+
+          {/* 메타 표 — 라벨 96 + 값 14, 줄 40, 줄 아래 선 */}
+          <dl className="mt-6 border-t border-line">
+            {metaRows.map(([k, v]) => (
+              <div key={k} className="grid min-h-10 grid-cols-[96px_minmax(0,1fr)] items-center border-b border-line py-2">
+                <dt className="text-14 font-medium text-muted">{k}</dt>
+                <dd className="text-14">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+
+        {/* 정보 구간 */}
+        <div className="space-y-12 pt-12 lg:col-start-1 lg:row-start-2">
             <div>
               <h2 className="text-24 font-bold mb-4">제품 정보</h2>
               <div className="relative">
@@ -506,10 +390,7 @@ export function ListingDetail({ id }: { id?: string }) {
                   <div className="break-words">
                     {label('condition', listing?.condition)}{' '}
                     {/* 정의 작은 안내 (labels.ts LABEL_DESC, gradeDescriptions 플래그 꺼져 있으면 안 보임) */}
-                    {desc('condition', listing?.condition) && <span className="text-12 text-muted">{desc('condition', listing?.condition)}</span>}{' '}
-                    <a href="#" className="text-fg underline hover:text-fg text-14">
-                      등급 기준 자세히 보기
-                    </a>
+                    {desc('condition', listing?.condition) && <span className="text-12 text-muted">{desc('condition', listing?.condition)}</span>}
                   </div>
 
                   {listing?.appearance && (
@@ -938,236 +819,8 @@ export function ListingDetail({ id }: { id?: string }) {
               </>
               )}
             </div>
-          </div>
-
-          <div className="lg:col-span-5">
-            <div ref={sentinelRef} className="h-0"></div>
-            <div className="sticky top-20">
-              <div className={`bg-bg rounded-lg pt-6 px-6 pb-2 space-y-4 transition-shadow duration-300 ${isStuck ? 'shadow-[0_-6px_20px_-6px_rgba(0,0,0,0.12),0_10px_20px_-6px_rgba(0,0,0,0.15)]' : 'shadow-none'}`}>
-                <div>
-                  <h1 className="text-32 font-bold mb-2">{listing ? `${listing.brand} ${listing.model}` : '불러오는 중…'}</h1>
-                  <div className="flex items-center gap-2 text-fg mb-2">
-                    {listing?.handmade && (
-                      <span className="px-2 py-1 bg-fg text-bg rounded text-12 font-medium">수제품</span>
-                    )}
-                    {/* 상태 배지 — 카드와 같은 conditionBadge (중고는 외관 등급, 작동 경고) */}
-                    {listing && <ConditionBadge listing={listing} className="px-2 py-1 border border-line text-fg rounded text-12" />}
-                  </div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <div className="flex">
-                      {[1, 2, 3, 4, 5].map((star) => (
-                        <Star key={star} className="w-4 h-4 fill-fg text-fg" />
-                      ))}
-                    </div>
-                    <span className="text-14 text-fg">(리뷰 124개)</span>
-                  </div>
-                </div>
-
-                <div className={`border-t border-t-line border-b py-4 transition-colors duration-300 ${isStuck ? 'border-b-transparent' : 'border-b-line'}`}>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-32 font-bold">{listing ? fmtPrice(listing.price, listing.currency) : ''}</span>
-                  </div>
-                </div>
-
-                <div className="flex flex-col gap-2">
-                  <button className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-3 px-6 rounded-lg font-bold">
-                    장바구니 담기
-                  </button>
-                  <button className="w-full bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg py-3 px-6 rounded-lg font-bold">
-                    바로 구매
-                  </button>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => setMainLiked((v) => !v)}
-                    className="flex-1 border-2 border-line text-fg hover:border-muted py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 transition text-14"
-                  >
-                    <Heart className={`w-4 h-4 ${mainLiked ? 'fill-fg text-fg' : ''}`} />
-                    관심 제품
-                  </button>
-                  <button className="flex-1 border-2 border-line text-fg py-2 px-3 rounded-lg font-bold flex items-center justify-center gap-2 hover:border-muted transition text-14">
-                    <MessageCircle className="w-4 h-4" />
-                    가격 제안
-                  </button>
-                  <button className="border-2 border-line text-fg py-2 px-3 rounded-lg hover:border-muted transition">
-                    <Share2 className="w-4 h-4" />
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 text-12 text-fg py-2">
-                  <div className="text-center">
-                    <span className="font-bold text-fg">등록일:</span> 13일 전
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-fg">조회수:</span> 197
-                  </div>
-                  <div className="text-center">
-                    <span className="font-bold text-fg">제안:</span> 3
-                  </div>
-                </div>
-
-                <div className="border-t border-t-line py-8 flex items-center gap-3 relative">
-                  <div className="w-12 h-12 rounded-full bg-surface flex items-center justify-center text-fg font-bold text-20 flex-shrink-0">
-                    몽
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold">몽키타르</span>
-                      <div className="relative group/badge2 inline-block">
-                        <BadgeCheck className="w-4 h-4 text-fg fill-surface cursor-help" />
-                        <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 px-3 py-2 bg-fg text-bg text-12 rounded-lg whitespace-nowrap opacity-0 group-hover/badge2:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
-                          이 판매자는 뛰어난 서비스를 제공합니다.
-                          <div className="absolute left-1/2 -translate-x-1/2 top-full w-0 h-0 border-l-[6px] border-r-[6px] border-t-[6px] border-l-transparent border-r-transparent border-t-fg"></div>
-                        </div>
-                      </div>
-                      <div className="flex ml-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <Star key={star} className="w-3.5 h-3.5 fill-fg text-fg" />
-                        ))}
-                      </div>
-                      <span className="text-14 text-fg">(245)</span>
-                    </div>
-                    {/* 지역이 비면 줄째 숨김 (FEATURE_FLAGS.listingRegion 꺼진 뒤 등록한 매물) */}
-                    {listing?.location && (
-                      <div className="flex items-center gap-1 text-14 text-fg mt-1">
-                        <MapPin className="w-3.5 h-3.5" />
-                        <span>{locationText(listing.location)}</span>
-                      </div>
-                    )}
-                  </div>
-                  <button
-                    onClick={() => setSellerSaved((v) => !v)}
-                    aria-label="판매자 저장"
-                    className="flex items-center gap-2 px-3 py-2 border border-line hover:border-muted rounded-full text-14 font-bold text-fg active:scale-95 transition flex-shrink-0"
-                  >
-                    <Heart
-                      className={`w-4 h-4 ${
-                        sellerSaved ? 'fill-fg text-fg' : 'text-fg'
-                      }`}
-                    />
-                    판매자 저장
-                  </button>
-                  <div
-                    className={`absolute left-0 right-0 bottom-0 h-px bg-line transition-all duration-500 ease-in-out ${
-                      isStuck ? 'translate-y-2 opacity-0' : 'translate-y-0 opacity-100'
-                    }`}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
-
-        {[
-          {
-            sectionTitle: '비슷한 제품',
-            scrollId: 'similar-carousel-bottom',
-            items: [
-              { title: 'McIntosh MC275', price: '32,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'McIntosh MC312', price: '45,000,000원', img: '/images/4d097765a9285.jpg', condition: '새상품' },
-              { title: 'McIntosh MA252', price: '38,200,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
-              { title: 'McIntosh MC462', price: '60,500,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
-              { title: 'McIntosh C2700', price: '42,800,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
-              { title: 'McIntosh MA8950', price: '55,700,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'McIntosh MC152 (블랙)', price: '24,900,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
-              { title: 'McIntosh MA9000', price: '78,000,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' },
-              { title: 'McIntosh MC611', price: '85,000,000원', img: '/images/618155823824e.jpg', condition: '새상품' },
-              { title: 'McIntosh MA12000', price: '95,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'McIntosh C12000', price: '98,000,000원', img: '/images/f4362b6cdce17.jpg', condition: '새상품' },
-              { title: 'McIntosh MC1.25KW', price: '120,000,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 좋음' }
-            ]
-          },
-          {
-            sectionTitle: '최근 조회에 기반한 추천 제품',
-            scrollId: 'recent-carousel',
-            items: [
-              { title: 'McIntosh MA352', price: '42,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '새상품' },
-              { title: 'Marantz PM-15S2', price: '15,500,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'Yamaha A-S2200', price: '12,800,000원', img: '/images/618155823824e.jpg', condition: '중고 - 민트' },
-              { title: 'Luxman L-507uXII', price: '18,900,000원', img: '/images/fd5b7a6adbead.jpg', condition: '중고 - 좋음' },
-              { title: 'Accuphase E-280', price: '21,500,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '새상품' },
-              { title: 'Bryston 4B³', price: '28,700,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'Naim Supernait 3', price: '16,200,000원', img: '/images/618155823824e.jpg', condition: '새상품' },
-              { title: 'Pass Labs INT-25', price: '32,000,000원', img: '/images/d4ba8a07c2a69.jpg', condition: '중고 - 민트' },
-              { title: 'Hegel H190', price: '11,500,000원', img: '/images/f4362b6cdce17.jpg', condition: '중고 - 좋음' },
-              { title: 'Esoteric F-03A', price: '27,800,000원', img: '/images/fd5b7a6adbead.jpg', condition: '새상품' },
-              { title: 'Mark Levinson No.5805', price: '52,000,000원', img: '/images/2c6f7c1fc6fb6.jpg', condition: '중고 - 매우 좋음' },
-              { title: 'Krell K-300i', price: '24,500,000원', img: '/images/4d097765a9285.jpg', condition: '중고 - 민트' }
-            ]
-          }
-        ].map((section, sectionIdx) => (
-          <div key={sectionIdx} className="mt-16 relative group/sec">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-24 font-bold">{section.sectionTitle}</h2>
-              {section.sectionTitle.includes('최근 조회') && (
-                <div className="flex items-center gap-1 text-12 text-muted">
-                  <span>광고</span>
-                  <Info className="w-3.5 h-3.5" />
-                </div>
-              )}
-            </div>
-
-            <div
-              id={section.scrollId}
-              className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scroll-smooth [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            >
-              {section.items.map((item, idx) => {
-                const isNew = item.condition === '새상품';
-                const likedKey = sectionIdx * 1000 + idx;
-                return (
-                  <div
-                    key={idx}
-                    className="flex-shrink-0 w-[240px] snap-start cursor-pointer hover:shadow-md transition rounded-lg overflow-hidden border border-line relative"
-                  >
-                    <button
-                      onClick={(e) => toggleSimilarLike(likedKey, e)}
-                      aria-label="좋아요"
-                      className="absolute top-1.5 right-1.5 z-10 w-7 h-7 rounded-full bg-bg/90 hover:bg-bg shadow-md flex items-center justify-center active:scale-90 transition"
-                    >
-                      <Heart
-                        className={`w-3.5 h-3.5 ${
-                          likedSimilar.has(likedKey)
-                            ? 'fill-fg text-fg'
-                            : 'text-fg'
-                        }`}
-                      />
-                    </button>
-                    <div className="aspect-square bg-surface">
-                      <img src={NO_IMAGE} alt={item.title} className="w-full h-full object-contain" />
-                    </div>
-                    <div className="p-3">
-                      <h4 className="text-14 font-bold truncate">{item.title}</h4>
-                      <p className="text-12 text-fg mt-1">{item.condition}</p>
-                      <p className="text-16 font-bold text-fg mt-1">{item.price}</p>
-                      {isNew && (
-                        <div className="flex items-center gap-1 mt-2 text-12 text-fg">
-                          <Truck className="w-3 h-3" />
-                          <span>무료 배송</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <button
-              onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: -400, behavior: 'smooth' })}
-              aria-label="이전"
-              className="absolute left-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
-            >
-              <ChevronLeft className="w-5 h-5 text-fg" />
-            </button>
-            <button
-              onClick={() => document.getElementById(section.scrollId)?.scrollBy({ left: 400, behavior: 'smooth' })}
-              aria-label="다음"
-              className="absolute right-0 top-1/2 mt-4 w-10 h-10 rounded-full bg-bg shadow-md hover:shadow-lg active:scale-90 flex items-center justify-center opacity-0 group-hover/sec:opacity-100 transition-all duration-200 z-10"
-            >
-              <ChevronRight className="w-5 h-5 text-fg" />
-            </button>
-          </div>
-        ))}
-      </main>
+      </div>
+    </main>
   );
 }

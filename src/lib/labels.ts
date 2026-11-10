@@ -58,7 +58,7 @@ export const LABELS: Record<string, LabelMap> = {
   // 통화 (DB listings.currency, 기본 krw). 기호는 아래 CURRENCY_SYMBOLS
   currency: { krw: { ko: '원' }, jpy: { ko: '엔' } },
   shipping_type: {
-    free: { ko: '무료배송' },
+    free: { ko: '무료 배송' }, // 상세 메타 '배송' 줄 (등록 폼 글자와 같게)
     flat: { ko: '고정 배송비' },
     calculated: { ko: '배송비 별도' },
   },
