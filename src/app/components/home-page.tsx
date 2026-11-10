@@ -23,7 +23,7 @@ import { Field, Select } from './ui/field'; // 조건 검색 칸 — 등록 폼�
 import { Input } from './ui/input';
 import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { Autocomplete } from './ui/autocomplete';
-import { categorySlug } from '../data/category-slugs';
+import { browseHref } from './browse-url'; // 둘러보기 주소 (필터, 정렬)
 
 // 조건 검색 칸은 공통 Field + Select / Autocomplete (2026-11-10 홈 시안) — 예전 이 파일의 Combobox, Highlight, getInitials(머리글자), norm 은
 //   공통 Autocomplete 로 합쳐 삭제. 찾는 규칙(공백 등 무시, 별칭, 머리글자 matchInitials)은 같음
@@ -379,8 +379,8 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
       <Container as="section" className="pt-16">
         <div className="mb-6 flex h-10 items-center justify-between gap-4">
           <h2 className="text-20 font-bold">새로 올라온 매물</h2>
-          {/* 둘러보기는 정렬을 주소로 받지 않아 기본 정렬(추천순)로 열림 — 둘러보기는 이번에 안 건드림 */}
-          <Link href="/browse" className="text-14 font-medium text-fg hover:underline">
+          {/* 최신순 둘러보기 (/browse?sort=latest, 둘러보기와 같은 쓰기 함수) */}
+          <Link href={browseHref(null, { sort: '최신순' })} className="text-14 font-medium text-fg hover:underline">
             모두 보기 →
           </Link>
         </div>
@@ -412,7 +412,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
               </Button>
             ))}
           </div>
-          <Link href={categorySlug(activeCat) ? `/browse/${categorySlug(activeCat)}` : '/browse'} className="ml-auto text-14 font-medium text-fg hover:underline">
+          <Link href={browseHref(activeCat, { sort: '최신순' })} className="ml-auto text-14 font-medium text-fg hover:underline">
             {activeCat} 모두 보기 →
           </Link>
         </div>

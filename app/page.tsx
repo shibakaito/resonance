@@ -12,7 +12,8 @@
 
 import { useRouter } from 'next/navigation';
 import { HomePage } from '@/app/components/home-page';
-import { categorySlug } from '@/app/data/category-slugs';
+import { emptyFilters } from '@/app/components/browse-filters';
+import { browseHref } from '@/app/components/browse-url';
 
 export default function Page() {
   const router = useRouter();
@@ -20,19 +21,18 @@ export default function Page() {
   return (
     <HomePage
       // 매물 카드는 링크(/listing/id)라 여기서 이동을 넘기지 않음 (2026-11-10 홈 시안, ui/card.tsx)
-      // 카테고리 탐색 → /browse/{영문 슬러그}. 조건 검색이면 상태, 외관, 작동, 브랜드, 모델을 ?condition, ?appearance, ?working, ?brand, ?model 로 같이 넘김
+      // 카테고리 탐색 → /browse/{영문 슬러그}. 조건 검색이면 상태, 외관, 작동, 브랜드, 모델(과 지역)을 필터에 넣어
+      //   둘러보기와 같은 쓰기 함수(browse-url.ts browseHref)로 주소를 만듦 (?condition=used&brand=… — 예전 주소와 같은 키)
       onBrowse={(cat, conds) => {
-        const slug = categorySlug(cat);
-        const qs = new URLSearchParams();
-        if (conds?.condition) qs.set('condition', conds.condition);
-        if (conds?.appearance) qs.set('appearance', conds.appearance);
-        if (conds?.working) qs.set('working', conds.working);
-        if (conds?.brand) qs.set('brand', conds.brand);
-        if (conds?.model) qs.set('model', conds.model);
-        if (conds?.locCountry) qs.set('loc_country', conds.locCountry);
-        if (conds?.region) qs.set('region', conds.region);
-        const q = qs.toString();
-        router.push(`${slug ? `/browse/${slug}` : '/browse'}${q ? `?${q}` : ''}`);
+        const f = emptyFilters();
+        if (conds?.condition) f.condition.add(conds.condition);
+        if (conds?.appearance) f.appearance.add(conds.appearance);
+        if (conds?.working) f.working.add(conds.working);
+        if (conds?.brand) f.brand.add(conds.brand);
+        if (conds?.model) f.model.add(conds.model);
+        if (conds?.locCountry) f.locationCountry.add(conds.locCountry);
+        if (conds?.region) f.region.add(conds.region);
+        router.push(browseHref(cat, { filters: f }));
       }}
       // 판매하기 → /sell (판매 페이지는 다음 단계에서 추가됨)
       onSell={() => router.push('/sell')}
