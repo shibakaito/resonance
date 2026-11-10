@@ -492,7 +492,7 @@
 | 16 | 무게 | 텍스트 |  |  | 카테고리 선택 후 | 선택 |
 | 17 | 기타 사양 | 긴 글 |  |  | 카테고리 선택 후 | 선택 |
 
-## 코드에서 보이는 미완·보류 — 총 35건
+## 코드에서 보이는 미완·보류 — 총 33건
 
 ### 1. TODO·임시·보류 주석 — 6건
 
@@ -505,14 +505,13 @@
 | `src/lib/listings.ts:5` | 매핑합니다. (임시 단계: 기존 코드가 한글을 직접 읽기 때문. 다국어 전환은 다음에) | 영문키 통일은 보류 결정(Y안) — 다국어 착수 때 다시 |
 | `app/page.tsx:37` | 판매하기 → /sell (판매 페이지는 다음 단계에서 추가됨) | /sell 페이지는 이미 있음 — 주석만 오래됨 |
 
-### 2. 사용처 0인 export 상수·함수 — 9건
+### 2. 사용처 0인 export 상수·함수 — 8건
 
 import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오는 것 (`src/app/data`·`src/lib`·`browse-filters.ts` 대상).
 
 | 파일 | 이름 |
 |---|---|
 | `src/app/components/browse-filters.ts` | `REGION_VISIBLE_ALL` |
-| `src/app/components/browse-filters.ts` | `AMP_TYPES` |
 | `src/app/data/cable-terminals.ts` | `terminalsForCategories` |
 | `src/app/data/cable-terminals.ts` | `pickTerminalPair` |
 | `src/app/data/catalog.ts` | `CATALOG_BRANDS` |
@@ -532,13 +531,12 @@ import 문·주석·자기 선언 줄을 빼고 이름이 한 번도 안 나오�
 | SPEC_LABELS | `shield` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 | SPEC_LABELS | `pair` | mapRow 의 옛 flat 키 읽기에만 쓰임 (데이터 원천 없음) |
 
-### 4. 원천 없는·죽은 필터 — 10건 (+ 도달할 수 없는 카테고리 분기 2개)
+### 4. 원천 없는·죽은 필터 — 9건 (+ 도달할 수 없는 카테고리 분기 2개)
 
 mapRow 가 폼이 저장하지 않는 옛 flat 키를 읽는 Listing 필드. 폼이 specs 최상위에 쓰는 키: tech, appearance, appearanceDetail, working, workingDetail, yearApprox, components, componentsOther.
 
 | Listing 필드 | 읽는 flat 키 | 필터 UI | 판정 |
 |---|---|---|---|
-| `ampType` | `s.ampType` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `ratedCapacity` | `s.ratedCapacity` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `cableLength` | `s.cableLength` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |
 | `terminalIn` | `s.terminalIn` | 없음 | 죽은 필터 — 필터 UI 없음 + 데이터 원천 없음 |

@@ -2199,7 +2199,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               <div className="mt-4 grid grid-cols-6 gap-2">
                 {images.map((img, idx) => (
                   <div key={idx} className="relative aspect-square overflow-hidden border border-line bg-surface">
-                    <img src={img} alt={`등록 사진 ${idx + 1}`} className="h-full w-full object-contain" />
+                    <img src={img} alt={`등록 사진 ${idx + 1}`} width={112} height={112} className="h-full w-full object-contain" />
                     {idx === 0 && (
                       <Badge size="md" className="absolute left-2 top-2 bg-bg">
                         대표
