@@ -2170,9 +2170,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 장비 사진을 업로드하세요<RequiredMark />
               </h3>
             </div>
-            <p className="text-14 text-fg mb-5">
-              다른 사이트나 제조업체에서 가져온 스크린샷이나 사진은 허용되지 않습니다. 620×620px 이상의 정사각형 사진이 가장 좋습니다.
-            </p>
+            {/* 안내 문구 3곳(이 설명, 예시 이름, 5장 권장)은 FEATURE_FLAGS.photoSectionHints 꺼지면 숨김 (2026-11-10) */}
+            {FEATURE_FLAGS.photoSectionHints && (
+              <p className="text-14 text-fg mb-5">
+                다른 사이트나 제조업체에서 가져온 스크린샷이나 사진은 허용되지 않습니다. 620×620px 이상의 정사각형 사진이 가장 좋습니다.
+              </p>
+            )}
 
             <div className="mb-5">
               <p className="text-14 font-bold text-fg mb-2">예시</p>
@@ -2182,11 +2185,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     <div className="aspect-square rounded-none overflow-hidden bg-bg border border-line mb-1">
                       <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
                     </div>
-                    <p className="text-12 text-fg">{ex.label}</p>
+                    {FEATURE_FLAGS.photoSectionHints && <p className="text-12 text-fg">{ex.label}</p>}
                   </div>
                 ))}
               </div>
-              <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>
+              {FEATURE_FLAGS.photoSectionHints && <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>}
             </div>
 
             {/* 실제 파일 선택용 input (숨김). 박스나 버튼을 클릭하면 이걸 트리거 */}
