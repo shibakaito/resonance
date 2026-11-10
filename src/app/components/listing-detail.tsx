@@ -4,10 +4,10 @@
 // ----------------------------------------------------------------------------
 // app/listing/[id]/page.tsx 가 next/dynamic(ssr:false)로 불러옴. 매물은 브라우저에서 Supabase로 읽음
 // 2026-11-10 상세 시안: 가짜 데이터 없이 매물에 저장된 값만 보여 줌. 토큰 6개와 공통 부품(Button, Badge, Card)만
-//   폭 1360. 위 32에 경로 '홈 › 대분류 › 세부 카테고리'(14 muted, 화살표 16, 홈과 대분류는 둘러보기 링크) → 24 → 두 열
-//   두 열: 왼쪽 800(갤러리, 아래 정보 구간) + 사이 16 + 오른쪽 남는 폭 544(1360 기준, 좁으면 800:544 비율로 줄어듦). 좁은 화면은 한 줄(갤러리 → 오른쪽 열 → 정보 구간)
+//   폭 1280. 위 32에 경로 '홈 › 대분류 › 세부 카테고리'(14 muted, 화살표 16, 홈과 대분류는 둘러보기 링크) → 24 → 두 열
+//   두 열: 왼쪽 752(갤러리, 아래 정보 구간) + 사이 16 + 오른쪽 남는 폭 512(1280 기준, 좁으면 752:512 비율로 줄어듦). 좁은 화면은 한 줄(갤러리 → 오른쪽 열 → 정보 구간)
 //   갤러리: 썸네일 세로 줄(64 정사각, 사이 8, line 선, 고른 것 fg 선, 사진 수만큼, 큰 사진보다 길면 아래로 이어짐)
-//     + 큰 사진 728 정사각(line 선, 바탕 surface, cover). 오른쪽 위 8에 찜 32, 오른쪽 아래 8에 'N / 전체'
+//     + 큰 사진 680 정사각(line 선, 바탕 surface, cover). 오른쪽 위 8에 찜 32, 오른쪽 아래 8에 'N / 전체'
 //     사진이 없거나 깨지면 '사진 없음'(14 muted)
 //   오른쪽 열: 제목(24/700, 매물 title) → 12 → 배지(상태, 외관 상태, 작동 상태 중 값 있는 것. 작동이 점검 필요나 수리 필요면 danger)
 //     → 24, 위 선, 24 → 가격 32/700 → 4 → 정가(있을 때만, 14 muted 줄 그음) → 24 → 메시지 보내기(FEATURE_FLAGS.messaging)
@@ -334,10 +334,10 @@ export function ListingDetail({ id }: { id?: string }) {
         </ol>
       </nav>
 
-      {/* 두 열 — 넓은 화면: 왼쪽 800(갤러리 위, 정보 구간 아래) + 오른쪽 544. 좁은 화면: 갤러리 → 오른쪽 열 → 정보 구간 */}
-      <div className="mt-6 grid grid-cols-1 lg:grid-cols-[minmax(0,800fr)_minmax(0,544fr)] lg:grid-rows-[auto_1fr] lg:gap-x-4">
-        {/* 갤러리 — 썸네일 줄 64 + 사이 8 + 큰 사진 728 */}
-        <div className="flex max-w-200 items-start gap-2 lg:col-start-1 lg:row-start-1">
+      {/* 두 열 — 넓은 화면: 왼쪽 752(갤러리 위, 정보 구간 아래) + 오른쪽 512. 좁은 화면: 갤러리 → 오른쪽 열 → 정보 구간 */}
+      <div className="mt-6 grid grid-cols-1 lg:grid-cols-[minmax(0,752fr)_minmax(0,512fr)] lg:grid-rows-[auto_1fr] lg:gap-x-4">
+        {/* 갤러리 — 썸네일 줄 64 + 사이 8 + 큰 사진 680 */}
+        <div className="flex max-w-188 items-start gap-2 lg:col-start-1 lg:row-start-1">
           <div className="flex w-16 shrink-0 flex-col gap-2">
             {images.map((src, i) => (
               <button
@@ -361,8 +361,8 @@ export function ListingDetail({ id }: { id?: string }) {
                 <img
                   src={images[current]}
                   alt={`${name} 사진 ${current + 1}`}
-                  width={728}
-                  height={728}
+                  width={680}
+                  height={680}
                   onError={() => markBroken(current)}
                   className="block h-full w-full object-cover"
                 />
