@@ -17,6 +17,8 @@
 //     제품 정보: 브랜드, 모델, 카테고리, 출시 연도, 제조국, 구성품, 상태, 외관 상태, 작동 상태 중 값 있는 줄. 처음 5줄 + '더 보기 (N)'
 //     기술 사양: 카테고리 스키마 순서(사양 추가 카테고리는 핵심 칸 + 크기 + 무게) + 추가 사양(입력 순서). 처음 4줄 + '더 보기 (N)'
 //     설명: 매물 description 그대로(줄바꿈 유지), 비면 구간 없음 / 유튜브 영상: youtube_link 있을 때만 16:9 플레이어
+//   아래 전체 폭: '{대분류} 다른 매물' + 오른쪽 '{대분류} 모두 보기 →', 공통 Card 4장
+//     (같은 세부 카테고리 판매중 매물 최신순, 모자라면 같은 대분류에서, 자기 제외, 0이면 구간 없음 — fetchRelatedListings, 요청 1번 더)
 // 예전 가짜 요소(장바구니 담은 사람 수, 하트 수, 별점과 리뷰 수, 조회수, 제안 수, 시세 카드, 비슷한 제품 광고 목록,
 //   등급 기준 링크, 고정 설명 글, 판매자에 대하여, 판매자 리뷰)와 react-slick 캐러셀, 사진 확대는 삭제
 // ============================================================================
@@ -26,7 +28,7 @@ import Link from 'next/link';
 import { Heart, Check, Link as LinkIcon, MessageCircle, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import type { Listing } from './browse-filters';
 import { fmtPrice, fmtDate, yearText, WORKING_WARN_KEYS } from './browse-filters';
-import { fetchListingById } from '@/lib/listings';
+import { fetchListingById, fetchRelatedListings } from '@/lib/listings';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
@@ -35,6 +37,8 @@ import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (d
 import { label, desc } from '@/lib/labels';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
+import { Card } from './ui/card';
+import { ConditionBadge } from './condition-badge';
 
 // 대분류 → 둘러보기 주소 (경로 줄)
 const browseHref = (top: string) => {
@@ -106,6 +110,7 @@ export function ListingDetail({ id }: { id?: string }) {
   // URL의 id로 Supabase에서 매물을 불러옴 (영문 키 → 한글 변환은 fetch 안에서 처리)
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
+  const [related, setRelated] = useState<Listing[]>([]); // 아래 '다른 매물' (매물을 받은 뒤 요청 1번 더)
   useEffect(() => {
     if (!id) return;
     let active = true;
@@ -114,6 +119,11 @@ export function ListingDetail({ id }: { id?: string }) {
         if (!active) return;
         setListing(row);
         setLoadState(row ? 'ready' : 'missing');
+        if (row) {
+          fetchRelatedListings(row)
+            .then((list) => { if (active) setRelated(list); })
+            .catch((err) => console.error('다른 매물 불러오기 실패:', err));
+        }
       })
       .catch((err) => {
         console.error('매물 불러오기 실패:', err);
@@ -154,6 +164,17 @@ export function ListingDetail({ id }: { id?: string }) {
 
   // 판매자 저장 (FEATURE_FLAGS.commerce 켜졌을 때만 보이는 버튼)
   const [sellerSaved, setSellerSaved] = useState(false);
+
+  // 다른 매물 카드의 찜 — 이 화면 안에서만 (홈, 둘러보기와 같음)
+  const [relatedLiked, setRelatedLiked] = useState<Set<string>>(new Set());
+  const toggleRelatedLike = (lid: string) =>
+    setRelatedLiked((prev) => {
+      const next = new Set(prev);
+      if (next.has(lid)) next.delete(lid);
+      else next.add(lid);
+      return next;
+    });
+  const relatedHeadId = useId();
 
   // 불러오는 중, 없는 매물, 불러오기 실패
   if (!listing) {
@@ -446,6 +467,35 @@ export function ListingDetail({ id }: { id?: string }) {
           )}
         </div>
       </div>
+
+      {/* 다른 매물 — 전체 폭, 제목 줄 40(20/700) + 오른쪽 '{대분류} 모두 보기 →', Card 4장. 0이면 구간 없음 */}
+      {related.length > 0 && (
+        <section aria-labelledby={relatedHeadId} className="mt-12">
+          <div className="mb-4 flex h-10 items-center justify-between gap-4">
+            <h2 id={relatedHeadId} className="text-20 font-bold">
+              {top} 다른 매물
+            </h2>
+            <Link href={browseHref(top)} className="shrink-0 text-14 font-medium text-fg hover:underline">
+              {top} 모두 보기 →
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            {related.map((l) => (
+              <Card
+                key={l.id}
+                href={`/listing/${l.id}`}
+                image={l.images?.[0]}
+                imageAlt={`${l.brand} ${l.model}`}
+                badge={<ConditionBadge listing={l} className="" />}
+                title={`${l.brand} ${l.model}`}
+                price={fmtPrice(l.price, l.currency)}
+                liked={relatedLiked.has(l.id)}
+                onToggleLike={() => toggleRelatedLike(l.id)}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </main>
   );
 }

@@ -8,7 +8,7 @@ import { supabase } from './supabase';
 import type { Listing } from '@/app/components/browse-filters';
 import { computeCategories, parseYear } from '@/app/components/browse-filters';
 import { categoryFromSlug, categorySlug } from '@/app/data/category-slugs';
-import { isCategoryVisible } from '@/app/data/catalog';
+import { isCategoryVisible, subcategoriesFor, topCategoryOf } from '@/app/data/catalog';
 import { label, keyFor, locationCountryOf, conditionKind } from './labels';
 import { wooferBucket, speakerImpedanceBucket } from '@/app/data/category-specs';
 
@@ -237,6 +237,27 @@ export async function fetchListingById(id: string): Promise<Listing | null> {
     .maybeSingle();
   if (error) throw error;
   return data ? mapRow(data as ListingRow) : null;
+}
+
+// 상세 아래 '다른 매물' (2026-11-10 상세 시안) — 같은 세부 카테고리의 판매중 매물(자기 제외, 최신순)을 먼저,
+//   모자라면 같은 대분류에서 채워 최대 limit개. 요청은 1번: 같은 대분류(대분류 + 보이는 하위 카테고리) 판매중 매물을 최신순으로 받아 앞에서 고름
+//   숨긴 카테고리 매물은 목록 규칙(fetchListings)대로 뺌
+export async function fetchRelatedListings(listing: Listing, limit = 4): Promise<Listing[]> {
+  const top = topCategoryOf(listing.category);
+  const slugs = [top, ...subcategoriesFor(top)].map((c) => categorySlug(c)).filter((s): s is string => !!s);
+  if (slugs.length === 0) return [];
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('status', 'active')
+    .neq('id', listing.id)
+    .overlaps('categories', slugs)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  const rows = (data ?? []).map((row) => mapRow(row as ListingRow)).filter((l) => l.categories.every(isCategoryVisible));
+  const same = rows.filter((l) => l.categories.includes(listing.category));
+  const rest = rows.filter((l) => !l.categories.includes(listing.category));
+  return [...same, ...rest].slice(0, limit);
 }
 
 // ── 등록(INSERT) ──────────────────────────────────────────────────────────
