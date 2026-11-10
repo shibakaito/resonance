@@ -16,6 +16,7 @@ import { CONDITIONS, APPEARANCE_OPTS, WORKING_OPTS, fmtPrice } from './browse-fi
 import { ConditionBadge } from './condition-badge';
 import { keyFor, label, LOCATION_COUNTRY_OPTS, locationOptsFor, FILTER_LABELS as FL } from '@/lib/labels'; // FL = 칸 이름 (둘러보기 필터와 같은 표)
 import { fetchListings } from '@/lib/listings';
+import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 
 const norm = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
 
@@ -354,7 +355,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
   const conditionKey = isConditionSelected ? keyFor('condition', condition) ?? '' : '';    // 중고 → used
   const appearanceKey = isAppearanceSelected ? keyFor('appearance', appearance) ?? '' : ''; // 매우 좋음 → excellent
   const workingKey = isWorkingSelected ? keyFor('working', working) ?? '' : '';             // 정상 작동 → working
-  const isLocCountrySelected = isReal(locCountry, '전체 국가');
+  // 국가 칸은 FEATURE_FLAGS.japan 켜졌을 때만. 끄면 칸이 없고 조건에서 빠짐, 지역은 한국 지역에서 바로 고름
+  const isLocCountrySelected = FEATURE_FLAGS.japan && isReal(locCountry, '전체 국가');
   const isRegionSelected = isReal(region, '전체 지역');
   const locCountryKey = isLocCountrySelected ? keyFor('locationCountry', locCountry) ?? '' : ''; // 한국 → kr
   const regionKey = isRegionSelected ? keyFor('location', region) ?? '' : '';                       // 서울 → kr_seoul
@@ -388,8 +390,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
     : [];
   // 국가 = 매물이 있는 나라, 지역 = 고른 나라에서 매물이 있는 지역 (둘러보기 국가 → 지역과 같은 구조)
   const locCountryOptions = LOCATION_COUNTRY_OPTS.filter((o) => dbListings.some((l) => l.locationCountry === o.value)).map((o) => o.label);
-  const regionOptions = isLocCountrySelected
-    ? locationOptsFor(locCountryKey).filter((o) => dbListings.some((l) => l.location === o.value)).map((o) => o.label)
+  const regionOptions = isLocCountrySelected || !FEATURE_FLAGS.japan
+    ? locationOptsFor(FEATURE_FLAGS.japan ? locCountryKey : 'kr').filter((o) => dbListings.some((l) => l.location === o.value)).map((o) => o.label)
     : [];
   // 검색 결과 N건 = 고른 조건(상태, 브랜드, 카테고리, 모델, 국가, 지역)에 맞는 실제 매물 수. 아무것도 안 골랐으면 전체 매물 수
   const filteredCount = dbListings.filter(
@@ -757,6 +759,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     }
                   />
 
+                  {FEATURE_FLAGS.japan && (
                   <Combobox
                     label={FL.locationCountry}
                     value={locCountry}
@@ -768,6 +771,7 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     allLabel="전체 국가"
                     searchable={false}
                   />
+                  )}
 
                   <Combobox
                     label={FL.region}
@@ -775,8 +779,8 @@ export function HomePage({ onViewItem, onBrowse, onSell, onSearch }: HomePagePro
                     onChange={setRegion}
                     options={regionOptions}
                     allLabel="전체 지역"
-                    disabled={!isLocCountrySelected || regionOptions.length === 0}
-                    disabledHint={!isLocCountrySelected ? '먼저 국가를 선택하세요' : '이 국가에 등록된 매물이 없습니다'}
+                    disabled={(FEATURE_FLAGS.japan && !isLocCountrySelected) || regionOptions.length === 0}
+                    disabledHint={FEATURE_FLAGS.japan && !isLocCountrySelected ? '먼저 국가를 선택하세요' : '이 국가에 등록된 매물이 없습니다'}
                   />
 
                   <button
