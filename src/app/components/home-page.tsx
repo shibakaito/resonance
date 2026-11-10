@@ -397,7 +397,8 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         <div className="mb-6 flex min-h-10 flex-wrap items-center gap-4">
           <h2 className="sr-only">인기 카테고리</h2>
           {/* 탭 — 고른 것 fg 채움(마우스 올려도 그대로), 나머지 line 선(마우스 올리면 surface). 공통 Button */}
-          <div className="flex gap-2">
+          {/* 좁은 화면(640 미만)은 세 탭이 폭을 나눠 가짐(390에서 넘치지 않게), 그 위는 예전처럼 최소 폭 120 */}
+          <div className="flex w-full gap-2 sm:w-auto">
             {CATEGORY_TABS.map((cat) => (
               <Button
                 key={cat}
@@ -405,7 +406,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
                 variant={activeCat === cat ? 'primary' : 'line'}
                 noHover
                 onClick={() => setActiveCat(cat)}
-                className="min-w-30 px-6"
+                className="min-w-0 flex-1 px-2 sm:min-w-30 sm:flex-none sm:px-6"
               >
                 {cat}
               </Button>
