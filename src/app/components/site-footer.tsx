@@ -3,50 +3,64 @@
 // ----------------------------------------------------------------------------
 // 예전 App.tsx 안에 있던 <footer>를 떼어냄. 클릭 상태가 없는 정적 화면이라
 // 'use client' 없이 서버 컴포넌트로 둠 (더 가볍고 빠름).
+// 2026-11-10 홈 시안: bg fg, 안 여백 위 64 아래 48, 폭 1120, 4칸 격자(268 × 4 + 16)
+//   Resonance / 구매(대분류 둘러보기) / 판매(매물 등록하기) / 고객 지원(문의하기 — NEXT_PUBLIC_KAKAO_CHANNEL_URL, 새 탭)
+//   문의 주소 변수가 비어 있으면 고객 지원 칸을 통째로 숨김. 칸 제목 14/700 흰, 아래 16, 링크 14 line 색(마우스 올리면 흰), 줄 간격 32
+//   예전 악기 링크(기타, 베이스 등)와 갈 곳 없는 # 링크는 전부 삭제
 // ============================================================================
+import Link from 'next/link';
+import { TOP_CATEGORIES } from '../data/catalog';
+import { categorySlug } from '../data/category-slugs';
+
+// 고객 지원 문의 주소 (카카오톡 채널). 빌드할 때 읽힘 — .env.local, Vercel 환경변수
+const KAKAO_CHANNEL_URL = process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ?? '';
+
+const LINK = 'flex h-8 items-center text-14 text-line hover:text-bg';
 
 export function SiteFooter() {
   return (
-    <footer className="bg-fg text-bg mt-16 py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="bg-fg text-bg mt-16">
+      <div className="mx-auto w-full max-w-280 px-4 pt-16 pb-12 xl:px-0">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div>
-            <h4 className="font-bold mb-4">구매</h4>
-            <ul className="space-y-2 text-line">
-              <li><a href="#" className="hover:text-bg">기타</a></li>
-              <li><a href="#" className="hover:text-bg">베이스</a></li>
-              <li><a href="#" className="hover:text-bg">드럼</a></li>
-              <li><a href="#" className="hover:text-bg">키보드</a></li>
-            </ul>
+            <p className="text-20 font-bold">Resonance</p>
           </div>
-          <div>
-            <h4 className="font-bold mb-4">판매</h4>
-            <ul className="space-y-2 text-line">
-              <li><a href="#" className="hover:text-bg">판매 시작하기</a></li>
-              <li><a href="#" className="hover:text-bg">판매자 허브</a></li>
-              <li><a href="#" className="hover:text-bg">가격 가이드</a></li>
+          <nav aria-label="구매">
+            <h2 className="text-14 font-bold text-bg">구매</h2>
+            <ul className="mt-4">
+              {TOP_CATEGORIES.map((cat) => (
+                <li key={cat}>
+                  <Link href={categorySlug(cat) ? `/browse/${categorySlug(cat)}` : '/browse'} className={LINK}>
+                    {cat}
+                  </Link>
+                </li>
+              ))}
             </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">고객 지원</h4>
-            <ul className="space-y-2 text-line">
-              <li><a href="#" className="hover:text-bg">도움말 센터</a></li>
-              <li><a href="#" className="hover:text-bg">구매자 보호</a></li>
-              <li><a href="#" className="hover:text-bg">배송 안내</a></li>
+          </nav>
+          <nav aria-label="판매">
+            <h2 className="text-14 font-bold text-bg">판매</h2>
+            <ul className="mt-4">
+              <li>
+                <Link href="/sell/upload" className={LINK}>
+                  매물 등록하기
+                </Link>
+              </li>
             </ul>
-          </div>
-          <div>
-            <h4 className="font-bold mb-4">회사</h4>
-            <ul className="space-y-2 text-line">
-              <li><a href="#" className="hover:text-bg">회사 소개</a></li>
-              <li><a href="#" className="hover:text-bg">채용</a></li>
-              <li><a href="#" className="hover:text-bg">보도자료</a></li>
-            </ul>
-          </div>
+          </nav>
+          {KAKAO_CHANNEL_URL && (
+            <nav aria-label="고객 지원">
+              <h2 className="text-14 font-bold text-bg">고객 지원</h2>
+              <ul className="mt-4">
+                <li>
+                  <a href={KAKAO_CHANNEL_URL} target="_blank" rel="noopener noreferrer" className={LINK}>
+                    문의하기
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          )}
         </div>
-        <div className="border-t border-fg mt-8 pt-8 text-center text-line">
-          <p>&copy; 2026 Resonance. 모든 권리 보유.</p>
-        </div>
+        <p className="mt-12 text-14 text-line">&copy; 2026 Resonance. 모든 권리 보유.</p>
       </div>
     </footer>
   );
