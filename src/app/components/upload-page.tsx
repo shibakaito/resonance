@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Upload,
   X,
   Plus,
   Info,
@@ -17,6 +16,7 @@ import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategor
 import { insertListing, fetchListings } from '@/lib/listings';
 import { FEATURE_FLAGS } from '../data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 import { ChoiceField, choiceAsButtons } from './choice-field'; // 선택 부품: 선택지 수로 버튼 / 드롭다운 자동 (하나 고르기 5개 이하, 여러 개 6개 이하면 버튼)
+import { Badge } from './ui/badge'; // 사진 '대표' 배지 (2026-11-10 시안)
 import { Button } from './ui/button'; // 공통 부품 (2026-11-10 디자인 3a): 버튼, 칸(라벨 연결), 입력칸, 드롭다운, 자동완성
 import { Field, Select, RequiredMark } from './ui/field';
 import { Input } from './ui/input';
@@ -1059,11 +1059,29 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     handleFiles(e.target.files);
     e.target.value = ''; // 같은 파일을 다시 선택할 수 있게 비움
   };
-  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  // 끌어다 놓기 — 사진 구간 전체가 대상(2026-11-10 시안). 파일을 끄는 동안만 구간에 1px fg 테두리
+  //   안쪽 요소를 지날 때마다 enter, leave 가 번갈아 와서 깊이를 세어 마지막 leave 에서만 끔
+  const [photoDragging, setPhotoDragging] = useState(false);
+  const dragDepth = useRef(0);
+  const hasFiles = (e: React.DragEvent<HTMLElement>) => Array.from(e.dataTransfer?.types ?? []).includes('Files');
+  const onPhotoDragEnter = (e: React.DragEvent<HTMLElement>) => {
+    if (!hasFiles(e)) return;
     e.preventDefault();
+    dragDepth.current += 1;
+    setPhotoDragging(true);
+  };
+  const onPhotoDragLeave = (e: React.DragEvent<HTMLElement>) => {
+    if (!hasFiles(e)) return;
+    dragDepth.current = Math.max(0, dragDepth.current - 1);
+    if (dragDepth.current === 0) setPhotoDragging(false);
+  };
+  const onDrop = (e: React.DragEvent<HTMLElement>) => {
+    e.preventDefault();
+    dragDepth.current = 0;
+    setPhotoDragging(false);
     handleFiles(e.dataTransfer.files);
   };
-  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => e.preventDefault();
+  const onDragOver = (e: React.DragEvent<HTMLElement>) => e.preventDefault();
 
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
@@ -2134,30 +2152,38 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             )}
           </FormSection>
 
-          <FormSection id="photos" title={<>사진<RequiredMark /></>}>
+          {/* 사진 — 구간 전체가 끌어다 놓기 대상. 예시 6칸 / [사진 올리기] + 안내 / 올린 사진 6열 */}
+          <FormSection
+            id="photos"
+            title={<>사진<RequiredMark /></>}
+            onDragEnter={onPhotoDragEnter}
+            onDragOver={onDragOver}
+            onDragLeave={onPhotoDragLeave}
+            onDrop={onDrop}
+            className={photoDragging ? 'outline outline-1 outline-fg' : ''}
+          >
             {/* 안내 문구 3곳(이 설명, 예시 이름, 5장 권장)은 FEATURE_FLAGS.photoSectionHints 꺼지면 숨김 (2026-11-10) */}
             {FEATURE_FLAGS.photoSectionHints && (
-              <p className="text-14 text-fg mb-5">
+              <p className="text-14 text-muted mb-4">
                 다른 사이트나 제조업체에서 가져온 스크린샷이나 사진은 허용되지 않습니다. 620×620px 이상의 정사각형 사진이 가장 좋습니다.
               </p>
             )}
 
-            <div className="mb-5">
-              <p className="text-14 font-bold text-fg mb-2">예시</p>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {PHOTO_EXAMPLES.map((ex) => (
-                  <div key={ex.label} className="text-center">
-                    <div className="aspect-square rounded-none overflow-hidden bg-bg border border-line mb-1">
-                      <img src={ex.img} alt={ex.label} className="w-full h-full object-cover" />
-                    </div>
-                    {FEATURE_FLAGS.photoSectionHints && <p className="text-12 text-fg">{ex.label}</p>}
+            {/* 예시 — 라벨 14/500 아래 8에 6칸(정사각, line 1px, 사이 8) */}
+            <p className="mb-2 text-14 font-medium">예시</p>
+            <div className="grid grid-cols-6 gap-2">
+              {PHOTO_EXAMPLES.map((ex) => (
+                <div key={ex.label}>
+                  <div className="aspect-square overflow-hidden border border-line bg-bg">
+                    <img src={ex.img} alt={ex.label} width={112} height={112} className="h-full w-full object-cover" />
                   </div>
-                ))}
-              </div>
-              {FEATURE_FLAGS.photoSectionHints && <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>}
+                  {FEATURE_FLAGS.photoSectionHints && <p className="mt-1 text-12 text-fg">{ex.label}</p>}
+                </div>
+              ))}
             </div>
+            {FEATURE_FLAGS.photoSectionHints && <p className="text-12 text-muted mt-2">5장 이상 권장해요. 꼭 필요한 건 1장이에요.</p>}
 
-            {/* 실제 파일 선택용 input (숨김). 박스나 버튼을 클릭하면 이걸 트리거 */}
+            {/* 실제 파일 선택용 input (숨김). '사진 올리기'를 누르면 이걸 엶 */}
             <input
               ref={fileInputRef}
               type="file"
@@ -2166,57 +2192,42 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               onChange={onFileInputChange}
               className="hidden"
             />
-            {/* 사진 슬롯(올리는 칸) — 1px 점선 border-line. 버튼을 눌러도 바깥 칸의 onClick 으로 파일 선택이 열림 */}
-            <div
-              onClick={openFilePicker}
-              onDrop={onDrop}
-              onDragOver={onDragOver}
-              className="border border-dashed border-line hover:border-fg hover:bg-surface rounded-none py-12 flex flex-col items-center justify-center text-center cursor-pointer"
-            >
-              <Button className="mb-3">
+            {/* 아래 16: [사진 올리기 168] 오른쪽 16에 안내(14 muted, 세로 가운데). 점선 상자와 올리기 아이콘은 삭제 */}
+            <div className="mt-4 flex items-center gap-4">
+              <Button onClick={openFilePicker} className="w-42 shrink-0">
                 <Plus aria-hidden className="w-4 h-4" />
                 사진 올리기
               </Button>
-              <Upload aria-hidden className="w-5 h-5 text-muted mb-1" />
-              <p className="text-14 text-fg">
-                최대 {MAX_IMAGES}장, 끌어다 놓아도 돼요
-              </p>
+              <p className="text-14 text-muted">최대 {MAX_IMAGES}장, 끌어다 놓아도 돼요</p>
             </div>
-            {/* 업로드 중 / 에러 표시 */}
+            {/* 올리는 중 / 오류 */}
             {uploadingCount > 0 && (
-              <div className="mt-3 text-14 text-fg" role="status">
+              <p role="status" className="mt-4 text-14 text-muted">
                 올리는 중… ({uploadingCount}장 처리 중)
-              </div>
+              </p>
             )}
             {uploadError && (
-              <div className="mt-3 rounded-none border border-line bg-bg px-4 py-2 text-14 text-danger">
+              <p role="alert" className="mt-4 text-14 text-danger">
                 {uploadError}
-              </div>
+              </p>
             )}
 
+            {/* 올린 사진 — 아래 16, 6열 정사각(사이 8, line 1px, 바탕 surface). 첫 장 왼쪽 위 8에 '대표', 모든 장 오른쪽 위 8에 삭제 32 */}
             {images.length > 0 && (
-              <div className="mt-6">
-                <p className="font-bold mb-3 pb-2 border-b border-line">사진</p>
-                <p className="text-12 font-bold text-muted mb-2">대표</p>
-                <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                  {images.map((img, idx) => (
-                    <div
-                      key={idx}
-                      className="relative aspect-square rounded-none overflow-hidden border border-line bg-surface"
-                    >
-                      <img src={img} alt={`등록 사진 ${idx + 1}`} className="w-full h-full object-contain" />
-                      {idx === 0 && (
-                        <span className="absolute top-1 left-1 px-2 py-1 bg-fg text-bg text-12">
-                          대표
-                        </span>
-                      )}
-                      {/* 삭제 — 늘 보임(예전엔 마우스 올릴 때만 보여 손가락, 키보드로는 못 찾음) */}
-                      <Button iconOnly size="sm" aria-label={`사진 ${idx + 1} 삭제`} onClick={() => removeImage(idx)} className="absolute top-1 right-1">
-                        <X aria-hidden className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
+              <div className="mt-4 grid grid-cols-6 gap-2">
+                {images.map((img, idx) => (
+                  <div key={idx} className="relative aspect-square overflow-hidden border border-line bg-surface">
+                    <img src={img} alt={`등록 사진 ${idx + 1}`} className="h-full w-full object-contain" />
+                    {idx === 0 && (
+                      <Badge size="md" className="absolute left-2 top-2 bg-bg">
+                        대표
+                      </Badge>
+                    )}
+                    <Button iconOnly size="sm" variant="line" aria-label={`사진 ${idx + 1} 삭제`} onClick={() => removeImage(idx)} className="absolute right-2 top-2">
+                      <X aria-hidden className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </FormSection>

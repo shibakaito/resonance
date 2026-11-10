@@ -7,6 +7,9 @@
 import * as React from 'react';
 
 type Variant = 'outline' | 'danger';
+type Size = 'sm' | 'md';
+// sm(기본) = 위아래 4, 12/700 (상태 배지) / md = 높이 24, 12/500 (등록 폼 사진의 '대표', 2026-11-10 시안)
+const SIZE: Record<Size, string> = { sm: 'py-1 font-bold', md: 'h-6 font-medium' };
 const VARIANT: Record<Variant, string> = {
   outline: 'text-fg border-line',
   danger: 'text-danger border-danger',
@@ -14,12 +17,13 @@ const VARIANT: Record<Variant, string> = {
 
 export function Badge({
   variant = 'outline',
+  size = 'sm',
   className = '',
   ...rest
-}: React.HTMLAttributes<HTMLSpanElement> & { variant?: Variant }) {
+}: React.HTMLAttributes<HTMLSpanElement> & { variant?: Variant; size?: Size }) {
   return (
     <span
-      className={`inline-flex items-center border px-2 py-1 text-12 leading-none font-bold whitespace-nowrap rounded-none ${VARIANT[variant]} ${className}`}
+      className={`inline-flex items-center border px-2 text-12 leading-none whitespace-nowrap rounded-none ${SIZE[size]} ${VARIANT[variant]} ${className}`}
       {...rest}
     />
   );
