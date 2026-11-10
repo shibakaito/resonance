@@ -587,9 +587,9 @@ export function ListingDetail({ id }: { id?: string }) {
               };
               const rows = schema.filter((f) => {
                 // 폼과 동일 게이팅: 형식(패시브/액티브) + 하위 카테고리(__sub) 주입.
-                //   techSpecs.type = 폼 auto 필드가 저장한 하위 카테고리(예: '서브우퍼') → __sub로 사용해
+                //   __sub = 매물의 세부 카테고리(listing.category, 예: '서브우퍼'). 예전엔 techSpecs.type 을 읽었으나 타입 칸 삭제(2026-11-10)로 안 읽음
                 //   서브우퍼 전용 필드(방사 방향·위상 조절 등)가 상세에서도 정상 표시됨.
-                if (f.showWhen && !f.showWhen({ ...specs, __sub: typeof specs.type === 'string' ? specs.type : '' })) return false;
+                if (f.showWhen && !f.showWhen({ ...specs, __sub: listing?.category ?? '' })) return false;
                 // 상세 모드 'custom' 하위 카테고리: 숨긴 상세 칸은 옛 매물에 값이 남아 있어도 안 보임 (폼과 같은 규칙, docs/hidden.md)
                 if (f.input && hiddenByDetailMode(listing?.category ?? '', f as CategorySpecField)) return false;
                 const v = specs[f.key];

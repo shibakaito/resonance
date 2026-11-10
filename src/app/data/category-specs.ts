@@ -30,7 +30,6 @@ export const optLabel = (opts: SelectOption[] | undefined, v: string): string =>
 
 // ── 입력 방식 ──
 export type SpecInput =
-  | { kind: 'auto' }                                            // 타입 — 카테고리에서 자동 입력
   | { kind: 'select'; options: SelectOption[] }                 // 드롭다운 단일 선택 (native select)
   | { kind: 'searchSelect'; options: SelectOption[]; aliases?: Record<string, string>; keyboardLayout?: boolean } // 검색 드롭다운(Typeahead) — 목록에서 고르면 영문 키 저장, 목록에 없는 글은 친 그대로. aliases=한글 라벨→영어 검색어, keyboardLayout=한영 오타 매칭
   | { kind: 'text'; unit?: string; free?: boolean }             // 숫자 입력 + (선택)단위 / free=true면 자유 텍스트(숫자 필터 X)
@@ -226,7 +225,6 @@ export const OTHER_SPECS_FIELD: CategorySpecField = { key: 'otherSpecs', label: 
 
 // ── 앰프 스펙 필드 (사양서 순서대로 17개) ──
 export const AMP_SPEC_FIELDS: CategorySpecField[] = [
-  { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'channel', label: '채널', input: { kind: 'select', options: AMP_CHANNEL_OPTS }, showWhen: (s) => !isAvr(s) && !isHpAmp(s) && !isPhonoGroup(s) && !isPreamp(s) }, // AVR=채널 수 / 헤드폰·포노 그룹·프리앰프 숨김
   { key: 'channel', label: '채널', input: { kind: 'select', options: PREAMP_CHANNEL_OPTS }, showWhen: isPreamp }, // 프리앰프 전용: 모노블록 대신 모노
   { key: 'avrChannels', label: '채널 수', input: { kind: 'select', options: AVR_CHANNEL_OPTS }, showWhen: isAvr },
@@ -378,7 +376,6 @@ export const DRIVER_MATERIAL: Record<string, string[]> = {
 // ⚠️ 인클로저·주파수 응답은 패시브/액티브에서 위치가 달라(같은 key로) 블록마다 따로 배치.
 //    showWhen이 배타적(isPassive XOR isActive)이라 동시에 렌더되지 않아 key 충돌 없음.
 export const SPEAKER_SPEC_FIELDS: CategorySpecField[] = [
-  { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'speakerDetail', label: '형식', input: { kind: 'select', options: SPEAKER_DETAIL_OPTS } },
   // ── 사운드바 전용: 채널 구성 (단일 드롭다운) ──
   { key: 'channelConfig', label: '채널 구성', input: { kind: 'select', options: SOUNDBAR_CHANNEL_OPTS }, showWhen: isSoundbar },
@@ -487,7 +484,6 @@ export const CAS_REC_FUNCTION_OPTS = labelOpts('recFunction');    // normal / pl
 // 턴테이블 외 하위(CD 플레이어 등)는 타입 + 공통 꼬리(마감/전원/크기/무게)만 노출. 추후 하위별 블록 추가.
 // 하위 유형(ttType) 미선택 시: 공통 필드만. 하이파이·DJ=기계부(모터~접지) / 올인원=편의(부가기능·포터블) / DJ=+퍼포먼스(토크·피치·역재생)
 export const SOURCE_SPEC_FIELDS: CategorySpecField[] = [
-  { key: 'type', label: '타입', input: { kind: 'auto' } },
   { key: 'ttType', label: '형식', input: { kind: 'select', options: TT_TYPE_OPTS }, showWhen: ttTypeShown }, // ★ 분기 키 (스피커 '형식'과 동일 패턴). FEATURE_FLAGS.turntableType 꺼짐: 숨김
   // ── 턴테이블: 구동·회전 (전 유형) ──
   { key: 'driveType', label: '구동 방식', input: { kind: 'select', options: TT_DRIVE_OPTS }, showWhen: isTurntable },
@@ -624,7 +620,7 @@ export const detailModeOf = (sub: string): DetailMode => DETAIL_MODE_BY_SUB[sub]
 export const hiddenByDetailMode = (sub: string, f: CategorySpecField): boolean => {
   const core = CORE_SPEC_KEYS[sub];
   if (!core || detailModeOf(sub) !== 'custom') return false;
-  return f.input.kind !== 'auto' && !core.includes(f.key) && !ALWAYS_SPEC_KEYS.includes(f.key);
+  return !core.includes(f.key) && !ALWAYS_SPEC_KEYS.includes(f.key);
 };
 // 자유 추가 사양 한 줄 (specs.tech.customSpecs 원소). 제목이나 내용이 빈 줄은 저장 안 함
 export type CustomSpecRow = { title: string; value: string };

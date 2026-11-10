@@ -199,7 +199,7 @@ function ImpedanceSelect({
           {selected.length > 0 ? (
             <span className="text-fg">{displayText}</span>
           ) : (
-            <span className="text-muted">선택하세요</span>
+            <span className="text-muted">선택</span>
           )}
           <ChevronDown aria-hidden className="w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
         </button>
@@ -895,11 +895,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           // 조건부 필드(형식·서브우퍼별): 화면에 안 보이는 필드는 저장하지 않음(전환 시 잔여값 방지)
           if (f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) continue;
           if (hiddenByDetailMode(subcategory, f)) continue; // 상세 모드 'custom'(DETAIL_MODE_BY_SUB): 정해진 상세 칸은 숨김 + 저장 안 함
-          if (f.input.kind === 'auto') {
-            // 타입: 카테고리에서 자동 입력된 값
-            const v = (subcategory || category).trim();
-            if (v) tech[f.key] = v;
-          } else if (f.input.kind === 'power') {
+          // 타입(specs.tech.type, 세부 카테고리 이름) 칸은 2026-11-10 삭제 — 세부 카테고리(category 칸)와 같아서 저장 안 함
+          if (f.input.kind === 'power') {
             // 정격 출력: 출력값(W) + 기준 옴 쌍 조립 문자열
             const v = buildPower(powerPairs);
             if (v) tech[f.key] = v;
@@ -1316,7 +1313,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     disabled={condition !== 'used'}
                     dropdown={
                       <Select id={id} value={ownership} onChange={(e) => setOwnership(e.target.value)} disabled={condition !== 'used'} className={ownership ? '' : 'text-muted'}>
-                        <option value="" disabled>선택하세요</option>
+                        <option value="" disabled>선택</option>
                         {OWNERSHIP_OPTIONS.map((opt) => (
                           <option key={opt.value} value={opt.value} className="text-fg">{opt.label}</option>
                         ))}
@@ -1495,14 +1492,6 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 칸 모양은 공통 부품(2026-11-10 디자인 3a): Field(라벨 연결) 안에 Input, Select, Autocomplete, ChoiceField
                   //    칸 하나 = 라벨이 그 칸을 가리킴(htmlFor). 칸 여러 개(숫자 + 단위, 행 빌더) = 이름표 + role="group", 안의 칸마다 aria-label
                   //    줄 끝 삭제 = 32px 정사각 Button(카드 오른쪽 여백으로 -mr-10), 줄 추가 = 작은 Button ──
-                  // ── 타입: 카테고리에서 자동 입력 (읽기 전용) ──
-                  if (f.input.kind === 'auto') {
-                    return (
-                      <Field key={f.key} className="spec-field" label={f.label}>
-                        <Input value={subcategory || category} readOnly />
-                      </Field>
-                    );
-                  }
                   // ── 하나 고르기 — 선택 부품(ChoiceField): 선택지 5개 이하면 각진 버튼 한 줄(다시 누르면 해제), 6개 이상이면 아래 드롭다운 ──
                   if (f.input.kind === 'select') {
                     const v = specs[f.key] || '';
@@ -1520,7 +1509,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                             dropdown={
                               <div className="relative">
                                 <Select id={id} value={v} onChange={(e) => setSpec(e.target.value)} className={`pl-3 ${v ? 'pr-16' : 'pr-9'} ${v ? '' : 'text-muted'}`}>
-                                  <option value="" disabled>선택하세요</option>
+                                  <option value="" disabled>선택</option>
                                   {opts.map((o) => {
                                     // 문자열(앰프: 저장=표시) 또는 {value,label}(스피커: 저장=영문키, 표시=한글)
                                     const opt = typeof o === 'string' ? { value: o, label: o } : o;
@@ -2076,10 +2065,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 const coreKeys = CORE_SPEC_KEYS[subcategory];
                 // 분리 대상이 아니면 지금처럼 전부 한 번에
                 if (!coreKeys) return fields.map(renderSpecField);
-                // 분리 대상: 타입(auto)과 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
+                // 분리 대상: 핵심 key는 위, 나머지는 '상세 사양' 접힘 영역. 순서는 스키마 순서 그대로
                 // 화면에 실제로 그려지는 칸만 셈 (renderSpecField 의 숨김 규칙과 같게: showWhen, 자동 설정 칸)
                 const visible = (f: CategorySpecField) => !(f.showWhen && !f.showWhen({ ...specs, __sub: subcategory })) && !isAutoFixedField(f.key);
-                const isCore = (f: CategorySpecField) => f.input.kind === 'auto' || coreKeys.includes(f.key);
+                const isCore = (f: CategorySpecField) => coreKeys.includes(f.key);
                 const isAlways = (f: CategorySpecField) => ALWAYS_SPEC_KEYS.includes(f.key); // 크기, 무게: 핵심 맨 아래에 늘 표시
                 const core = fields.filter((f) => isCore(f) && !isAlways(f));
                 const always = fields.filter(isAlways);
@@ -2533,7 +2522,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   allowClear={false}
                   dropdown={
                     <Select id={id} value={shippingType} onChange={(e) => setShippingType(e.target.value as 'free' | 'flat' | 'calculated')} className={shippingType ? '' : 'text-muted'}>
-                      <option value="" disabled>선택하세요</option>
+                      <option value="" disabled>선택</option>
                       {SHIPPING_OPTS.map((o) => (
                         <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                       ))}
@@ -2593,7 +2582,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
               <Field label="지역">
                 <Select value={location} onChange={(e) => setLocation(e.target.value)} className={location ? '' : 'text-muted'}>
-                  <option value="">선택하세요</option>
+                  <option value="">선택</option>
                   {locationOptsFor(locationCountry).map((o) => (
                     <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
                   ))}

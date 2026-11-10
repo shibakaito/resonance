@@ -37,7 +37,6 @@ const FORM_OVERRIDES: Record<string, { fixed?: Record<string, string>; hide?: st
 function describeInput(f: CategorySpecField): { kind: string; unit: string; opts: string } {
   const inp = f.input;
   switch (inp.kind) {
-    case 'auto': return { kind: '자동', unit: '', opts: '하위 카테고리명이 자동으로 들어감' };
     case 'select': {
       const labels = optLabels(inp.options);
       const yesNoLabels = optLabels(YES_NO_OPTS);
@@ -223,6 +222,12 @@ const common: CommonRow[] = [];
     } else if (chk !== undefined) {
       const t = cleanJsx(chk);
       common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: /<RequiredMark\b/.test(chk), note: '체크박스', boundVar: /checked=\{\s*([A-Za-z_]\w*)/.exec(chk)?.[1] });
+    } else if (h3 !== undefined && /<label htmlFor=/.test(h3)) {
+      // Field 가 아닌 칸: 구간 제목 안 label htmlFor 가 칸 이름 (예: 설명 — 2026-11-10)
+      const id = /<label htmlFor="([^"]+)"/.exec(h3)?.[1];
+      const tagAt = id ? PAGE.indexOf(`id="${id}"`, at) : -1;
+      const ctl = tagAt >= 0 ? PAGE.slice(tagAt, tagAt + 400) : '';
+      common.push({ section, label: cleanJsx(h3), required: /<RequiredMark\b/.test(h3), note: /<Textarea\b/.test(PAGE.slice(Math.max(0, tagAt - 40), tagAt)) ? '여러 줄 글' : '', boundVar: /value=\{\s*([A-Za-z_]\w*)/.exec(ctl)?.[1] });
     } else if (h3 !== undefined && /aria-label="필수"|<RequiredMark\b/.test(h3)) {
       common.push({ section, label: cleanJsx(h3), required: true, note: '', boundVar: /사진/.test(cleanJsx(h3)) ? 'images' : bound }); // 사진 칸은 input value 가 없어 images 로
     }
@@ -413,7 +418,7 @@ for (const { top } of CATEGORY_TREE) {
   const render = (s: SubInfo) => s.rows.map((r, i) => {
     const d = describeInput(r.f);
     const opts = [d.opts, r.note].filter(Boolean).join(' — ');
-    return `| ${i + 1} | ${esc(r.f.label)} | ${d.kind} | ${esc(d.unit)} | ${esc(opts)} | ${esc(r.cond)} | ${r.f.input.kind === 'auto' ? '자동' : '선택'} |`;
+    return `| ${i + 1} | ${esc(r.f.label)} | ${d.kind} | ${esc(d.unit)} | ${esc(opts)} | ${esc(r.cond)} | 선택 |`;
   });
   const buckets = new Map<string, SubInfo[]>();
   for (const s of group) {

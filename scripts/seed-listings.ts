@@ -40,7 +40,7 @@ type Draft = {
 };
 type Seed = {
   category: '앰프' | '스피커' | '소스기기';
-  sub: string;              // 하위 카테고리(잎) 한글 — 폼의 subcategory. specs.tech.type 으로도 저장됨
+  sub: string;              // 하위 카테고리(잎) 한글 — 폼의 subcategory (2026-11-10부터 specs.tech.type 은 저장 안 함)
   brand: string; model: string; year: string;
   condition: string;        // labels.ts LABELS.condition 키 — 종류만 (new / unopened / nos / used). 중고의 등급은 extras(외관, 작동)
   price: number;            // currency 단위 (원 또는 엔)
@@ -216,8 +216,7 @@ function buildTechLikeForm(fields: CategorySpecField[], category: string, sub: s
     if (S.hiddenByDetailMode(sub, f)) continue;              // 폼: 상세 모드 'custom'(DETAIL_MODE_BY_SUB)이면 정해진 상세 칸은 저장 안 함
     const inp = f.input;
     let v: string | string[] = '';
-    if (inp.kind === 'auto') v = (sub || category).trim();
-    else if (inp.kind === 'power') v = B.buildPower(d.powerPairs ?? []);
+    if (inp.kind === 'power') v = B.buildPower(d.powerPairs ?? []);
     else if (inp.kind === 'range') { const r = d.ranges?.[f.key] ?? { low: '', high: '' }; v = B.buildFreq(r.low, r.high, inp.lowUnit, inp.highUnit); }
     else if (inp.kind === 'dimensions') v = B.buildDims(d.dims?.[f.key] ?? []);
     else if (inp.kind === 'valueNote') v = B.buildValNotes(d.valNotes?.[f.key] ?? [], inp.unit);

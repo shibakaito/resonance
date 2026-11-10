@@ -29,7 +29,7 @@ export async function uploadListingImage(file: File): Promise<string> {
   }
   if (file.type && !ALLOWED_TYPES.includes(file.type)) {
     throw new Error(
-      `지원하지 않는 파일 형식입니다 (${file.type}). JPEG, PNG, WebP만 올릴 수 있어요.`
+      `지원하지 않는 형식이에요 (${file.type}). JPEG, PNG, WebP만 올릴 수 있어요.`
     );
   }
 
