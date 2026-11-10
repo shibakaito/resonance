@@ -36,6 +36,7 @@ import {
   Listing,
   filterVisibility,
   isFilterKeyVisible,
+  SET_FILTER_KEYS,
   pruneHiddenFilters,
   SORT_OPTIONS,
   SOURCE_GROUPS,
@@ -416,52 +417,8 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
   }
   {
     // 칩은 지금 보이는 칸(isFilterKeyVisible — filterVisibility 와 같은 규칙)의 값만
-    const setFieldKeys: { key: keyof Filters }[] = [
-      { key: 'brand' },
-      { key: 'model' },
-      { key: 'condition' },
-      { key: 'appearance' },
-      { key: 'working' },
-      { key: 'ownership' },
-      { key: 'country' },
-      { key: 'locationCountry' },
-      { key: 'region' },
-      { key: 'ampDetail' },
-      { key: 'ampMethod' },
-      { key: 'impedance' },
-      { key: 'phono' },
-      { key: 'toneControl' },
-      { key: 'remote' },
-      { key: 'voltage' }, // 앰프와 턴테이블 (아래에서 거름)
-      { key: 'speakerDetail' },
-      { key: 'driverConfig' },
-      { key: 'enclosure' },
-      { key: 'speakerImpedance' },
-      { key: 'wooferSize' },
-      { key: 'driveType' },
-      { key: 'tonearm' },
-      { key: 'cartridge' },
-      { key: 'speeds' },
-      { key: 'autoMode' },
-      { key: 'dustCover' },
-      { key: 'phonoBuiltIn' },
-      { key: 'cdDigitalOut' },  // CD 플레이어 (아래에서 거름)
-      { key: 'cdAnalogOut' },
-      { key: 'tunerBand' },                            // 튜너
-      { key: 'headCount' },                            // 카세트 데크 (2026-11-10)
-      { key: 'autoReverse' },
-      { key: 'capstan' },
-      { key: 'noiseReduction' },
-      { key: 'tapeTypeRec' },
-      { key: 'headWear' },
-      { key: 'terminalIn' },
-      { key: 'terminalOut' },
-      { key: 'directional' },
-      { key: 'conductor' },
-      { key: 'plating' },
-      { key: 'shield' },
-      { key: 'pair' },
-    ];
+    // 체크 칸 키 = browse-filters.ts FILTER_DEFS 순서 (칩 순서)
+    const setFieldKeys = SET_FILTER_KEYS.map((key) => ({ key }));
     // 케이블: 입력/출력 둘 다 정확히 1개 선택된 경우 결합 칩으로 표시
     const combineTermActive =
       isCable && filters.terminalIn.size === 1 && filters.terminalOut.size === 1;

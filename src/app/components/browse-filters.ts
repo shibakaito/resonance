@@ -378,151 +378,123 @@ export type Filters = {
   pair: Set<string>;
 };
 
-export const emptyFilters = (): Filters => ({
-  brand: new Set(),
-  model: new Set(),
-  condition: new Set(),
-  appearance: new Set(),
-  working: new Set(),
-  priceMin: null,
-  priceMax: null,
-  yearMin: null,
-  yearMax: null,
-  ownership: new Set(),
-  country: new Set(),
-  locationCountry: new Set(),
-  region: new Set(),
-  ampDetail: new Set(),
-  ampMethod: new Set(),
-  powerMin: null,
-  powerMax: null,
-  headphoneImp: null,
-  impedance: new Set(),
-  phono: new Set(),
-  toneControl: new Set(),
-  remote: new Set(),
-  voltage: new Set(),
-  speakerDetail: new Set(),
-  driverConfig: new Set(),
-  enclosure: new Set(),
-  speakerImpedance: new Set(),
-  wooferSize: new Set(),
-  sensitivityMin: null,
-  sensitivityMax: null,
-  recPowerMin: null,
-  recPowerMax: null,
-  driveType: new Set(),
-  tonearm: new Set(),
-  cartridge: new Set(),
-  speeds: new Set(),
-  autoMode: new Set(),
-  dustCover: new Set(),
-  phonoBuiltIn: new Set(),
-  cdDigitalOut: new Set(),
-  cdAnalogOut: new Set(),
-  tunerBand: new Set(),
-  headCount: new Set(),
-  autoReverse: new Set(),
-  capstan: new Set(),
-  noiseReduction: new Set(),
-  tapeTypeRec: new Set(),
-  headWear: new Set(),
-  ratedCapacityMin: null,
-  ratedCapacityMax: null,
-  cableLengthMin: null,
-  cableLengthMax: null,
-  terminalIn: new Set(),
-  terminalOut: new Set(),
-  directional: new Set(),
-  conductor: new Set(),
-  plating: new Set(),
-  shield: new Set(),
-  pair: new Set()
-});
+// ── 필터 칸 정의 표 (한 곳, 2026-11-10) ──
+//   칸 하나 = 한 줄. 빈 필터, 복사, 개수, 칩 목록, 보이는 칸 판정, 주소 읽기와 쓰기(browse-url.ts)가 전부 이 표에서 만들어짐
+//   칸을 늘릴 때: Filters 타입에 칸을 더하고 여기 한 줄 (빠지면 아래 _FILTER_DEFS_COVER_ALL 에서 타입 오류)
+//   kind  set = 체크 여러 개(Set) / range = 최소, 최대 두 칸 / one = 숫자 한 칸
+//   param = 주소 키. 저장 필드 이름을 snake_case 로 (예: tech.speakerDetail → speaker_detail). range 는 param_min, param_max
+//           예외: 지역은 region(DB location), 국가는 loc_country — 홈에서 넘어오던 주소 그대로
+//   options = 주소에서 읽을 때 받는 값(없으면 아무 글자나, 예: 브랜드). scale = 주소 값 = 화면 값 × scale (가격: 화면 만원, 주소 원)
+//   show = 이 칸이 보이는 조건(filterVisibility 결과). 없으면 늘 보임. enabled = 기능 플래그(꺼지면 주소에서 읽지 않음)
+type SetFilterKey = { [K in keyof Filters]: Filters[K] extends Set<string> ? K : never }[keyof Filters];
+type NumFilterKey = { [K in keyof Filters]: Filters[K] extends number | null ? K : never }[keyof Filters];
+type DefCommon = { param: string; show?: (v: FilterVisibility) => boolean; enabled?: boolean };
+export type SetFilterDef = DefCommon & { kind: 'set'; key: SetFilterKey; options?: readonly string[] };
+export type RangeFilterDef = DefCommon & { kind: 'range'; min: NumFilterKey; max: NumFilterKey; scale?: number };
+export type OneFilterDef = DefCommon & { kind: 'one'; key: NumFilterKey };
+export type FilterDef = SetFilterDef | RangeFilterDef | OneFilterDef;
 
-export function cloneFilters(f: Filters): Filters {
-  return {
-    brand: new Set(f.brand),
-    model: new Set(f.model),
-    condition: new Set(f.condition),
-    appearance: new Set(f.appearance),
-    working: new Set(f.working),
-    priceMin: f.priceMin,
-    priceMax: f.priceMax,
-    yearMin: f.yearMin,
-    yearMax: f.yearMax,
-    ownership: new Set(f.ownership),
-    country: new Set(f.country),
-    locationCountry: new Set(f.locationCountry),
-    region: new Set(f.region),
-    ampDetail: new Set(f.ampDetail),
-    ampMethod: new Set(f.ampMethod),
-    powerMin: f.powerMin,
-    powerMax: f.powerMax,
-    headphoneImp: f.headphoneImp,
-    impedance: new Set(f.impedance),
-    phono: new Set(f.phono),
-    toneControl: new Set(f.toneControl),
-    remote: new Set(f.remote),
-    voltage: new Set(f.voltage),
-    speakerDetail: new Set(f.speakerDetail),
-    driverConfig: new Set(f.driverConfig),
-    enclosure: new Set(f.enclosure),
-    speakerImpedance: new Set(f.speakerImpedance),
-    wooferSize: new Set(f.wooferSize),
-    sensitivityMin: f.sensitivityMin,
-    sensitivityMax: f.sensitivityMax,
-    recPowerMin: f.recPowerMin,
-    recPowerMax: f.recPowerMax,
-    driveType: new Set(f.driveType),
-    tonearm: new Set(f.tonearm),
-    cartridge: new Set(f.cartridge),
-    speeds: new Set(f.speeds),
-    autoMode: new Set(f.autoMode),
-    dustCover: new Set(f.dustCover),
-    phonoBuiltIn: new Set(f.phonoBuiltIn),
-    cdDigitalOut: new Set(f.cdDigitalOut),
-    cdAnalogOut: new Set(f.cdAnalogOut),
-    tunerBand: new Set(f.tunerBand),
-    headCount: new Set(f.headCount),
-    autoReverse: new Set(f.autoReverse),
-    capstan: new Set(f.capstan),
-    noiseReduction: new Set(f.noiseReduction),
-    tapeTypeRec: new Set(f.tapeTypeRec),
-    headWear: new Set(f.headWear),
-    ratedCapacityMin: f.ratedCapacityMin,
-    ratedCapacityMax: f.ratedCapacityMax,
-    cableLengthMin: f.cableLengthMin,
-    cableLengthMax: f.cableLengthMax,
-    terminalIn: new Set(f.terminalIn),
-    terminalOut: new Set(f.terminalOut),
-    directional: new Set(f.directional),
-    conductor: new Set(f.conductor),
-    plating: new Set(f.plating),
-    shield: new Set(f.shield),
-    pair: new Set(f.pair)
-  };
+const amp = (v: FilterVisibility) => v.amp;
+const speaker = (v: FilterVisibility) => v.speaker;
+const turntable = (v: FilterVisibility) => v.turntable;
+const cassette = (v: FilterVisibility) => v.cassette;
+const cable = (v: FilterVisibility) => v.cable;
+
+// 체크 칸 순서 = 활성 필터 칩 순서 (예전 칩 목록 그대로)
+export const FILTER_DEFS = [
+  { kind: 'set', key: 'brand', param: 'brand' },
+  { kind: 'set', key: 'model', param: 'model' },
+  { kind: 'set', key: 'condition', param: 'condition', options: CONDITIONS },
+  { kind: 'set', key: 'appearance', param: 'appearance', options: APPEARANCE_OPTS },
+  { kind: 'set', key: 'working', param: 'working', options: WORKING_OPTS },
+  { kind: 'range', min: 'priceMin', max: 'priceMax', param: 'price', scale: 10000 },
+  { kind: 'range', min: 'yearMin', max: 'yearMax', param: 'year' },
+  { kind: 'set', key: 'ownership', param: 'ownership', options: OWNERSHIP_OPTS, enabled: FEATURE_FLAGS.ownership },
+  { kind: 'set', key: 'country', param: 'country', options: COUNTRY_OPTS },
+  { kind: 'set', key: 'locationCountry', param: 'loc_country', options: LOCATION_COUNTRIES, show: (v) => v.locationCountry },
+  { kind: 'set', key: 'region', param: 'region', options: LOCATIONS },
+  // 앰프
+  { kind: 'set', key: 'ampDetail', param: 'channel', options: AMP_DETAILS, show: (v) => v.channel },
+  { kind: 'set', key: 'ampMethod', param: 'device', options: AMP_METHODS, show: amp },
+  { kind: 'range', min: 'powerMin', max: 'powerMax', param: 'power_rated', show: (v) => v.power },
+  { kind: 'one', key: 'headphoneImp', param: 'hp_impedance', show: (v) => v.headphoneImp },
+  { kind: 'set', key: 'impedance', param: 'impedance', options: IMPEDANCE_OPTS, show: (v) => v.impedance },
+  { kind: 'set', key: 'phono', param: 'phono', options: PHONO_OPTS, show: amp },
+  { kind: 'set', key: 'toneControl', param: 'tone_control', options: TONE_OPTS, show: amp, enabled: FEATURE_FLAGS.toneControlFilter },
+  { kind: 'set', key: 'remote', param: 'remote', options: REMOTE_OPTS, show: amp, enabled: FEATURE_FLAGS.remoteFilter },
+  { kind: 'set', key: 'voltage', param: 'voltage', options: VOLTAGE_OPTS, show: (v) => v.voltage },
+  // 스피커
+  { kind: 'set', key: 'speakerDetail', param: 'speaker_detail', options: SPEAKER_DETAILS, show: speaker },
+  { kind: 'set', key: 'driverConfig', param: 'driver_ways', options: DRIVER_CONFIGS, show: speaker },
+  { kind: 'set', key: 'enclosure', param: 'enclosure', options: ENCLOSURE_TYPES, show: speaker },
+  { kind: 'set', key: 'speakerImpedance', param: 'speaker_impedance', options: SPEAKER_IMPEDANCE, show: speaker },
+  { kind: 'set', key: 'wooferSize', param: 'woofer_size', options: WOOFER_SIZES, show: speaker },
+  { kind: 'range', min: 'sensitivityMin', max: 'sensitivityMax', param: 'sensitivity', show: speaker },
+  { kind: 'range', min: 'recPowerMin', max: 'recPowerMax', param: 'rec_power', show: speaker, enabled: FEATURE_FLAGS.recPowerFilter },
+  // 턴테이블
+  { kind: 'set', key: 'driveType', param: 'drive_type', options: DRIVE_TYPES, show: turntable },
+  { kind: 'set', key: 'tonearm', param: 'tonearm', options: TONEARM_OPTS, show: turntable },
+  { kind: 'set', key: 'cartridge', param: 'cartridge', options: CARTRIDGE_OPTS, show: turntable },
+  { kind: 'set', key: 'speeds', param: 'speeds', options: SPEED_OPTS, show: turntable },
+  { kind: 'set', key: 'autoMode', param: 'auto_mode', options: AUTO_OPTS, show: turntable },
+  { kind: 'set', key: 'dustCover', param: 'dust_cover', options: DUSTCOVER_OPTS, show: turntable, enabled: FEATURE_FLAGS.dustCoverFilter },
+  { kind: 'set', key: 'phonoBuiltIn', param: 'phono_built_in', options: PHONO_BUILTIN_OPTS, show: turntable },
+  // CD 플레이어, 튜너
+  { kind: 'set', key: 'cdDigitalOut', param: 'cd_digital_out', options: CD_DIGITAL_OUTS, show: (v) => v.cd },
+  { kind: 'set', key: 'cdAnalogOut', param: 'cd_analog_out', options: CD_ANALOG_OUTS, show: (v) => v.cd },
+  { kind: 'set', key: 'tunerBand', param: 'tuner_band', options: TUNER_BANDS, show: (v) => v.tuner },
+  // 카세트 데크
+  { kind: 'set', key: 'headCount', param: 'head_count', options: CAS_HEAD_COUNTS, show: cassette },
+  { kind: 'set', key: 'autoReverse', param: 'auto_reverse', options: CAS_AUTOREVERSES, show: cassette },
+  { kind: 'set', key: 'capstan', param: 'capstan', options: CAS_CAPSTANS, show: cassette },
+  { kind: 'set', key: 'noiseReduction', param: 'noise_reduction', options: CAS_NRS, show: cassette },
+  { kind: 'set', key: 'tapeTypeRec', param: 'tape_type_rec', options: CAS_TAPE_TYPES, show: cassette },
+  { kind: 'set', key: 'headWear', param: 'head_wear', options: CAS_HEAD_WEARS, show: cassette },
+  // 전원 장치, 케이블 (숨긴 카테고리)
+  { kind: 'range', min: 'ratedCapacityMin', max: 'ratedCapacityMax', param: 'rated_capacity', show: (v) => v.powerDevice },
+  { kind: 'range', min: 'cableLengthMin', max: 'cableLengthMax', param: 'cable_length', show: cable },
+  { kind: 'set', key: 'terminalIn', param: 'terminal_in', show: cable },
+  { kind: 'set', key: 'terminalOut', param: 'terminal_out', show: cable },
+  { kind: 'set', key: 'directional', param: 'directional', options: DIRECTIONALITY_OPTS, show: cable },
+  { kind: 'set', key: 'conductor', param: 'conductor', options: CONDUCTOR_OPTS, show: cable },
+  { kind: 'set', key: 'plating', param: 'plating', options: PLATING_OPTS, show: cable },
+  { kind: 'set', key: 'shield', param: 'shield', options: SHIELD_OPTS, show: cable },
+  { kind: 'set', key: 'pair', param: 'pair', options: PAIR_OPTS, show: cable },
+] as const satisfies readonly FilterDef[];
+
+// 표가 Filters 의 모든 칸을 덮는지 타입으로 검사 (칸을 빠뜨리면 여기서 tsc 오류)
+type DefKeys<D> = D extends { kind: 'range'; min: infer A; max: infer B } ? A | B : D extends { key: infer K } ? K : never;
+type MissingFilterKeys = Exclude<keyof Filters, DefKeys<(typeof FILTER_DEFS)[number]>>;
+const _FILTER_DEFS_COVER_ALL: [MissingFilterKeys] extends [never] ? true : MissingFilterKeys = true;
+void _FILTER_DEFS_COVER_ALL;
+
+// 체크 칸 키 목록 (표 순서 = 칩 순서)
+export const SET_FILTER_KEYS: SetFilterKey[] = (FILTER_DEFS as readonly FilterDef[]).filter((d): d is SetFilterDef => d.kind === 'set').map((d) => d.key);
+
+export const emptyFilters = (): Filters => {
+  const f = {} as Record<string, Set<string> | number | null>;
+  for (const d of FILTER_DEFS as readonly FilterDef[]) {
+    if (d.kind === 'set') f[d.key] = new Set<string>();
+    else if (d.kind === 'range') { f[d.min] = null; f[d.max] = null; }
+    else f[d.key] = null;
+  }
+  return f as Filters;
+};
+
+export function cloneFilters(src: Filters): Filters {
+  const f = { ...src } as Record<string, Set<string> | number | null>;
+  for (const k of SET_FILTER_KEYS) f[k] = new Set(src[k]);
+  return f as Filters;
 }
 
+// 걸린 필터 수 — 체크는 고른 값 하나마다 1, 범위와 한 칸은 값이 있으면 1
 export function countFilters(f: Filters): number {
-  const setKeys: (keyof Filters)[] = [
-    'brand', 'model', 'condition', 'appearance', 'working', 'ownership', 'country', 'locationCountry', 'region',
-    'ampDetail', 'ampMethod', 'impedance', 'phono', 'toneControl', 'remote', 'voltage',
-    'speakerDetail', 'driverConfig', 'enclosure', 'speakerImpedance', 'wooferSize',
-    'driveType', 'tonearm', 'cartridge', 'speeds', 'autoMode', 'dustCover', 'phonoBuiltIn', 'cdDigitalOut', 'cdAnalogOut', 'tunerBand',
-    'headCount', 'autoReverse', 'capstan', 'noiseReduction', 'tapeTypeRec', 'headWear',
-    'terminalIn', 'terminalOut', 'directional', 'conductor', 'plating', 'shield', 'pair'
-  ];
   let n = 0;
-  for (const k of setKeys) n += (f[k] as Set<string>).size;
-  if (f.priceMin != null || f.priceMax != null) n += 1;
-  if (f.yearMin != null || f.yearMax != null) n += 1;
-  if (f.powerMin != null || f.powerMax != null) n += 1;
-  if (f.headphoneImp != null) n += 1;
-  if (f.sensitivityMin != null || f.sensitivityMax != null) n += 1;
-  if (f.recPowerMin != null || f.recPowerMax != null) n += 1;
-  if (f.ratedCapacityMin != null || f.ratedCapacityMax != null) n += 1;
-  if (f.cableLengthMin != null || f.cableLengthMax != null) n += 1;
+  for (const d of FILTER_DEFS as readonly FilterDef[]) {
+    if (d.kind === 'set') n += f[d.key].size;
+    else if (d.kind === 'range') n += f[d.min] != null || f[d.max] != null ? 1 : 0;
+    else n += f[d.key] != null ? 1 : 0;
+  }
   return n;
 }
 
@@ -575,26 +547,14 @@ export function filterVisibility(category: string | null | undefined, subs: Read
   };
 }
 // 필터 키 하나가 지금 보이는 칸인가 (칩, 자동 해제가 씀). 공통 필터(브랜드, 상태, 가격, 연도, 지역 등)는 늘 보임
+const DEF_OF_KEY: Partial<Record<keyof Filters, FilterDef>> = {};
+for (const d of FILTER_DEFS as readonly FilterDef[]) {
+  if (d.kind === 'range') { DEF_OF_KEY[d.min] = d; DEF_OF_KEY[d.max] = d; }
+  else DEF_OF_KEY[d.key] = d;
+}
 export function isFilterKeyVisible(key: keyof Filters, v: FilterVisibility): boolean {
-  switch (key) {
-    case 'ampMethod': case 'phono': case 'toneControl': case 'remote': return v.amp;
-    case 'ampDetail': return v.channel;
-    case 'powerMin': case 'powerMax': return v.power;
-    case 'headphoneImp': return v.headphoneImp;
-    case 'impedance': return v.impedance;
-    case 'voltage': return v.voltage;
-    case 'speakerDetail': case 'driverConfig': case 'enclosure': case 'speakerImpedance': case 'wooferSize':
-    case 'sensitivityMin': case 'sensitivityMax': case 'recPowerMin': case 'recPowerMax': return v.speaker;
-    case 'driveType': case 'tonearm': case 'cartridge': case 'speeds': case 'autoMode': case 'phonoBuiltIn': case 'dustCover': return v.turntable;
-    case 'cdDigitalOut': case 'cdAnalogOut': return v.cd;
-    case 'tunerBand': return v.tuner;
-    case 'headCount': case 'autoReverse': case 'capstan': case 'noiseReduction': case 'tapeTypeRec': case 'headWear': return v.cassette;
-    case 'ratedCapacityMin': case 'ratedCapacityMax': return v.powerDevice;
-    case 'cableLengthMin': case 'cableLengthMax': case 'terminalIn': case 'terminalOut': case 'directional':
-    case 'conductor': case 'plating': case 'shield': case 'pair': return v.cable;
-    case 'locationCountry': return v.locationCountry;
-    default: return true;
-  }
+  const show = DEF_OF_KEY[key]?.show;
+  return show ? show(v) : true;
 }
 
 // 사라진 필터 자동 해제 — 하위 카테고리 선택이 바뀌어 화면에서 사라진 칸(isFilterKeyVisible 이 false)의 값을 비움(칩도 안 남음, 2026-11-10)
