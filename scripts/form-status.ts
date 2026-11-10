@@ -203,8 +203,8 @@ const common: CommonRow[] = [];
 const sections: string[] = [];
 {
   let section = '';
-  // 구간 = <FormSection title="…"> 또는 heading={<h2>…</h2>} (2026-11-10 시안). 칸 = <Field>, 체크 = <FormCheckbox>(옛 label 체크도 같이)
-  const re = /<FormSection\b|<h2\b[^>]*>([\s\S]*?)<\/h2>|<Field\b|<FormCheckbox\b|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>/g;
+  // 구간 = <FormSection title="…"> 또는 heading={<h2>…</h2>} (2026-11-10 시안). 칸 = <Field>, 체크 = <Checkbox>(ui/checkbox.tsx, 2026-11-10 FormCheckbox 에서 이름 바뀜. 옛 label 체크도 같이)
+  const re = /<FormSection\b|<h2\b[^>]*>([\s\S]*?)<\/h2>|<Field\b|<Checkbox\b|<label className="flex items-(?:center|start) gap-2 cursor-pointer[^"]*">([\s\S]*?)<\/label>/g;
   for (const m of PAGE.matchAll(re)) {
     const [whole, h2, chk] = m;
     const at = m.index ?? 0;
@@ -243,10 +243,10 @@ const sections: string[] = [];
         : /condition !== 'used'/.test(attrs) ? '중고 상태일 때 활성'
         : /shippingType === 'flat' &&/.test(before) ? '고정 배송비 선택 시' : '';
       common.push({ section, label: name, required: isRequired(attrs), note, boundVar: bound });
-    } else if (whole === '<FormCheckbox') {
+    } else if (whole === '<Checkbox') {
       const attrs = openTag(PAGE, at + whole.length);
       const bodyAt = at + whole.length + attrs.length + 1;
-      const body = PAGE.slice(bodyAt, PAGE.indexOf('</FormCheckbox>', bodyAt));
+      const body = PAGE.slice(bodyAt, PAGE.indexOf('</Checkbox>', bodyAt));
       const t = cleanJsx(body);
       common.push({ section, label: t.length > 40 ? t.slice(0, 40) + '…' : t, required: isRequired(attrs), note: '체크박스', boundVar: /checked=\{\s*([A-Za-z_]\w*)/.exec(attrs)?.[1] });
     } else if (chk !== undefined) {

@@ -1,32 +1,57 @@
 'use client';
 // ============================================================================
-// filter-controls.tsx — 좌측 사이드바용 "필터 입력 부품" 모음 (재사용 컴포넌트)
+// filter-controls.tsx — 둘러보기 필터 입력 부품 모음 (재사용 컴포넌트)
 // ----------------------------------------------------------------------------
 // browse-page.tsx에서 분리. 각 부품은 데이터에 의존하지 않는 순수 UI 컴포넌트라
-// 어떤 카테고리에서도 재사용됩니다.
-//   - FilterSection : 체크박스 아코디언 섹션 (+더보기 단계 펼침 지원)
-//   - RangeSection  : 최소/최대 숫자 범위 입력 (가격·출력·임피던스 등)
-//   - FilterDropdown: 드롭다운형 다중 선택 (케이블 단자 등에서 사용)
+// 어떤 카테고리에서도 재사용됩니다. 묶음을 늘어놓는 순서는 filter-panel.tsx 가 정함
+//   - FilterSection : 체크 묶음 (접기 펼치기, 5개 넘으면 '더 보기', 브랜드는 검색 칸)
+//   - RangeSection  : 최소, 최대 숫자 범위 + 적용 (가격, 출력, 연도 등)
+//   - FilterDropdown: 드롭다운형 다중 선택 (케이블 단자에서 사용, 케이블은 숨긴 카테고리)
 //   - PriceDropdown / LengthDropdown: (현재 미사용) 예전 드롭다운형 범위 입력
+// 2026-11-10 시안: 묶음마다 아래 선 1, 위아래 16, 제목 버튼 40(폭 100%, 14/700, 오른쪽 끝 화살표 16).
+//   펼치면 아래 8에 선택지 줄 32(체크 20 + 8 + 글자 14 + 오른쪽 끝 개수 14 muted). 체크박스는 등록 폼과 같은 ui/checkbox
+//   범위: 최소, 최대 칸 2열(사이 8) 위 8, '적용' secondary 폭 100% 위 8. 브랜드: 검색 칸 40(돋보기 16) 위 8, 그 아래 목록
+//   펼침 상태는 묶음의 화면 상태라 저장 안 함(그 페이지 안에서만)
 // ============================================================================
 
-import { useState, useMemo, useRef, useEffect } from 'react';
+import { useState, useMemo, useRef, useEffect, useId } from 'react';
 import { ChevronDown, ChevronUp, X, Search, Plus, Minus } from 'lucide-react';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Checkbox } from './ui/checkbox';
 
 // 검색어 정규화: 공백·&·-·/ 제거 + 소문자 (catalog.ts의 normalize와 동일 규칙)
 // 예: "바워스 앤 윌킨스" / "B&W" → 비교 가능한 형태로
 const normalizeSearch = (s: string) => s.replace(/[\s&\-/]+/g, '').toLowerCase();
 
-// 좌측 사이드바용 아코디언 섹션 필터 (Perfect Circuit 스타일)
+// 한 번에 보이는 선택지 수 — 넘으면 '더 보기' (2026-11-10 시안)
+const VISIBLE_OPTIONS = 5;
+
+// 묶음 제목 버튼 — 폭 100%, 높이 40, 14/700, 오른쪽 끝 화살표 16. 목록 머리 모양이라 공통 Button 이 아니라 기본 button
+function SectionHead({ label, open, onToggle, controls }: { label: string; open: boolean; onToggle: () => void; controls: string }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-expanded={open}
+      aria-controls={controls}
+      className="flex h-10 w-full items-center justify-between gap-2 text-left text-14 font-bold text-fg"
+    >
+      <span className="min-w-0">{label}</span>
+      {open ? <ChevronUp aria-hidden className="h-4 w-4 shrink-0" /> : <ChevronDown aria-hidden className="h-4 w-4 shrink-0" />}
+    </button>
+  );
+}
+
+// 체크 묶음 하나
 export function FilterSection({
   label,
   options,
   selected,
   onToggle,
   counts,
-  maxVisible,
   searchable = false,
-  defaultOpen = true,
+  defaultOpen = false,
   getAliases,
   getLabel
 }: {
@@ -35,8 +60,7 @@ export function FilterSection({
   selected: Set<string>;
   onToggle: (v: string) => void;
   counts?: Record<string, number>;
-  maxVisible?: number;
-  searchable?: boolean;
+  searchable?: boolean;  // 브랜드처럼 선택지 위에 검색 칸
   defaultOpen?: boolean;
   getAliases?: (opt: string) => readonly string[]; // 옵션의 검색용 별칭(예: 브랜드 한글명)
   getLabel?: (opt: string) => string; // 옵션 값(언어 중립 키) → 화면 글자. 없으면 값 그대로 (browse-filters filterLabel)
@@ -44,8 +68,8 @@ export function FilterSection({
   const show = (o: string) => (getLabel ? getLabel(o) : o);
   const [open, setOpen] = useState(defaultOpen);
   const [query, setQuery] = useState('');
-  const [visibleCount, setVisibleCount] = useState(maxVisible ?? Infinity);
-  const scrollRef = useRef<HTMLDivElement>(null); // 옵션 스크롤 컨테이너
+  const [showAll, setShowAll] = useState(false);
+  const bodyId = useId();
 
   const filtered = useMemo(() => {
     if (!searchable || query.trim() === '') return options;
@@ -59,100 +83,63 @@ export function FilterSection({
     });
   }, [options, searchable, query, getAliases, getLabel]);
 
-  // 옵션/검색어 변경 시 표시 개수 초기화
-  useEffect(() => {
-    setVisibleCount(maxVisible ?? Infinity);
-  }, [maxVisible, query, options]);
+  // 검색어가 바뀌면 다시 5개부터
+  useEffect(() => setShowAll(false), [query]);
 
-  const limited = maxVisible != null;
-  // 접힌 상태에서도 체크된 값은 보이게 — 앞쪽 몇 개 뒤에 이어 붙임 (홈 조건 검색에서 '좋음' 등이 체크된 채로 넘어올 때)
-  const hiddenRest = limited ? filtered.slice(visibleCount) : [];
-  const visible = limited ? [...filtered.slice(0, visibleCount), ...hiddenRest.filter((o) => selected.has(o))] : filtered;
-  const hasMore = limited && hiddenRest.some((o) => !selected.has(o));
-  const expanded = limited && visibleCount > (maxVisible ?? 0);
-
-  // 한 번에 전부 펼치고, 스크롤은 항상 맨 위에서 시작
-  const showMore = () => {
-    setVisibleCount(filtered.length);
-    requestAnimationFrame(() => scrollRef.current?.scrollTo({ top: 0 }));
-  };
-  const collapse = () => setVisibleCount(maxVisible ?? Infinity);
+  // 5개 넘으면 앞 5개 + 고른 값(뒤쪽에 있어도 보이게 — 홈 조건 검색에서 체크된 채로 넘어올 때) + '더 보기'
+  const rest = filtered.slice(VISIBLE_OPTIONS);
+  const visible = showAll || rest.length === 0 ? filtered : [...filtered.slice(0, VISIBLE_OPTIONS), ...rest.filter((o) => selected.has(o))];
+  const canExpand = rest.some((o) => !selected.has(o));
 
   return (
-    <div className="border-b border-line py-3">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between w-full text-left"
-      >
-        <span className="text-14 font-bold text-fg">{label}</span>
-        {open ? (
-          <ChevronUp className="w-4 h-4 text-fg" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-fg" />
-        )}
-      </button>
+    <div className="border-b border-line py-4">
+      <SectionHead label={label} open={open} onToggle={() => setOpen((v) => !v)} controls={bodyId} />
       {open && (
-        <div className="mt-3 space-y-1">
+        <div id={bodyId} className="mt-2">
           {searchable && (
             <div className="relative mb-2">
-              <Search className="w-3.5 h-3.5 text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
+              <Search aria-hidden className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <Input
+                aria-label={`${label} 검색`}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="검색"
-                className="w-full pl-8 pr-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
+                className="pl-9 pr-3"
               />
             </div>
           )}
-          {/* max-h를 행 높이(28px)의 정확한 배수(10행=280px)로 → 마지막 행이 반쪽으로 삐져나오지 않음 */}
-          <div ref={scrollRef} className={visible.length > 12 ? 'max-h-[280px] overflow-y-auto pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:bg-line [&::-webkit-scrollbar-thumb]:rounded-full' : ''}>
+          <ul>
             {visible.map((opt) => (
-              <label
-                key={opt}
-                className="flex items-center gap-2 py-1 cursor-pointer text-14 text-fg hover:text-fg"
-              >
-                <input
-                  type="checkbox"
+              <li key={opt}>
+                <Checkbox
+                  variant="list"
                   checked={selected.has(opt)}
                   onChange={() => onToggle(opt)}
-                  className="accent-fg w-3.5 h-3.5"
-                />
-                <span className="flex-1 truncate">{show(opt)}</span>
-                {counts && (
-                  <span className="text-12 text-muted">({counts[opt] ?? 0})</span>
-                )}
-              </label>
+                  trailing={counts && <span className="shrink-0 text-14 text-muted">{counts[opt] ?? 0}</span>}
+                >
+                  {show(opt)}
+                </Checkbox>
+              </li>
             ))}
-            {/* 버튼은 스크롤 영역 안에 둠 → '접기'가 목록 맨 끝(스크롤 하단)에 보임 */}
-            {(hasMore || expanded) && (
-              <div className="mt-1 flex items-center gap-3">
-                {hasMore && (
-                  <button
-                    onClick={showMore}
-                    className="text-12 font-medium text-fg hover:text-fg underline"
-                  >
-                    모두 보기
-                  </button>
-                )}
-                {expanded && (
-                  <button
-                    onClick={collapse}
-                    className="text-12 font-medium text-fg hover:text-fg underline"
-                  >
-                    접기
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
+          </ul>
+          {/* '더 보기'(14/500 밑줄) — 펼친 뒤에는 같은 자리에서 '접기' */}
+          {(canExpand || showAll) && rest.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setShowAll((v) => !v)}
+              aria-expanded={showAll}
+              className="flex h-8 items-center text-14 font-medium text-fg underline"
+            >
+              {showAll ? '접기' : '더 보기'}
+            </button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-// 사이드바용 범위 입력 섹션 (가격/길이)
+// 범위 묶음 (가격, 정격 출력, 출시 연도 등) — 최소, 최대 칸 + 적용. single 이면 칸 하나(헤드폰 임피던스)
 export function RangeSection({
   label,
   unit,
@@ -160,7 +147,7 @@ export function RangeSection({
   max,
   step,
   onApply,
-  defaultOpen = true,
+  defaultOpen = false,
   noComma = false,
   single = false,
   singlePlaceholder = '값'
@@ -179,6 +166,8 @@ export function RangeSection({
   const [open, setOpen] = useState(defaultOpen);
   const [minInput, setMinInput] = useState(min != null ? String(min) : '');
   const [maxInput, setMaxInput] = useState(max != null ? String(max) : '');
+  const bodyId = useId();
+  const title = `${label}${unit ? ` (${unit})` : ''}`;
 
   useEffect(() => {
     setMinInput(min != null ? String(min) : '');
@@ -201,59 +190,37 @@ export function RangeSection({
     onApply(parse(minInput), parse(maxInput));
   };
 
+  // 숫자 칸 하나 (정수는 콤마 표시용 text, 소수는 number)
+  const numberInput = (value: string, set: (v: string) => void, name: string, placeholder: string) => (
+    <Input
+      type={isInt ? 'text' : 'number'}
+      inputMode={isInt ? 'numeric' : 'decimal'}
+      min={0}
+      step={step}
+      aria-label={name}
+      value={fmt(value)}
+      onChange={(e) => set(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)}
+      onKeyDown={(e) => e.key === 'Enter' && apply()}
+      placeholder={placeholder}
+    />
+  );
+
   return (
-    <div className="border-b border-line py-3">
-      <button
-        onClick={() => setOpen((v) => !v)}
-        className="flex items-center justify-between w-full text-left"
-      >
-        <span className="text-14 font-bold text-fg">
-          {label}{unit ? ` (${unit})` : ''}
-        </span>
-        {open ? (
-          <ChevronUp className="w-4 h-4 text-fg" />
-        ) : (
-          <ChevronDown className="w-4 h-4 text-fg" />
-        )}
-      </button>
+    <div className="border-b border-line py-4">
+      <SectionHead label={title} open={open} onToggle={() => setOpen((v) => !v)} controls={bodyId} />
       {open && (
-        <div className="mt-3">
-          <div className="flex items-stretch gap-2">
-            <input
-              type={isInt ? 'text' : 'number'}
-              inputMode={isInt ? 'numeric' : 'decimal'}
-              min={0}
-              step={step}
-              value={fmt(minInput)}
-              onChange={(e) =>
-                setMinInput(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)
-              }
-              onKeyDown={(e) => e.key === 'Enter' && apply()}
-              placeholder={single ? singlePlaceholder : '최소'}
-              className="w-0 flex-1 px-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
-            />
-            {!single && (
-              <input
-                type={isInt ? 'text' : 'number'}
-                inputMode={isInt ? 'numeric' : 'decimal'}
-                min={0}
-                step={step}
-                value={fmt(maxInput)}
-                onChange={(e) =>
-                  setMaxInput(isInt ? e.target.value.replace(/[^\d]/g, '') : e.target.value)
-                }
-                onKeyDown={(e) => e.key === 'Enter' && apply()}
-                placeholder="최대"
-                className="w-0 flex-1 px-2 py-2 text-14 border border-line rounded focus:outline-none focus:border-fg"
-              />
-            )}
-          </div>
-          <button
-            onClick={apply}
-            className="mt-2 w-full py-2 text-12 font-medium bg-fg border border-fg hover:bg-bg hover:text-fg hover:border-fg text-bg rounded"
-          >
+        <div id={bodyId} className="mt-2">
+          {single ? (
+            numberInput(minInput, setMinInput, title, singlePlaceholder)
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              {numberInput(minInput, setMinInput, `${title} 최소`, '최소')}
+              {numberInput(maxInput, setMaxInput, `${title} 최대`, '최대')}
+            </div>
+          )}
+          <Button variant="secondary" onClick={apply} className="mt-2 w-full">
             적용
-          </button>
+          </Button>
         </div>
       )}
     </div>

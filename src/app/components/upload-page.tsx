@@ -19,6 +19,7 @@ import { Badge } from './ui/badge'; // 사진 '대표' 배지 (2026-11-10 시안
 import { Button } from './ui/button'; // 공통 부품 (2026-11-10 디자인 3a): 버튼, 칸(라벨 연결), 입력칸, 드롭다운, 자동완성
 import { Field, Select, RequiredMark } from './ui/field';
 import { Input } from './ui/input';
+import { Checkbox } from './ui/checkbox'; // 체크박스 (등록 폼, 둘러보기 필터 공용)
 import { Textarea } from './ui/textarea';
 import { Autocomplete } from './ui/autocomplete';
 import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, SPEC_LABELS, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
@@ -93,31 +94,7 @@ const STEPS = [
   { id: 'shipping', label: '배송' },
 ];
 
-// 체크박스 (2026-11-10 시안) — 20×20 각진 상자, line 1px 선, 체크하면 fg 채움에 흰 체크. 상자와 글자 사이 12, 글자 14/500
-//   아래 도움말 14 muted(간격 4). 네이티브 input 을 그대로 써서(appearance-none) 키보드, 화면 읽기, 포커스 표시는 기본 그대로
-function FormCheckbox({ checked, onChange, children, help, required = false }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode; help?: React.ReactNode; required?: boolean }) {
-  return (
-    <label className="flex cursor-pointer items-start gap-3">
-      <span className="relative flex h-5 w-5 shrink-0">
-        <input
-          type="checkbox"
-          checked={checked}
-          onChange={(e) => onChange(e.target.checked)}
-          aria-required={required || undefined}
-          className="peer h-5 w-5 cursor-pointer appearance-none border border-line bg-bg checked:border-fg checked:bg-fg"
-        />
-        <Check aria-hidden className="pointer-events-none absolute inset-0 m-auto hidden h-4 w-4 text-bg peer-checked:block" />
-      </span>
-      <span className="min-w-0">
-        <span className="block text-14 font-medium">
-          {children}
-          {required && <RequiredMark />}
-        </span>
-        {help && <span className="mt-1 block text-14 text-muted">{help}</span>}
-      </span>
-    </label>
-  );
-}
+// 체크박스는 ui/checkbox.tsx 의 Checkbox (2026-11-10 이 파일에서 옮김. 둘러보기 필터와 같은 부품)
 
 // 폼 구간 하나 (2026-11-10 시안) — 카드 상자, 테두리, 배경 없음. 첫 구간 말고는 위에 1px line, 선 위아래 48
 //   제목 줄 높이 40(글자 20/700), 제목 아래 16. heading 을 주면 기본 제목 대신 그것을 씀(접기 버튼, label 제목)
@@ -2252,14 +2229,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
             {/* 아래 24에 확인 체크(필수) + 도움말. 사이에 있던 구분선은 삭제 */}
             <div className="mt-6">
-              <FormCheckbox
+              <Checkbox
                 checked={asDescribed}
                 onChange={setAsDescribed}
                 required
                 help="실제와 다른 점이 있으면 거래 취소나 분쟁의 원인이 돼요. 흠집, 수리 이력, 소리 이상은 미리 적어 두는 게 안전해요"
               >
                 사진과 설명이 실제 상태와 같음을 확인합니다
-              </FormCheckbox>
+              </Checkbox>
             </div>
 
             {/* SKU — FEATURE_FLAGS.sku 꺼지면 숨김, 빈 값 저장 */}
@@ -2351,7 +2328,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 가격 제안 — FEATURE_FLAGS.commerce 꺼지면 숨김, false 저장 */}
               {FEATURE_FLAGS.commerce && (
               <div className="col-span-4">
-                <FormCheckbox checked={acceptOffers} onChange={setAcceptOffers}>구매자의 가격 제안 받기</FormCheckbox>
+                <Checkbox checked={acceptOffers} onChange={setAcceptOffers}>구매자의 가격 제안 받기</Checkbox>
               </div>
               )}
             </div>
@@ -2519,7 +2496,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </Field>
             )}
             <div className="col-span-4">
-              <FormCheckbox checked={localPickup} onChange={setLocalPickup}>직거래 가능</FormCheckbox>
+              <Checkbox checked={localPickup} onChange={setLocalPickup}>직거래 가능</Checkbox>
             </div>
             </div>
             {/* 국가 + 지역 — 선택 사항. 지역 선택지는 국가에 따라(한국 17개 시/도, 일본 47개 도도부현). DB location 칸 하나에 국가 접두 키로 저장(kr_seoul, jp_tokyo) */}
