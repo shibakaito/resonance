@@ -19,6 +19,7 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { subcategoriesFor, TOP_CATEGORIES } from '../data/catalog';
 import { categorySlug } from '../data/category-slugs';
 import { Button } from './ui/button';
+import { Container } from './ui/container';
 
 // 메뉴 대분류 = 보이는 대분류만 (CATEGORY_TREE 숨김 표식). 하위 카테고리도 subcategoriesFor 가 보이는 것만 줌
 const MENU_CATS = TOP_CATEGORIES;
@@ -72,7 +73,8 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-line bg-bg sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4">
+      {/* 겉틀 — 공통 Container (최대 1280, 좌우 80, 내용 1120). 페이지 본문, 푸터와 좌우 끝이 같음 */}
+      <Container className="py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-6">
             <button onClick={() => router.push('/')} className="text-24 font-bold text-fg">Resonance</button>
@@ -94,8 +96,8 @@ export function SiteHeader() {
               {/* 패널 — 헤더 바로 아래 폭 100%. 위 선은 헤더 아래 선과 같은 자리 */}
               {menuOpen && (
                 <div id="category-menu" className="absolute left-0 right-0 top-full z-40 border-y border-line bg-bg">
-                  <div className="px-4 py-8 xl:px-20">
-                    <div className="mx-auto grid max-w-280 grid-cols-2 gap-4 lg:grid-cols-4">
+                  <Container className="py-8">
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                       {MENU_CATS.map((cat) => {
                         const headId = `category-menu-${categorySlug(cat) ?? cat}`;
                         return (
@@ -120,7 +122,7 @@ export function SiteHeader() {
                       })}
                       {/* 4번째 칸은 비워 둠 (대분류가 늘면 채워짐) */}
                     </div>
-                  </div>
+                  </Container>
                 </div>
               )}
             </div>
@@ -137,7 +139,7 @@ export function SiteHeader() {
             <a href="#" className="text-fg hover:text-fg">장바구니</a>
           </nav>
         </div>
-      </div>
+      </Container>
     </header>
   );
 }

@@ -19,6 +19,7 @@ import { fetchSeller, fetchSellerListings, fetchSellerReviews, maskName, replyTe
 import { FEATURE_FLAGS } from '@/app/data/feature-flags'; // 숨김 플래그 (docs/hidden.md)
 import { Button } from './ui/button';
 import { Card } from './ui/card';
+import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { ConditionBadge } from './condition-badge';
 import { SellerAvatar, Stars } from './seller-box';
 
@@ -73,11 +74,11 @@ export function SellerPage({ id }: { id: string }) {
 
   if (!seller) {
     return (
-      <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+      <Container as="main" className="pt-8">
         <p role="status" className="text-14 text-muted">
           {loadState === 'loading' ? '불러오는 중…' : loadState === 'missing' ? '판매자를 찾을 수 없어요.' : '판매자를 불러오지 못했어요.'}
         </p>
-      </main>
+      </Container>
     );
   }
 
@@ -91,7 +92,7 @@ export function SellerPage({ id }: { id: string }) {
   const remainingReviews = Math.max(0, reviews.length - reviewShown);
 
   return (
-    <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+    <Container as="main" className="pt-8">
       {/* 경로 — 홈 › 판매자 */}
       <nav aria-label="경로">
         <ol className="flex flex-wrap items-center gap-1 text-14 text-muted">
@@ -209,6 +210,6 @@ export function SellerPage({ id }: { id: string }) {
           </div>
         )}
       </div>
-    </main>
+    </Container>
   );
 }

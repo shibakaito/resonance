@@ -5,6 +5,7 @@ import { ChevronRight, X, SlidersHorizontal, Search } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Select } from './ui/field';
+import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { subcategoriesFor, searchBrands, TOP_CATEGORIES, ALL_SUBCATEGORIES, CATEGORY_ALIASES, isCategoryVisible } from '../data/catalog';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { suggest } from '@/lib/did-you-mean';
@@ -570,7 +571,7 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
   const pageTitle = searchQuery ? `‘${searchQuery}’ 검색 결과` : metaFor(category ?? null, activeSub)?.title ?? category ?? 'ALL';
 
   return (
-    <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+    <Container as="main" className="pt-8">
       {/* 경로 — '홈 › 앰프'(14 muted, 화살표 16). 하위 카테고리를 하나 골랐으면 대분류를 눌러 그 선택만 풂 */}
       <nav aria-label="경로">
         <ol className="flex flex-wrap items-center gap-1 text-14 text-muted">
@@ -730,6 +731,6 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
           onClose={() => setModalOpen(false)}
         />
       )}
-    </main>
+    </Container>
   );
 }

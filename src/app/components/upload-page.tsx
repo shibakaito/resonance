@@ -22,6 +22,7 @@ import { Input } from './ui/input';
 import { Checkbox } from './ui/checkbox'; // 체크박스 (등록 폼, 둘러보기 필터 공용)
 import { Textarea } from './ui/textarea';
 import { Autocomplete } from './ui/autocomplete';
+import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { NEW_CONDITION_KEYS, CONDITION_KEYS, conditionKind, label, desc, SPEC_LABELS, COMPONENT_OPTS, LOCATION_COUNTRY_OPTS, locationOptsFor, locationCountryOf, CURRENCY_OPTS, CURRENCY_SYMBOLS } from '@/lib/labels';
 import { en2ko, ko2en } from '@/lib/keyboard-layout';
 import { uploadListingImage } from '@/lib/upload-image';
@@ -1069,8 +1070,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
   return (
     <main className="bg-bg min-h-screen">
-      {/* 겉틀 (2026-11-10 시안): 가운데 1000 = 왼쪽 목록 200 + 사이 80 + 폼 720. 위 48, 아래 80. 좁은 화면(lg 아래)은 목록이 위, 폼이 전체 폭 */}
-      <div className="mx-auto w-full max-w-250 px-4 pt-12 pb-20 lg:px-0">
+      {/* 겉틀: 공통 Container(내용 1120) 안에서 왼쪽 목록 200 + 사이 80 + 폼 720 을 왼쪽 끝에 붙이고 오른쪽 120은 비움 (2026-11-10 레이아웃 통일)
+          위 48, 아래 80. 좁은 화면(lg 아래)은 목록이 위, 폼이 전체 폭 */}
+      <Container className="pt-12 pb-20">
       <div className="lg:flex lg:gap-20">
         {/* 왼쪽 목록 — 제목 '매물 등록'(16/700, 줄 40) 아래 8에 구간 7개(14 muted, 줄 36). 지금 구간만 fg 700. 번호, 연결선, 완료 표시 없음 */}
         <aside className="mb-12 lg:mb-0 lg:w-50 lg:shrink-0">
@@ -2599,7 +2601,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </div>
         </div>
       </div>
-      </div>
+      </Container>
     </main>
   );
 }

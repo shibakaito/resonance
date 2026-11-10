@@ -14,6 +14,8 @@
 //     → 8 → [관심 제품][주소 복사 40] → 24 → 위 선 → 메타 표(라벨 96 + 값 14, 줄 40): 등록일, 배송, 직거래(가능일 때만), 지역(있을 때만)
 //   바로 구매, 장바구니 담기, 가격 제안, 판매자 저장은 FEATURE_FLAGS.commerce 로 숨김 (docs/hidden.md)
 //   메타 아래 24에 판매자 칸(seller-box.tsx) — FEATURE_FLAGS.seller 꺼지면 없음. 판매자 데이터는 src/lib/sellers.ts (지금은 표본)
+//   오른쪽 열은 넓은 화면(1024 이상)에서 고정(sticky, 위 88): 왼쪽을 내려도 따라오고, 두 열 아래(다른 매물 줄)에서 멈춤.
+//     열이 화면보다 길면(열 높이 + 88 > 화면 높이) 고정하지 않음 (2026-11-10 레이아웃 통일)
 //   정보 구간(구간 위 48, 제목 줄 40(20/700) 아래 16). 표 줄 = 라벨 168(14/500 muted) + 값 16, 줄 최소 40, 위아래 8, 줄 아래 선
 //     제품 정보: 브랜드, 모델, 카테고리, 출시 연도, 제조국, 구성품, 상태, 외관 상태, 작동 상태 중 값 있는 줄. 처음 5줄 + '더 보기 (N)'
 //     기술 사양: 카테고리 스키마 순서(사양 추가 카테고리는 핵심 칸 + 크기 + 무게) + 추가 사양(입력 순서). 처음 4줄 + '더 보기 (N)'
@@ -24,7 +26,7 @@
 //   등급 기준 링크, 고정 설명 글, 판매자에 대하여, 판매자 리뷰)와 react-slick 캐러셀, 사진 확대는 삭제
 // ============================================================================
 
-import { useState, useEffect, useId } from 'react';
+import { useState, useEffect, useId, useRef } from 'react';
 import Link from 'next/link';
 import { Heart, Check, Link as LinkIcon, MessageCircle, ChevronDown, ChevronUp, ChevronRight } from 'lucide-react';
 import type { Listing } from './browse-filters';
@@ -40,6 +42,7 @@ import { label, desc } from '@/lib/labels';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
+import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { ConditionBadge } from './condition-badge';
 import { SellerBox } from './seller-box';
 
@@ -48,6 +51,9 @@ const browseHref = (top: string) => {
   const slug = categorySlug(top);
   return slug ? `/browse/${slug}` : '/browse';
 };
+
+// 오른쪽 열 고정 위치(px) — 헤더 64 + 24 (2026-11-10 블록 규격). 클래스 lg:top-22 와 같은 값
+const STICKY_TOP = 88;
 
 // 배송 글자: 무료 배송 / 고정 배송비 ₩N / 배송비 별도. 고르지 않은 매물은 '' (줄 없음)
 const shippingText = (l: Listing): string => {
@@ -185,14 +191,31 @@ export function ListingDetail({ id }: { id?: string }) {
     });
   const relatedHeadId = useId();
 
+  // 오른쪽 열 고정 — 열 높이 + 위 88이 화면 높이 안에 들어올 때만 (열 높이나 화면 크기가 바뀌면 다시 잼)
+  const asideRef = useRef<HTMLDivElement>(null);
+  const [asideFits, setAsideFits] = useState(true);
+  useEffect(() => {
+    const el = asideRef.current;
+    if (!el) return;
+    const check = () => setAsideFits(el.offsetHeight + STICKY_TOP <= window.innerHeight);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    window.addEventListener('resize', check);
+    return () => {
+      ro.disconnect();
+      window.removeEventListener('resize', check);
+    };
+  }, [listing]);
+
   // 불러오는 중, 없는 매물, 불러오기 실패
   if (!listing) {
     return (
-      <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+      <Container as="main" className="pt-8">
         <p role="status" className="text-14 text-muted">
           {loadState === 'loading' ? '불러오는 중…' : loadState === 'missing' ? '매물을 찾을 수 없어요.' : '매물을 불러오지 못했어요.'}
         </p>
-      </main>
+      </Container>
     );
   }
 
@@ -287,7 +310,7 @@ export function ListingDetail({ id }: { id?: string }) {
   const videoId = youtubeIdOf(listing.youtubeLink);
 
   return (
-    <main className="mx-auto w-full max-w-280 px-4 pt-8 xl:px-0">
+    <Container as="main" className="pt-8">
       {/* 경로 — 홈 › 대분류 › 세부 카테고리. 홈과 대분류는 링크 */}
       <nav aria-label="경로">
         <ol className="flex flex-wrap items-center gap-1 text-14 text-muted">
@@ -366,8 +389,11 @@ export function ListingDetail({ id }: { id?: string }) {
           </div>
         </div>
 
-        {/* 오른쪽 열 — 제목, 배지, 가격, 버튼, 메타 */}
-        <div className="mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0">
+        {/* 오른쪽 열 — 제목, 배지, 가격, 버튼, 메타, 판매자 칸. 넓은 화면에서 고정(위 88 = lg:top-22), 화면보다 길면 고정 안 함 */}
+        <div
+          ref={asideRef}
+          className={`mt-6 lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:mt-0 lg:self-start ${asideFits ? 'lg:sticky lg:top-22' : ''}`}
+        >
           <h1 className="text-24 font-bold">{listing.title || name}</h1>
           {badges.length > 0 && (
             <div className="mt-3 flex flex-wrap gap-2">
@@ -508,6 +534,6 @@ export function ListingDetail({ id }: { id?: string }) {
           </div>
         </section>
       )}
-    </main>
+    </Container>
   );
 }

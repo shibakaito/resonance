@@ -11,6 +11,7 @@
 import Link from 'next/link';
 import { TOP_CATEGORIES } from '../data/catalog';
 import { categorySlug } from '../data/category-slugs';
+import { Container } from './ui/container';
 
 // 고객 지원 문의 주소 (카카오톡 채널). 빌드할 때 읽힘 — .env.local, Vercel 환경변수
 const KAKAO_CHANNEL_URL = process.env.NEXT_PUBLIC_KAKAO_CHANNEL_URL ?? '';
@@ -20,7 +21,8 @@ const LINK = 'flex h-8 items-center text-14 text-line hover:text-bg';
 export function SiteFooter() {
   return (
     <footer className="bg-fg text-bg mt-16">
-      <div className="mx-auto w-full max-w-280 px-4 pt-16 pb-12 xl:px-0">
+      {/* 겉틀 — 공통 Container (헤더, 본문과 좌우 끝이 같음) */}
+      <Container className="pt-16 pb-12">
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
           <div>
             <p className="text-20 font-bold">Resonance</p>
@@ -61,7 +63,7 @@ export function SiteFooter() {
           )}
         </div>
         <p className="mt-12 text-14 text-line">&copy; 2026 Resonance. 모든 권리 보유.</p>
-      </div>
+      </Container>
     </footer>
   );
 }

@@ -21,6 +21,7 @@ import { Card } from './ui/card'; // 매물 카드 (2026-11-10 홈 시안)
 import { Button, buttonClass } from './ui/button';
 import { Field, Select } from './ui/field'; // 조건 검색 칸 — 등록 폼과 같은 부품
 import { Input } from './ui/input';
+import { Container } from './ui/container'; // 페이지 겉틀 (헤더, 푸터와 좌우 끝이 같음)
 import { Autocomplete } from './ui/autocomplete';
 import { categorySlug } from '../data/category-slugs';
 
@@ -159,7 +160,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
     <div>
       {/* 검색 카드 (2026-11-10 홈 시안) — 검정 띠(bg fg, 위아래 64) 왼쪽에 흰 상자 폭 400, 안 여백 32. 배경 사진과 그림자 없음, 오른쪽은 비워 둠 */}
       <section className="bg-fg py-16">
-        <div className="mx-auto w-full max-w-280 px-4 xl:px-0">
+        <Container>
           <div className="w-full max-w-100 bg-bg p-8 text-fg">
             <h1 className="text-20 font-bold">당신만의 사운드를 찾아보세요</h1>
             {/* 탭 — 높이 40, 14/500. 고른 탭은 fg 에 아래 2px fg 선, 나머지 muted. 줄 아래 1px line. 동작은 그대로(아래 내용만 바뀜) */}
@@ -370,12 +371,12 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
               </>
             )}
           </div>
-        </div>
+        </Container>
       </section>
 
       {/* 새로 올라온 매물 — 최신 4건(fetchListings 가 등록 최신순), 한 줄 4장 (2026-11-10 홈 시안)
           구간: 폭 1120(4칸 × 268 + 16), 위 64, 제목 줄 40(20/700) 아래 24 */}
-      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+      <Container as="section" className="pt-16">
         <div className="mb-6 flex h-10 items-center justify-between gap-4">
           <h2 className="text-20 font-bold">새로 올라온 매물</h2>
           {/* 둘러보기는 정렬을 주소로 받지 않아 기본 정렬(추천순)로 열림 — 둘러보기는 이번에 안 건드림 */}
@@ -388,11 +389,11 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         ) : (
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{latestListings.map(listingCard)}</div>
         )}
-      </section>
+      </Container>
 
       {/* 인기 카테고리 — 제목 줄에 탭 3개(높이 40, 최소 폭 120, 좌우 24) + 오른쪽 '{카테고리} 모두 보기 →', 카드 4장
           시안대로 '인기 카테고리' 글자는 화면에서 뺌. 화면 읽기 프로그램용 제목(sr-only)으로만 남김 */}
-      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+      <Container as="section" className="pt-16">
         <div className="mb-6 flex min-h-10 flex-wrap items-center gap-4">
           <h2 className="sr-only">인기 카테고리</h2>
           {/* 탭 — 고른 것 fg 채움(마우스 올려도 그대로), 나머지 line 선(마우스 올리면 surface). 공통 Button */}
@@ -419,11 +420,11 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
         ) : (
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">{featuredListings.slice(0, 4).map(listingCard)}</div>
         )}
-      </section>
+      </Container>
 
       {/* 판매 띠 (2026-11-10 홈 시안) — 1120 폭 검정 띠 하나, 안 여백 40 48, 사진 없음. 구간 위 64(아래 64는 푸터 위 여백)
           예전 '내 컬렉션' 배너, 무료 배송, 최저가 보장, 구매자 보호 세 줄, '지금 인기 검색어' 8개는 삭제 */}
-      <section className="mx-auto w-full max-w-280 px-4 pt-16 xl:px-0">
+      <Container as="section" className="pt-16">
         <div className="flex flex-col gap-6 bg-fg px-12 py-10 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-14 font-medium text-line">매물 판매</p>
@@ -435,7 +436,7 @@ export function HomePage({ onBrowse, onSell, onSearch }: HomePageProps) {
             매물 등록하기
           </Link>
         </div>
-      </section>
+      </Container>
     </div>
   );
 }
