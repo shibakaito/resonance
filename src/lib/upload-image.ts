@@ -19,17 +19,17 @@ const MAX_BYTES = 5 * 1024 * 1024; // 5MB (버킷 설정과 일치)
  * - 에러 시 사용자에게 보여줄 한국어 메시지로 던짐
  */
 export async function uploadListingImage(file: File): Promise<string> {
-  if (!file) throw new Error('업로드할 파일이 없습니다.');
+  if (!file) throw new Error('올릴 파일이 없어요.');
 
   // 사전 가드 (Supabase 측에서도 막히지만, 클라이언트에서 미리 알면 UX 좋음)
   if (file.size > MAX_BYTES) {
     throw new Error(
-      `파일이 너무 큽니다 (${(file.size / 1024 / 1024).toFixed(1)}MB). 최대 5MB까지 업로드할 수 있어요.`
+      `파일이 너무 커요 (${(file.size / 1024 / 1024).toFixed(1)}MB). 5MB까지 올릴 수 있어요.`
     );
   }
   if (file.type && !ALLOWED_TYPES.includes(file.type)) {
     throw new Error(
-      `지원하지 않는 파일 형식입니다 (${file.type}). JPEG·PNG·WebP만 업로드할 수 있어요.`
+      `지원하지 않는 파일 형식입니다 (${file.type}). JPEG, PNG, WebP만 올릴 수 있어요.`
     );
   }
 
@@ -47,7 +47,7 @@ export async function uploadListingImage(file: File): Promise<string> {
     contentType: file.type || undefined,
   });
   if (error) {
-    throw new Error(`이미지 업로드 실패: ${error.message}`);
+    throw new Error(`사진 올리기 실패: ${error.message}`);
   }
 
   // public 버킷이라 인증 없이 영구 공개 URL 발급

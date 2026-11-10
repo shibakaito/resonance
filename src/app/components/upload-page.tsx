@@ -859,11 +859,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
   // 폼 제출 → Supabase에 매물 INSERT → 성공 시 상세 페이지로 이동
   const handleSubmit = async () => {
     setSubmitError(null);
-    if (!brand || !model) { setSubmitError('브랜드와 모델명을 입력해주세요.'); return; }
-    if (!category) { setSubmitError('카테고리를 선택해주세요.'); return; }
-    if (!title.trim()) { setSubmitError('상품명을 입력해주세요.'); return; }
-    if (!condition) { setSubmitError('상태를 선택해주세요.'); return; }
-    if (!price) { setSubmitError('가격을 입력해주세요.'); return; }
+    if (!brand || !model) { setSubmitError('브랜드와 모델을 입력해 주세요.'); return; }
+    if (!category) { setSubmitError('카테고리를 선택해 주세요.'); return; }
+    if (!title.trim()) { setSubmitError('제목을 입력해 주세요.'); return; }
+    if (!condition) { setSubmitError('상태를 선택해 주세요.'); return; }
+    if (!price) { setSubmitError('가격을 입력해 주세요.'); return; }
     if (images.length === 0) { setSubmitError('사진을 1장 이상 올려 주세요.'); return; } // 필수: 브랜드, 모델, 카테고리, 상태, 가격, 사진 1장
     if (!asDescribed) { setSubmitError('실제 상태와 같음을 확인해 주세요.'); return; } // 필수 확인 체크 — 매물 저장(insertListing)에는 안 넣음, 임시 저장에만
     setSubmitting(true);
@@ -988,7 +988,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
     setUploadError(null);
     const remaining = MAX_IMAGES - images.length;
     if (remaining <= 0) {
-      setUploadError(`이미지는 최대 ${MAX_IMAGES}장까지 업로드할 수 있어요.`);
+      setUploadError(`사진은 ${MAX_IMAGES}장까지 올릴 수 있어요.`);
       return;
     }
     const arr = Array.from(files).slice(0, remaining);
@@ -1000,7 +1000,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
         const url = await uploadListingImage(f);
         uploaded.push(url);
       } catch (e: unknown) {
-        if (!firstErr) firstErr = e instanceof Error ? e.message : '업로드 중 오류가 발생했습니다.';
+        if (!firstErr) firstErr = e instanceof Error ? e.message : '사진을 올리다 오류가 났어요.';
       }
     }
     if (uploaded.length > 0) setImages((cur) => [...cur, ...uploaded]);
@@ -1291,7 +1291,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     allowClear={false}
                     dropdown={
                       <Select id={id} aria-required value={condition} onChange={(e) => onConditionChange(e.target.value)} className={condition ? '' : 'text-muted'}>
-                        <option value="" disabled>선택하세요</option>
+                        <option value="" disabled>선택</option>
                         {CONDITIONS.map((c) => (
                           <option key={c.value} value={c.value} className="text-fg">{c.label}</option>
                         ))}
@@ -1448,7 +1448,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
 
               {/* 상품명 — 브랜드+모델+하위카테고리 자동 반영, 수정·자유입력 가능 (필수) */}
-              <Field label="상품명" required>
+              <Field label="제목" required>
                 <Input value={title} onChange={(e) => { setTitle(e.target.value); setTitleEdited(true); }} />
               </Field>
 
@@ -2214,17 +2214,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             >
               <Button className="mb-3">
                 <Plus aria-hidden className="w-4 h-4" />
-                사진 업로드
+                사진 올리기
               </Button>
               <Upload aria-hidden className="w-5 h-5 text-muted mb-1" />
               <p className="text-14 text-fg">
-                또는 대표 이미지 포함 최대 <span className="font-bold">{MAX_IMAGES}장</span>까지 드래그 앤 드롭하세요.
+                최대 {MAX_IMAGES}장, 끌어다 놓아도 돼요
               </p>
             </div>
             {/* 업로드 중 / 에러 표시 */}
             {uploadingCount > 0 && (
               <div className="mt-3 text-14 text-fg" role="status">
-                업로드 중… ({uploadingCount}장 처리 중)
+                올리는 중… ({uploadingCount}장 처리 중)
               </div>
             )}
             {uploadError && (
@@ -2261,12 +2261,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </section>
 
           <section className="bg-bg border border-line rounded-none p-6">
-            <h3 className="text-20 font-bold mb-4">설명</h3>
+            {/* 구간 제목 '설명'이 칸 이름(label htmlFor) — 칸 위 이름 글자는 2026-11-10 삭제 */}
+            <h3 className="mb-4"><label htmlFor="description-text" className="text-20 font-bold">설명</label></h3>
 
             {/* 설명 — 서식 버튼(굵게, 기울임, 목록)은 누르는 동작이 없어 삭제(2026-11-10 디자인 3a). 글은 줄바꿈 그대로 저장 */}
-            <Field label="이 상품과 그 상태에 대해 설명해 주세요" hint={`${description.length}자 입력됨`}>
-              <Textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" />
-            </Field>
+            <Textarea id="description-text" aria-describedby="description-count" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" />
+            <p id="description-count" className="mt-1 text-12 text-muted">{description.length}자 입력됨</p>
 
             <div className="mt-4 pt-4 border-t border-line">
               <label className="flex items-start gap-2 cursor-pointer">
@@ -2310,10 +2310,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           <section className="bg-bg border border-line rounded-none p-6">
             <div className="flex items-center gap-2 mb-4">
               <Youtube className="w-5 h-5 text-fg" />
-              <h3 className="text-20 font-bold">상품 목록에 YouTube 동영상을 삽입하세요</h3>
+              <h3 className="text-20 font-bold">유튜브 영상</h3>
             </div>
             <div className="space-y-3">
-              <Field label="유튜브 영상 링크를 붙여넣으세요">
+              <Field label="영상 주소를 붙여 넣으세요">
                 <Input value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
               </Field>
             </div>
@@ -2363,7 +2363,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     </div>
                   )}
                 </Field>
-                <Field label={<>정가 <span className="text-muted font-regular">(선택)</span></>}>
+                <Field label="정가">
                   {({ id }) => (
                     <div className="relative">
                       <Input
@@ -2638,7 +2638,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1">
                 <Plus aria-hidden className="w-5 h-5" />
-                {submitting ? '등록 중…' : '상품 등록하기'}
+                {submitting ? '등록 중…' : '등록하기'}
               </Button>
               {/* 임시 저장 — 자동 저장(1초 뒤)과 같은 저장본에 바로 저장 */}
               <Button
