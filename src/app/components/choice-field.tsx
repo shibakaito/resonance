@@ -6,7 +6,8 @@
 //   하나 고르기  — 선택지 5개 이하면 버튼 한 줄, 6개 이상이면 드롭다운
 //   여러 개 고르기 — 선택지 6개 이하면 버튼 토글, 7개 이상이면 지금 방식(드롭다운)
 //   판단은 그 순간의 선택지 개수로 (조건에 따라 선택지가 바뀌는 칸도 저절로 따라감). 칸마다 손으로 정하지 않음
-// 버튼 모양 = 공통 Button(ui/button.tsx, 선택 = primary, 안 고름 = secondary). 저장값은 드롭다운과 같음:
+// 버튼 모양 = 공통 Button(ui/button.tsx, 선택 = primary 반전 없음, 안 고름 = line). 저장값은 드롭다운과 같음:
+// 배치 (2026-11-10 등록 폼 시안): 폼 4칸 격자에 버튼 하나 = 1칸(720 폭에서 168), 높이 40, 14/500 가운데, 한 줄 4개, 넘치면 다음 줄, 사이 16
 //   하나 고르기는 값 하나(다시 누르면 해제는 allowClear 일 때만), 여러 개 고르기는 누른 순서대로 쌓임(드롭다운과 같은 순서 규칙)
 // 드롭다운 쪽 모양은 부르는 곳이 dropdown 으로 넘김 (칸마다 검색, 별칭, 직접 입력 등 기존 동작 그대로)
 // 예외: CHOICE_DROPDOWN_ONLY 목록에 든 칸(fieldKey)은 선택지 수와 상관없이 늘 드롭다운 — 예외는 이 목록 하나로만 관리
@@ -40,10 +41,10 @@ type Common = {
 type Single = Common & { multiple?: false; value: string; onChange: (v: string) => void; allowClear?: boolean };
 type Multi = Common & { multiple: true; values: string[]; onChange: Dispatch<SetStateAction<string[]>> };
 
-// 각진 버튼 한 개 — 공통 Button(2026-11-10 디자인 3a): 선택 = primary(검정 바탕), 안 고름 = secondary(흰 바탕). 높이 40px
+// 각진 버튼 한 개 — 공통 Button: 고름 = primary(fg 채움, 흰 글자, 마우스 올려도 그대로), 안 고름 = line(흰 바탕, line 선, 마우스 올리면 surface). 높이 40, 격자 1칸 폭
 function ChoiceButton({ on, disabled, onClick, children }: { on: boolean; disabled?: boolean; onClick: () => void; children: ReactNode }) {
   return (
-    <Button variant={on ? 'primary' : 'secondary'} noHover aria-pressed={on} disabled={disabled} onClick={onClick} className="min-w-16">
+    <Button variant={on ? 'primary' : 'line'} noHover aria-pressed={on} disabled={disabled} onClick={onClick} className="w-full">
       {children}
     </Button>
   );
@@ -69,7 +70,7 @@ export function ChoiceField(props: Single | Multi) {
     };
   }
   return (
-    <div role="group" aria-label={props.labelledBy ? undefined : props.ariaLabel} aria-labelledby={props.labelledBy} className="flex flex-wrap gap-2">
+    <div role="group" aria-label={props.labelledBy ? undefined : props.ariaLabel} aria-labelledby={props.labelledBy} className="grid grid-cols-4 gap-4">
       {opts.map((o) => (
         <ChoiceButton key={o.value} on={isOn(o.value)} disabled={props.disabled} onClick={() => press(o.value)}>
           {text(o.value, o.label)}

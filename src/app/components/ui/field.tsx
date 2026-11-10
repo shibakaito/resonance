@@ -2,7 +2,7 @@
 // ============================================================================
 // ui/field.tsx — 칸 한 개를 감싸는 부품 (2026-11-10 디자인 3a, 토큰 6개만)
 // ----------------------------------------------------------------------------
-// label(htmlFor 자동 연결) + 필수 점(danger) + hint(muted) + error(danger)
+// label(htmlFor 자동 연결) + 필수 점(danger 6×6, 라벨 뒤 6) + hint(14 muted) + error(14 danger). 라벨 14/500, 라벨과 칸 8, 칸과 도움말 4
 // 안에는 Input, Textarea, Select(네이티브 select), Autocomplete 어느 것이든 하나를 넣음 → Field 가 id, aria-describedby,
 //   aria-invalid, aria-required 를 넣어 줌
 // 안이 칸 여러 개(크기 W×D×H, 숫자 + 단위, 버튼 묶음, 행 빌더)면 group 으로: 이름표(span) + role="group" aria-labelledby
@@ -32,7 +32,7 @@ type FieldProps = {
 export function RequiredMark() {
   return (
     <>
-      <span aria-hidden className="ml-1 inline-block h-1.5 w-1.5 bg-danger align-middle" />
+      <span aria-hidden className="ml-1.5 inline-block h-1.5 w-1.5 bg-danger align-middle" />
       <span className="sr-only"> (필수)</span>
     </>
   );
@@ -78,8 +78,8 @@ export function Field({ label, required, hint, error, disabled, group, id: idPro
       ) : (
         body
       )}
-      {hint && <p id={hintId} className="mt-1 text-12 text-muted">{hint}</p>}
-      {error && <p id={errorId} className="mt-1 text-12 text-danger">{error}</p>}
+      {hint && <p id={hintId} className="mt-1 text-14 text-muted">{hint}</p>}
+      {error && <p id={errorId} className="mt-1 text-14 text-danger">{error}</p>}
     </div>
   );
 }

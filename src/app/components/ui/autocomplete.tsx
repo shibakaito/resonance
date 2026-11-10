@@ -240,7 +240,7 @@ export function Autocomplete({
             e.preventDefault(); // 입력칸의 blur 보다 먼저
             commit('');
           }}
-          className="absolute right-8 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center text-muted hover:text-fg"
+          className="absolute right-8 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-muted hover:text-fg"
         >
           <X aria-hidden className="h-4 w-4" />
         </button>

@@ -5,7 +5,7 @@
 // ============================================================================
 import * as React from 'react';
 
-export const LABEL_CLASS = 'field-label block mb-1 text-14 font-bold';
+export const LABEL_CLASS = 'field-label block mb-2 text-14 font-medium'; // 라벨 14/500 fg, 칸과 8 (2026-11-10 등록 폼 시안)
 
 export function Label({ className = '', ...rest }: React.LabelHTMLAttributes<HTMLLabelElement>) {
   return <label className={`${LABEL_CLASS} ${className}`} {...rest} />;

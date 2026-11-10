@@ -94,6 +94,32 @@ const STEPS = [
   { id: 'shipping', label: '배송' },
 ];
 
+// 체크박스 (2026-11-10 시안) — 20×20 각진 상자, line 1px 선, 체크하면 fg 채움에 흰 체크. 상자와 글자 사이 12, 글자 14/500
+//   아래 도움말 14 muted(간격 4). 네이티브 input 을 그대로 써서(appearance-none) 키보드, 화면 읽기, 포커스 표시는 기본 그대로
+function FormCheckbox({ checked, onChange, children, help, required = false }: { checked: boolean; onChange: (v: boolean) => void; children: React.ReactNode; help?: React.ReactNode; required?: boolean }) {
+  return (
+    <label className="flex cursor-pointer items-start gap-3">
+      <span className="relative flex h-5 w-5 shrink-0">
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={(e) => onChange(e.target.checked)}
+          aria-required={required || undefined}
+          className="peer h-5 w-5 cursor-pointer appearance-none border border-line bg-bg checked:border-fg checked:bg-fg"
+        />
+        <Check aria-hidden className="pointer-events-none absolute inset-0 m-auto hidden h-4 w-4 text-bg peer-checked:block" />
+      </span>
+      <span className="min-w-0">
+        <span className="block text-14 font-medium">
+          {children}
+          {required && <RequiredMark />}
+        </span>
+        {help && <span className="mt-1 block text-14 text-muted">{help}</span>}
+      </span>
+    </label>
+  );
+}
+
 // 폼 구간 하나 (2026-11-10 시안) — 카드 상자, 테두리, 배경 없음. 첫 구간 말고는 위에 1px line, 선 위아래 48
 //   제목 줄 높이 40(글자 20/700), 제목 아래 16. heading 을 주면 기본 제목 대신 그것을 씀(접기 버튼, label 제목)
 //   scroll-mt-24: 왼쪽 목록으로 이동할 때 위에 고정된 사이트 헤더에 제목이 가리지 않게 (왼쪽 목록 sticky top-24 와 같은 값)
@@ -233,7 +259,7 @@ function ImpedanceSelect({
             type="button"
             aria-label="초기화"
             onClick={(e) => { e.stopPropagation(); onChange([]); }}
-            className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-fg"
+            className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-muted hover:text-fg"
           >
             <X aria-hidden className="w-4 h-4" />
           </button>
@@ -474,108 +500,107 @@ function DriverConfigBuilder({ rows, onChange, subwoofer = false }: { rows: Driv
   const summary = driverSummary(rows);
   // 서브우퍼: 종류는 우퍼·패시브 라디에이터만, 셀(구조/재질/크기/개수)은 처음부터 펼침
   const typeOpts = subwoofer ? ['우퍼', '패시브 라디에이터'] : DRIVER_TYPES;
-  // 칸 모양은 공통 부품(Select, Input, Autocomplete, Button — 2026-11-10 디자인 3a). 좁은 줄이라 글자는 text-14
+  const blank = { structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' };
+  // 줄 = 4칸 격자에 [유닛][크기 + inch/mm][개수][비고] 1칸씩 (2026-11-10 시안). 유닛을 고르기 전에는 유닛 칸만
+  //   동축의 담당 대역, 플래그 켜졌을 때 구조와 재질은 다섯째 칸부터라 다음 줄로 넘어감
+  //   삭제 32는 그 줄 마지막 입력 칸(비고, 유닛만 있으면 유닛) 안쪽 끝, 줄 2개 이상일 때만
   return (
     <div className="space-y-2">
       {rows.map((row, i) => {
         const isCoax = row.type === '동축';
         const n = i + 1; // 화면 읽기용 줄 번호 (칸 이름 = '드라이버 n 유닛' 등)
+        const open = subwoofer || !!row.type;
+        const del = rows.length > 1 && (
+          <Button iconOnly size="sm" variant="line" aria-label={`드라이버 ${n} 삭제`} onClick={() => onChange(rows.filter((_, idx) => idx !== i))}>
+            <X aria-hidden className="w-4 h-4" />
+          </Button>
+        );
         return (
-          <div key={i} className="relative flex items-center gap-2">
-            {/* 종류 (항상 표시) — 빈 상태: 1줄 꽉(flex-1), 선택/서브우퍼: w-44로 줄고 나머지 칸 분할 */}
-            <div className={`relative ${(subwoofer || row.type) ? 'w-44 flex-shrink-0' : 'flex-1 min-w-0'}`}>
-              <Select
-                aria-label={`드라이버 ${n} 유닛`}
-                value={row.type}
-                onChange={(e) => update(i, { type: e.target.value, structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
-                className={`pl-2 ${row.type ? 'pr-12' : 'pr-9'} text-14 ${row.type ? '' : 'text-muted'}`}
-              >
-                <option value="" disabled>종류</option>
-                {typeOpts.map((t) => (
-                  <option key={t} value={t} className="text-fg">{t}</option>
-                ))}
-              </Select>
-              {/* 종류 초기화 X — 칸 속 부품이라 공통 Button 아님(화살표 왼쪽) */}
-              {row.type && (
-                <button
-                  type="button"
-                  aria-label="종류 초기화"
-                  onClick={() => update(i, { type: '', structure: '', material: '', band: '', size: '', sizeUnit: 'inch', count: '', note: '' })}
-                  className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-muted hover:text-fg"
+          <div key={i} className="grid grid-cols-4 gap-4">
+            {/* 유닛 (늘 표시) */}
+            <div className="flex items-center gap-2">
+              <div className="relative min-w-0 flex-1">
+                <Select
+                  aria-label={`드라이버 ${n} 유닛`}
+                  value={row.type}
+                  onChange={(e) => update(i, { type: e.target.value, ...blank })}
+                  className={`pl-3 ${row.type ? 'pr-16' : 'pr-9'} ${row.type ? '' : 'text-muted'}`}
                 >
-                  <X aria-hidden className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-            {/* 구조, 재질(또는 담당 대역), 크기, 개수, 비고 — 종류 선택 시 표시(서브우퍼는 처음부터 항상 표시)
-                FEATURE_FLAGS.driverMaterialStructure 꺼짐(2026-11-10): 구조, 재질 칸 숨김 → [유닛][크기 + inch/mm][개수][비고]. 동축의 담당 대역은 way 계산(driverWays)에 쓰여 남김 */}
-            {(subwoofer || row.type) && (
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              {FEATURE_FLAGS.driverMaterialStructure && (
-              <div className="flex-1 min-w-0">
-                <Autocomplete aria-label={`드라이버 ${n} 구조`} value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} allowCustom placeholder="구조" />
+                  <option value="" disabled>종류</option>
+                  {typeOpts.map((t) => (
+                    <option key={t} value={t} className="text-fg">{t}</option>
+                  ))}
+                </Select>
+                {/* 종류 초기화 X — 칸 속 부품이라 공통 Button 아님(화살표 왼쪽) */}
+                {row.type && (
+                  <button
+                    type="button"
+                    aria-label="종류 초기화"
+                    onClick={() => update(i, { type: '', ...blank })}
+                    className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-muted hover:text-fg"
+                  >
+                    <X aria-hidden className="w-4 h-4" />
+                  </button>
+                )}
               </div>
-              )}
-              {(isCoax || FEATURE_FLAGS.driverMaterialStructure) && (
-              <div className="flex-1 min-w-0">
+              {!open && del}
+            </div>
+            {open && (
+              <>
+                {/* 크기 + 단위 — 한 칸 안에서 반씩(칸 사이 8) */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    aria-label={`드라이버 ${n} 크기`}
+                    value={row.size}
+                    onChange={(e) => update(i, { size: e.target.value })}
+                    placeholder="크기"
+                  />
+                  <Select
+                    aria-label={`드라이버 ${n} 크기 단위`}
+                    wrapClassName="min-w-0"
+                    value={row.sizeUnit}
+                    onChange={(e) => update(i, { sizeUnit: e.target.value })}
+                    className="pl-3 pr-8"
+                  >
+                    <option value="inch">inch</option>
+                    <option value="mm">mm</option>
+                  </Select>
+                </div>
+                <Input
+                  aria-label={`드라이버 ${n} 개수`}
+                  value={row.count}
+                  onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
+                  inputMode="numeric"
+                  placeholder="개수"
+                />
+                {/* 비고 — 자유 글 (예: 실크 돔). 요약 줄 끝에 괄호로. 삭제는 이 칸 안쪽 끝 */}
+                <div className="flex items-center gap-2">
+                  <Input
+                    aria-label={`드라이버 ${n} 비고`}
+                    value={row.note ?? ''}
+                    onChange={(e) => update(i, { note: e.target.value })}
+                    placeholder="비고"
+                    className="min-w-0 flex-1"
+                  />
+                  {del}
+                </div>
+                {/* 동축의 담당 대역(way 계산에 쓰임), 플래그 켜지면 구조와 재질 — 다음 줄로 */}
+                {FEATURE_FLAGS.driverMaterialStructure && (
+                  <Autocomplete aria-label={`드라이버 ${n} 구조`} value={row.structure} onChange={(v) => update(i, { structure: v })} options={DRIVER_STRUCT[row.type] ?? []} allowCustom placeholder="구조" />
+                )}
                 {isCoax ? (
                   <Autocomplete aria-label={`드라이버 ${n} 담당 대역`} value={row.band} onChange={(v) => update(i, { band: v })} options={COAXIAL_BANDS} allowCustom placeholder="담당 대역" />
                 ) : (
-                  <Autocomplete aria-label={`드라이버 ${n} 재질`} value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} allowCustom placeholder="재질" />
+                  FEATURE_FLAGS.driverMaterialStructure && (
+                    <Autocomplete aria-label={`드라이버 ${n} 재질`} value={row.material} onChange={(v) => update(i, { material: v })} options={DRIVER_MATERIAL[row.type] ?? []} allowCustom placeholder="재질" />
+                  )
                 )}
-              </div>
-              )}
-              <Input
-                aria-label={`드라이버 ${n} 크기`}
-                value={row.size}
-                onChange={(e) => update(i, { size: e.target.value })}
-                placeholder="크기"
-                className="w-16 flex-shrink-0 px-2 text-14"
-              />
-              <Select
-                aria-label={`드라이버 ${n} 크기 단위`}
-                wrapClassName="w-20 flex-shrink-0"
-                value={row.sizeUnit}
-                onChange={(e) => update(i, { sizeUnit: e.target.value })}
-                className="pl-2 pr-7 text-14"
-              >
-                <option value="inch">inch</option>
-                <option value="mm">mm</option>
-              </Select>
-              <Input
-                aria-label={`드라이버 ${n} 개수`}
-                value={row.count}
-                onChange={(e) => update(i, { count: e.target.value.replace(/[^0-9]/g, '') })}
-                inputMode="numeric"
-                placeholder="개수"
-                className="w-14 flex-shrink-0 text-center px-1 text-14"
-              />
-              {/* 비고 — 자유 글 (예: 실크 돔). 요약 줄 끝에 괄호로 */}
-              <Input
-                aria-label={`드라이버 ${n} 비고`}
-                value={row.note ?? ''}
-                onChange={(e) => update(i, { note: e.target.value })}
-                placeholder="비고"
-                className="flex-1 px-2 text-14"
-              />
-            </div>
-            )}
-            {/* 삭제 — 필드 끝 오른쪽 거터에 절대배치 (행 2개 이상일 때만). 32px 정사각 아이콘 버튼 */}
-            {rows.length > 1 && (
-              <Button
-                iconOnly
-                size="sm"
-                aria-label={`드라이버 ${n} 삭제`}
-                onClick={() => onChange(rows.filter((_, idx) => idx !== i))}
-                className="absolute left-full ml-2 top-1/2 -translate-y-1/2"
-              >
-                <X aria-hidden className="w-4 h-4" />
-              </Button>
+              </>
             )}
           </div>
         );
       })}
-      <Button size="sm" onClick={() => onChange([...rows, { ...BLANK_DRIVER_ROW }])}>
+      <Button className="w-42" onClick={() => onChange([...rows, { ...BLANK_DRIVER_ROW }])}>
         <Plus aria-hidden className="w-4 h-4" /> 드라이버 추가
       </Button>
       {/* 자동 요약 (읽기 전용) — 속성별 칩 [2-way][2-driver][12inch][우퍼 (1)][1inch][트위터 (1) (실크 돔)], X 없음. 재질, 구조 칩은 플래그 켜졌을 때만 */}
@@ -1089,16 +1114,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </p>
               </div>
               <div className="flex gap-4">
-                <Button onClick={restoreDraft}>이어서 작성</Button>
-                <Button onClick={discardDraft}>버리기</Button>
+                <Button onClick={restoreDraft} className="w-42">이어서 작성</Button>
+                <Button onClick={discardDraft} className="w-42">버리기</Button>
               </div>
             </div>
           )}
 
           <FormSection id="info" title="제품 정보" first>
-            <div className="space-y-4">
+            {/* 4칸 격자 (720 = 168 × 4 + 16 × 3): 카테고리 4 / 브랜드, 모델 2+2 / 출시 연도, 제조국 2+2 / 구성품 4 / 상태 4 / 외관, 작동 2+2 / 제목 4 */}
+            <div className="grid grid-cols-4 gap-4">
               {/* 카테고리 — 풀패스("앰프 > 프리앰프")로 검색·표시. 선택 시 상위/하위 분리 저장 (공통 부품 Field + Autocomplete, 2026-11-10 디자인 3a) */}
-              <Field label="카테고리" required>
+              <Field className="col-span-4" label="카테고리" required>
                 <Autocomplete
                   value={
                     category && subcategory
@@ -1124,7 +1150,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </Field>
 
               {/* 1. 브랜드 — 사전 브랜드(한글 별칭, 예: '맥킨토시' → McIntosh) + 사전에 없는 매물 브랜드, 목록에 없는 글도 저장(allowCustom) */}
-              <Field label="브랜드" required>
+              <Field className="col-span-2" label="브랜드" required>
                 <Autocomplete
                   value={brand}
                   onChange={(v) => {
@@ -1149,7 +1175,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   - 브랜드 미선택 → 후보 없음 (직접 입력만 가능)
                   - 카테고리 미선택 → 해당 브랜드의 전체 모델
                   - 카테고리 선택됨 → 해당 브랜드 + 그 카테고리(예: '프리앰프')만 */}
-              <Field label="모델" required>
+              <Field className="col-span-2" label="모델" required>
                 <Autocomplete
                   value={model}
                   onChange={setModel}
@@ -1169,7 +1195,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 3. 출시 연도 — 플래그 켜짐: '대략'이면 specs.yearApprox = true(표시 '약 1975년', 필터는 그 연도로 비교), '모름'이면 칸 비활성 + 비워 저장
                   플래그 꺼짐(FEATURE_FLAGS.yearApprox): 숫자 칸만 */}
-              <Field label="출시 연도">
+              <Field className="col-span-2" label="출시 연도">
                 {({ id, describedBy }) =>
                   FEATURE_FLAGS.yearApprox ? (
                     <div className="flex items-center gap-4">
@@ -1211,13 +1237,13 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </Field>
 
               {/* 4. 제조국 */}
-              <Field label="제조국">
+              <Field className="col-span-2" label="제조국">
                 <Autocomplete value={country} onChange={setCountry} options={COUNTRIES} />
               </Field>
 
               {/* 6. 구성품 — 플래그 켜짐: 공통 7개 체크 카드 + 기타 구성품 글(specs.components 키 배열, specs.componentsOther 글)
                   플래그 꺼짐(FEATURE_FLAGS.componentChecks): 전처럼 자유 글 한 칸(specs.components 글) */}
-              <Field label="구성품">
+              <Field className="col-span-4" label="구성품">
                 {({ id, describedBy }) => (
                   <>
                     {FEATURE_FLAGS.componentChecks && (
@@ -1255,7 +1281,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
               {/* 7. 상태 — 종류 4개(CONDITIONS). 중고(used)일 때만 아래의 외관 상태, 작동 상태 활성화(둘 다 선택 사항)
                   선택 부품(ChoiceField): 상태는 예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운. 버튼이 되더라도 필수라 다시 눌러도 해제 안 됨 */}
-              <Field label="상태" required group={choiceAsButtons(CONDITIONS.length, false, 'condition')}>
+              <Field className="col-span-4" label="상태" required group={choiceAsButtons(CONDITIONS.length, false, 'condition')} hint={desc('condition', condition) || undefined}>
                 {({ id, labelId }) => (
                   <ChoiceField
                     fieldKey="condition"
@@ -1275,12 +1301,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   />
                 )}
               </Field>
-              {/* 고른 상태의 정의 한 줄 */}
-              {desc('condition', condition) && <p className="-mt-3 text-12 text-muted">{desc('condition', condition)}</p>}
+              {/* 고른 상태의 정의 한 줄은 상태 칸 도움말(hint)로 (FEATURE_FLAGS.gradeDescriptions 꺼지면 없음) */}
 
               {/* 소유권 — 중고(used)일 때만 활성화. 필수 아님. FEATURE_FLAGS.ownership 꺼지면 칸만 숨김(저장 로직 그대로) */}
               {FEATURE_FLAGS.ownership && (
-              <Field label="소유권" disabled={condition !== 'used'} group={choiceAsButtons(OWNERSHIP_OPTIONS.length, false, 'ownership')}>
+              <Field className="col-span-4" label="소유권" disabled={condition !== 'used'} group={choiceAsButtons(OWNERSHIP_OPTIONS.length, false, 'ownership')}>
                 {({ id, labelId }) => (
                   <ChoiceField
                     fieldKey="ownership"
@@ -1305,16 +1330,15 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               {/* 8. 외관 상태 — 중고(used)일 때만 활성화, 새 제품 상태(새상품, 미개봉, NOS)면 숨김. 선택 사항
                   예외 목록(CHOICE_DROPDOWN_ONLY)에 있어 늘 드롭다운 — [드롭다운][자세히 칸] 한 줄. 목록에서 빼면 버튼이 되고 자세히 칸은 아래 줄로 */}
               {!usedFieldsHidden && (
-              <Field label="외관 상태" disabled={condition !== 'used'} group={choiceAsButtons(APPEARANCE_OPTIONS.length, false, 'appearance')}>
+              <Field className="col-span-2" label="외관 상태" disabled={condition !== 'used'} group={choiceAsButtons(APPEARANCE_OPTIONS.length, false, 'appearance')} hint={desc('appearance', conditionAppearance) || undefined}>
                 {({ id, labelId }) => {
-                  const asButtons = choiceAsButtons(APPEARANCE_OPTIONS.length, false, 'appearance');
                   const detailInput = (
                     <Input
                       value={conditionAppearanceDetail}
                       onChange={(e) => setConditionAppearanceDetail(e.target.value)}
                       disabled={condition !== 'used'}
                       aria-label="외관 상태 자세히"
-                      className={asButtons ? 'mt-2' : 'flex-1'}
+                      className="mt-2"
                     />
                   );
                   return (
@@ -1327,44 +1351,39 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         onChange={setConditionAppearance}
                         disabled={condition !== 'used'}
                         dropdown={
-                          <div className="flex gap-2">
-                            <Select
-                              id={id}
-                              wrapClassName="w-36 flex-shrink-0"
-                              value={conditionAppearance}
-                              onChange={(e) => setConditionAppearance(e.target.value)}
-                              disabled={condition !== 'used'}
-                              className={conditionAppearance ? '' : 'text-muted'}
-                            >
-                              <option value="" disabled>선택</option>
-                              {APPEARANCE_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
-                              ))}
-                            </Select>
-                            {detailInput}
-                          </div>
+                          <Select
+                            id={id}
+                            value={conditionAppearance}
+                            onChange={(e) => setConditionAppearance(e.target.value)}
+                            disabled={condition !== 'used'}
+                            className={conditionAppearance ? '' : 'text-muted'}
+                          >
+                            <option value="" disabled>선택</option>
+                            {APPEARANCE_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
+                            ))}
+                          </Select>
                         }
                       />
-                      {asButtons && detailInput}
+                      {/* 자세히(메모) 칸 — 2칸 폭 안에서 드롭다운 아래 8 */}
+                      {detailInput}
                     </>
                   );
                 }}
               </Field>
               )}
-              {!usedFieldsHidden && desc('appearance', conditionAppearance) && <p className="-mt-3 text-12 text-muted">{desc('appearance', conditionAppearance)}</p>}
 
               {/* 9. 작동 상태 — 중고(used)일 때만 활성화, 새 제품 상태면 숨김. 선택 사항. 외관 상태와 같은 모양 */}
               {!usedFieldsHidden && (
-              <Field label="작동 상태" disabled={condition !== 'used'} group={choiceAsButtons(WORKING_OPTIONS.length, false, 'working')}>
+              <Field className="col-span-2" label="작동 상태" disabled={condition !== 'used'} group={choiceAsButtons(WORKING_OPTIONS.length, false, 'working')} hint={desc('working', conditionWorking) || undefined}>
                 {({ id, labelId }) => {
-                  const asButtons = choiceAsButtons(WORKING_OPTIONS.length, false, 'working');
                   const detailInput = (
                     <Input
                       value={conditionWorkingDetail}
                       onChange={(e) => setConditionWorkingDetail(e.target.value)}
                       disabled={condition !== 'used'}
                       aria-label="작동 상태 자세히"
-                      className={asButtons ? 'mt-2' : 'flex-1'}
+                      className="mt-2"
                     />
                   );
                   return (
@@ -1377,36 +1396,32 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         onChange={setConditionWorking}
                         disabled={condition !== 'used'}
                         dropdown={
-                          <div className="flex gap-2">
-                            <Select
-                              id={id}
-                              wrapClassName="w-36 flex-shrink-0"
-                              value={conditionWorking}
-                              onChange={(e) => setConditionWorking(e.target.value)}
-                              disabled={condition !== 'used'}
-                              className={conditionWorking ? '' : 'text-muted'}
-                            >
-                              <option value="" disabled>선택</option>
-                              {WORKING_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
-                              ))}
-                            </Select>
-                            {detailInput}
-                          </div>
+                          <Select
+                            id={id}
+                            value={conditionWorking}
+                            onChange={(e) => setConditionWorking(e.target.value)}
+                            disabled={condition !== 'used'}
+                            className={conditionWorking ? '' : 'text-muted'}
+                          >
+                            <option value="" disabled>선택</option>
+                            {WORKING_OPTIONS.map((o) => (
+                              <option key={o.value} value={o.value} className="text-fg">{o.label}</option>
+                            ))}
+                          </Select>
                         }
                       />
-                      {asButtons && detailInput}
+                      {/* 자세히(메모) 칸 — 2칸 폭 안에서 드롭다운 아래 8 */}
+                      {detailInput}
                     </>
                   );
                 }}
               </Field>
               )}
-              {!usedFieldsHidden && desc('working', conditionWorking) && <p className="-mt-3 text-12 text-muted">{desc('working', conditionWorking)}</p>}
 
               {/* 10. 정비 이력 — 모든 카테고리 공통(예전엔 카세트 기술 사양 칸). 저장 자리는 그대로 specs.tech.maintenance.
                   중고(used)일 때만 활성화. 보이기는 FEATURE_FLAGS.maintenance 만 정함(상태 분기 없음). 6개라 버튼 토글(직접 입력은 드롭다운일 때만) */}
               {FEATURE_FLAGS.maintenance && (
-              <Field label="정비 이력" disabled={condition !== 'used'} group={choiceAsButtons(MAINTENANCE_OPTS.length, true, 'maintenance')}>
+              <Field className="col-span-4" label="정비 이력" disabled={condition !== 'used'} group={choiceAsButtons(MAINTENANCE_OPTS.length, true, 'maintenance')}>
                 {({ id, labelId }) => (
                   <ChoiceField
                     multiple
@@ -1423,14 +1438,14 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
 
               {/* 상품명 — 브랜드+모델+하위카테고리 자동 반영, 수정·자유입력 가능 (필수) */}
-              <Field label="제목" required>
+              <Field className="col-span-4" label="제목" required>
                 <Input value={title} onChange={(e) => { setTitle(e.target.value); setTitleEdited(true); }} />
               </Field>
 
               {/* 핸드메이드(자작품) 여부 — 브랜드와 별개 차원의 태그. 브랜드/모델은 직접 입력 활용
                   FEATURE_FLAGS.handmadeField 가 꺼져 있으면 칸만 숨김(저장 로직 그대로, 기본 false) */}
               {FEATURE_FLAGS.handmadeField && (
-              <Field label="핸드메이드 제품인가요?">
+              <Field className="col-span-4" label="핸드메이드 제품인가요?">
                 {({ id }) => (
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input id={id} type="checkbox" checked={handmade} onChange={(e) => setHandmade(e.target.checked)} className="accent-fg w-4 h-4" />
@@ -1463,7 +1478,8 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             {techExpanded && (
             <div>
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
-              <div className="space-y-4">
+              // 4칸 격자 — 선택 버튼, 드롭다운, 줄 빌더는 4칸, 단위 붙은 한 칸 입력(임피던스, 감도 등)은 2칸
+              <div className="grid grid-cols-4 gap-4">
                 {(() => {
                 // 필드 하나 그리기 (핵심/상세 어느 쪽이든 같은 모양)
                 const renderSpecField = (f: CategorySpecField) => {
@@ -1480,7 +1496,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const v = specs[f.key] || '';
                     const opts = f.input.options;
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group={choiceAsButtons(opts.length, false, f.key)}>
+                      <Field key={f.key} className="col-span-4" label={f.label} group={choiceAsButtons(opts.length, false, f.key)}>
                         {({ id, labelId }) => (
                           <ChoiceField
                             fieldKey={f.key}
@@ -1505,7 +1521,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                     type="button"
                                     aria-label="초기화"
                                     onClick={() => setSpec('')}
-                                    className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-fg"
+                                    className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-muted hover:text-fg"
                                   >
                                     <X aria-hidden className="w-4 h-4" />
                                   </button>
@@ -1531,7 +1547,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     // 화면은 한글 라벨로 고르고, 저장은 목록 라벨과 같으면 영문 키(optValue) / 목록에 없는 글은 친 그대로
                     const opts = f.input.options;
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label}>
+                      <Field key={f.key} className="col-span-4" label={f.label}>
                         <Autocomplete
                           value={optLabel(opts, specs[f.key] || '')}
                           onChange={(text) => setSpec(optValue(opts, text))}
@@ -1549,7 +1565,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const unit = f.input.unit;
                     const free = f.input.free; // 자유 텍스트면 숫자 필터 X
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label}>
+                      <Field key={f.key} className="col-span-2" label={f.label}>
                         {({ id }) => (
                           <div className="relative">
                             <Input
@@ -1557,7 +1573,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                               value={specs[f.key] || ''}
                               onChange={(e) => setSpec(free ? e.target.value : numOnly(e.target.value))}
                               inputMode={free ? 'text' : 'decimal'}
-                              className={unit ? 'pl-3 pr-10' : ''}
+                              className={unit ? 'pl-3 pr-11' : ''}
                             />
                             {unit && (
                               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">
@@ -1573,7 +1589,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   if (f.input.kind === 'textarea') {
                     const { maxLength, placeholder } = f.input;
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label}>
+                      <Field key={f.key} className="col-span-4" label={f.label}>
                         {({ id }) => <SpecTextarea id={id} value={specs[f.key] || ''} onChange={setSpec} maxLength={maxLength} placeholder={placeholder} />}
                       </Field>
                     );
@@ -1586,7 +1602,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const typeKey = `${f.key}Type`;
                     const typeVal = specs[typeKey] || '';
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label}>
+                      <Field key={f.key} className="col-span-4" label={f.label}>
                         {({ id }) => (
                           <div className="flex gap-2 items-center">
                             <div className="relative flex-[3_1_44px] min-w-0">
@@ -1619,7 +1635,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                                   type="button"
                                   aria-label="초기화"
                                   onClick={() => setSpecs({ ...specs, [typeKey]: '' })}
-                                  className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-muted hover:text-fg"
+                                  className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-muted hover:text-fg"
                                 >
                                   <X aria-hidden className="w-4 h-4" />
                                 </button>
@@ -1630,95 +1646,81 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       </Field>
                     );
                   }
-                  // ── 정격 출력: 출력값(W) + 기준 옴 쌍, +추가 가능 ──
+                  // ── 정격 출력: 줄 = [출력값 W][기준 옴][비고] 1칸씩 (2026-11-10 시안). 삭제 32는 비고 칸 안쪽 끝(줄 2개 이상), 추가는 줄 아래 8 왼쪽 첫 칸 ──
                   if (f.input.kind === 'power') {
                     const ohmOpts = f.input.ohmOptions ?? AMP_OHM_OPTS;
+                    const setPair = (idx: number, patch: Partial<{ w: string; ohm: string; note: string }>) => {
+                      const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ...patch } : x));
+                      setPowerPairs(pairs);
+                      setSpecs({ ...specs, [f.key]: buildPower(pairs) });
+                    };
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <div className="space-y-2">
                           {powerPairs.map((p, idx) => (
-                            <div key={idx} className="flex gap-2 items-center -mr-10">
-                              {/* 출력값: 남는 공간 전부 (flex-1) */}
-                              <div className="relative flex-1 min-w-0">
+                            <div key={idx} className="grid grid-cols-4 gap-4">
+                              <div className="relative">
                                 <Input
                                   aria-label={`출력값 ${idx + 1}`}
                                   value={p.w}
-                                  onChange={(e) => {
-                                    const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, w: numOnly(e.target.value) } : x));
-                                    setPowerPairs(pairs);
-                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
-                                  }}
+                                  onChange={(e) => setPair(idx, { w: numOnly(e.target.value) })}
                                   inputMode="decimal"
                                   placeholder="출력값"
-                                  className="pl-3 pr-9"
+                                  className="pl-3 pr-11"
                                 />
                                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">W</span>
                               </div>
-                              <span aria-hidden className="text-muted">@</span>
-                              {/* 기준 옴: w-28 고정 */}
-                              <div className="relative w-28 flex-shrink-0">
+                              <div className="relative">
                                 <Select
                                   aria-label={`기준 임피던스 ${idx + 1}`}
                                   value={p.ohm}
-                                  onChange={(e) => {
-                                    const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: e.target.value } : x));
-                                    setPowerPairs(pairs);
-                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
-                                  }}
-                                  className={`pl-3 ${p.ohm ? 'pr-12' : 'pr-9'} ${p.ohm ? '' : 'text-muted'}`}
+                                  onChange={(e) => setPair(idx, { ohm: e.target.value })}
+                                  className={`pl-3 ${p.ohm ? 'pr-16' : 'pr-9'} ${p.ohm ? '' : 'text-muted'}`}
                                 >
                                   <option value="" disabled>기준</option>
                                   {ohmOpts.map((o) => (
                                     <option key={o} value={o} className="text-fg">{o}</option>
                                   ))}
                                 </Select>
+                                {/* 칸 속 초기화 X — 공통 Button 아님(칸 안) */}
                                 {p.ohm && (
                                   <button
                                     type="button"
                                     aria-label="초기화"
-                                    onClick={() => {
-                                      const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, ohm: '' } : x));
-                                      setPowerPairs(pairs);
-                                      setSpecs({ ...specs, [f.key]: buildPower(pairs) });
-                                    }}
-                                    className="absolute right-7 top-1/2 -translate-y-1/2 w-5 h-5 flex items-center justify-center text-muted hover:text-fg"
+                                    onClick={() => setPair(idx, { ohm: '' })}
+                                    className="absolute right-8 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-muted hover:text-fg"
                                   >
-                                    <X aria-hidden className="w-3.5 h-3.5" />
+                                    <X aria-hidden className="w-4 h-4" />
                                   </button>
                                 )}
                               </div>
-                              <span aria-hidden className="text-muted">×</span>
-                              {/* 비고: 114px 고정 (기준 112보다 2px 넓게) */}
-                              <Input
-                                aria-label={`비고 ${idx + 1}`}
-                                value={p.note ?? ''}
-                                onChange={(e) => {
-                                  const pairs = powerPairs.map((x, i) => (i === idx ? { ...x, note: e.target.value } : x));
-                                  setPowerPairs(pairs);
-                                  setSpecs({ ...specs, [f.key]: buildPower(pairs) });
-                                }}
-                                placeholder="비고"
-                                className="w-[114px] flex-shrink-0"
-                              />
-                              {powerPairs.length > 1 ? (
-                                <Button
-                                  iconOnly
-                                  size="sm"
-                                  aria-label={`${f.label} ${idx + 1}번째 줄 삭제`}
-                                  onClick={() => {
-                                    const pairs = powerPairs.filter((_, i) => i !== idx);
-                                    setPowerPairs(pairs);
-                                    setSpecs({ ...specs, [f.key]: buildPower(pairs) });
-                                  }}
-                                >
-                                  <X aria-hidden className="w-4 h-4" />
-                                </Button>
-                              ) : (
-                                <div className="w-8 flex-shrink-0" />
-                              )}
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  aria-label={`비고 ${idx + 1}`}
+                                  value={p.note ?? ''}
+                                  onChange={(e) => setPair(idx, { note: e.target.value })}
+                                  placeholder="비고"
+                                  className="min-w-0 flex-1"
+                                />
+                                {powerPairs.length > 1 && (
+                                  <Button
+                                    iconOnly
+                                    size="sm"
+                                    variant="line"
+                                    aria-label={`${f.label} ${idx + 1}번째 줄 삭제`}
+                                    onClick={() => {
+                                      const pairs = powerPairs.filter((_, i) => i !== idx);
+                                      setPowerPairs(pairs);
+                                      setSpecs({ ...specs, [f.key]: buildPower(pairs) });
+                                    }}
+                                  >
+                                    <X aria-hidden className="w-4 h-4" />
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           ))}
-                          <Button size="sm" onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '', note: '' }])}>
+                          <Button className="w-42" onClick={() => setPowerPairs((prev) => [...prev, { w: '', ohm: '', note: '' }])}>
                             <Plus aria-hidden className="w-4 h-4" /> 임피던스별 출력 추가
                           </Button>
                         </div>
@@ -1735,7 +1737,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                       setSpecs((s) => ({ ...s, [f.key]: buildFreq(nr.low, nr.high, lowUnit, highUnit) }));
                     };
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <div className="flex gap-2 items-center">
                           <div className="relative flex-1 min-w-0">
                             <Input
@@ -1774,48 +1776,46 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     const update = (i: number, patch: Partial<{ w: string; d: string; h: string; note: string }>) =>
                       commit(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
                     const AXIS_NAME = { w: '가로', d: '깊이', h: '높이' } as const; // 화면 읽기용 칸 이름
+                    // 칸 하나 = 격자 1칸, 단위 mm 는 칸 안 오른쪽 12 (14 muted), 입력 오른쪽 여백 44
                     const dimInput = (val: string, axis: 'w' | 'd' | 'h', ph: string, i: number) => (
-                      <div className="relative flex-1 min-w-0">
+                      <div className="relative">
                         <Input
                           aria-label={`${AXIS_NAME[axis]} ${i + 1}`}
                           value={val}
                           onChange={(e) => update(i, { [axis]: numOnly(e.target.value) })}
                           inputMode="decimal"
                           placeholder={ph}
-                          className="pl-3 pr-9"
+                          className="pl-3 pr-11"
                         />
-                        <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-12 pointer-events-none">mm</span>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">mm</span>
                       </div>
                     );
+                    // 줄 = [W][D][H][비고] 1칸씩 (사이의 × 글자는 빼고 라벨에 'W × D × H'). 삭제 32는 비고 칸 안쪽 끝(줄 2개 이상)
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={`${f.label} (W × D × H)`} group>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
-                            <div key={i} className="flex gap-2 items-center -mr-10">
+                            <div key={i} className="grid grid-cols-4 gap-4">
                               {dimInput(r.w, 'w', 'W', i)}
-                              <span aria-hidden className="text-muted">×</span>
                               {dimInput(r.d, 'd', 'D', i)}
-                              <span aria-hidden className="text-muted">×</span>
                               {dimInput(r.h, 'h', 'H', i)}
-                              <span aria-hidden className="text-muted">×</span>
-                              <div className="relative flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
                                 <Input
                                   aria-label={`비고 ${i + 1}`}
                                   value={r.note}
                                   onChange={(e) => update(i, { note: e.target.value })}
                                   placeholder="비고"
+                                  className="min-w-0 flex-1"
                                 />
+                                {rows.length > 1 && (
+                                  <Button iconOnly size="sm" variant="line" aria-label={`${f.label} ${i + 1}번째 줄 삭제`} onClick={() => commit(rows.filter((_, idx) => idx !== i))}>
+                                    <X aria-hidden className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </div>
-                              {rows.length > 1 ? (
-                                <Button iconOnly size="sm" aria-label={`${f.label} ${i + 1}번째 줄 삭제`} onClick={() => commit(rows.filter((_, idx) => idx !== i))}>
-                                  <X aria-hidden className="w-4 h-4" />
-                                </Button>
-                              ) : (
-                                <div className="w-8 flex-shrink-0" />
-                              )}
                             </div>
                           ))}
-                          <Button size="sm" onClick={() => commit([...rows, { w: '', d: '', h: '', note: '' }])}>
+                          <Button className="w-42" onClick={() => commit([...rows, { w: '', d: '', h: '', note: '' }])}>
                             <Plus aria-hidden className="w-4 h-4" /> 크기 추가
                           </Button>
                         </div>
@@ -1832,43 +1832,41 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     };
                     const update = (i: number, patch: Partial<{ value: string; note: string }>) =>
                       commit(rows.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+                    // 줄 = [값 kg][비고] 1칸씩. 삭제 32는 비고 칸 안쪽 끝(줄 2개 이상)
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <div className="space-y-2">
                           {rows.map((r, i) => (
-                            <div key={i} className="flex gap-2 items-center -mr-10">
-                              {/* 값(kg) — 크기 W+D+H 3칸 + 그 사이 ×2개 폭(basis 44px=×2개분). 크기 행과 동일 컬럼 정렬 */}
-                              <div className="relative flex-[3_1_44px] min-w-0">
+                            <div key={i} className="grid grid-cols-4 gap-4">
+                              <div className="relative">
                                 <Input
                                   aria-label={`${f.label} ${i + 1}`}
                                   value={r.value}
                                   onChange={(e) => update(i, { value: numOnly(e.target.value) })}
                                   inputMode="decimal"
-                                  className={`pl-3 ${unit ? 'pr-9' : 'pr-3'}`}
+                                  className={`pl-3 ${unit ? 'pr-11' : 'pr-3'}`}
                                 />
                                 {unit && (
-                                  <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted text-12 pointer-events-none">{unit}</span>
+                                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted text-14 pointer-events-none">{unit}</span>
                                 )}
                               </div>
-                              <span aria-hidden className="text-muted">×</span>
-                              <div className="relative flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
                                 <Input
                                   aria-label={`비고 ${i + 1}`}
                                   value={r.note}
                                   onChange={(e) => update(i, { note: e.target.value })}
                                   placeholder="비고"
+                                  className="min-w-0 flex-1"
                                 />
+                                {rows.length > 1 && (
+                                  <Button iconOnly size="sm" variant="line" aria-label={`${f.label} ${i + 1}번째 줄 삭제`} onClick={() => commit(rows.filter((_, idx) => idx !== i))}>
+                                    <X aria-hidden className="w-4 h-4" />
+                                  </Button>
+                                )}
                               </div>
-                              {rows.length > 1 ? (
-                                <Button iconOnly size="sm" aria-label={`${f.label} ${i + 1}번째 줄 삭제`} onClick={() => commit(rows.filter((_, idx) => idx !== i))}>
-                                  <X aria-hidden className="w-4 h-4" />
-                                </Button>
-                              ) : (
-                                <div className="w-8 flex-shrink-0" />
-                              )}
                             </div>
                           ))}
-                          <Button size="sm" onClick={() => commit([...rows, { value: '', note: '' }])}>
+                          <Button className="w-42" onClick={() => commit([...rows, { value: '', note: '' }])}>
                             <Plus aria-hidden className="w-4 h-4" /> {f.label} 추가
                           </Button>
                         </div>
@@ -1884,7 +1882,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     //   드롭다운 쪽: 임피던스 = 드롭다운 + 범위 표시(ImpedanceSelect) / 단자 등 = 검색 + 칩 + 직접 입력(MultiSelectDropdown)
                     //   회전수도 여기서 같이 (버튼 글자만 CHOICE_BUTTON_TEXT 로 '33⅓')
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group={choiceAsButtons(opts.length, true, f.key)}>
+                      <Field key={f.key} className="col-span-4" label={f.label} group={choiceAsButtons(opts.length, true, f.key)}>
                         {({ id, labelId }) => (
                           <ChoiceField
                             multiple
@@ -1909,7 +1907,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 드라이버 구성 빌더 (스피커) — 안의 칸마다 '드라이버 n 유닛' 등 이름 ──
                   if (f.input.kind === 'drivers') {
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <DriverConfigBuilder rows={driverRows} onChange={setDriverRows} subwoofer={subcategory === '서브우퍼'} />
                       </Field>
                     );
@@ -1917,7 +1915,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 앰프 출력(액티브): 드라이버 종류 + 출력값(자유 입력) ──
                   if (f.input.kind === 'ampPower') {
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <AmpPowerBuilder rows={ampPowerRows} onChange={setAmpPowerRows} />
                       </Field>
                     );
@@ -1925,7 +1923,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 크로스오버: 주파수(Hz) 여러 개 + "크로스오버 추가" ──
                   if (f.input.kind === 'crossover') {
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <div className="space-y-2">
                           {crossoverValues.map((row, idx) => (
                             <div key={idx} className="flex gap-2 items-center -mr-10">
@@ -1964,7 +1962,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                   // ── 진공관 빌더: 역할 + 종류(역할별 동적) + 개수 행 배열 + "진공관 추가" ──
                   if (f.input.kind === 'tubeBuilder') {
                     return (
-                      <Field key={f.key} className="spec-field" label={f.label} group>
+                      <Field key={f.key} className="col-span-4" label={f.label} group>
                         <div className="space-y-2">
                           {tubeRows.map((row, idx) => {
                             const typeOpts = TUBE_TYPE_MAP[row.role] ?? [];
@@ -2065,31 +2063,32 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                     <>
                       {core.map(renderSpecField)}
                       {always.map(renderSpecField)}
-                      {/* 사양 추가 줄 — [제목][내용][삭제], 칸 테두리 border-line(공통 Input) */}
-                      <div className="spec-field">
+                      {/* 추가 사양 줄 — [제목 1칸][내용 3칸], 삭제 32는 내용 칸 안쪽 끝. 줄이 0개일 수 있어 줄마다 늘 삭제(규격의 '2개 이상일 때만'과 다름) */}
+                      <div className="col-span-4">
                         <div className="space-y-2">
                           {customSpecs.map((r, i) => (
-                            <div key={i} className="flex gap-2 items-center -mr-10">
+                            <div key={i} className="grid grid-cols-4 gap-4">
                               <Input
                                 value={r.title}
                                 onChange={(e) => updateRow(i, { title: e.target.value })}
                                 placeholder="제목"
                                 aria-label={`사양 ${i + 1} 제목`}
-                                className="flex-[2_1_0]"
                               />
-                              <Input
-                                value={r.value}
-                                onChange={(e) => updateRow(i, { value: e.target.value })}
-                                placeholder="내용"
-                                aria-label={`사양 ${i + 1} 내용`}
-                                className="flex-[3_1_0]"
-                              />
-                              <Button iconOnly size="sm" aria-label={`사양 ${i + 1} 삭제`} onClick={() => setCustomSpecs((rows) => rows.filter((_, idx) => idx !== i))}>
-                                <X aria-hidden className="w-4 h-4" />
-                              </Button>
+                              <div className="col-span-3 flex items-center gap-2">
+                                <Input
+                                  value={r.value}
+                                  onChange={(e) => updateRow(i, { value: e.target.value })}
+                                  placeholder="내용"
+                                  aria-label={`사양 ${i + 1} 내용`}
+                                  className="min-w-0 flex-1"
+                                />
+                                <Button iconOnly size="sm" variant="line" aria-label={`사양 ${i + 1} 삭제`} onClick={() => setCustomSpecs((rows) => rows.filter((_, idx) => idx !== i))}>
+                                  <X aria-hidden className="w-4 h-4" />
+                                </Button>
+                              </div>
                             </div>
                           ))}
-                          <Button size="sm" onClick={() => setCustomSpecs((rows) => [...rows, { title: '', value: '' }])}>
+                          <Button className="w-42" onClick={() => setCustomSpecs((rows) => [...rows, { title: '', value: '' }])}>
                             <Plus aria-hidden className="w-4 h-4" /> 사양 추가
                           </Button>
                         </div>
@@ -2116,9 +2115,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </div>
             ) : (
               // 폴백: 카테고리별 스키마 없는 경우 기존 16개 자유 입력
-              <div className="space-y-4">
+              <div className="grid grid-cols-4 gap-4">
                 {(category ? SPEC_FIELDS : SPEC_FIELDS.filter((f) => f.key === 'type')).map((f) => (
-                  <Field key={f.key} className="spec-field" label={f.label}>
+                  <Field key={f.key} className="col-span-4" label={f.label}>
                     {({ id }) =>
                       f.key === 'otherSpecs' ? (
                         // 기타 사양 — 스키마 칸(OTHER_SPECS_FIELD)과 같은 여러 줄 자유 글
@@ -2287,12 +2286,12 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </FormSection>
 
           <FormSection id="price" title="가격">
-            <div className="space-y-4">
+            <div className="grid grid-cols-4 gap-4">
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
               {/* 일본 확장(FEATURE_FLAGS.japan) 꺼지면 통화 칸 숨김, 원화(krw)로 저장 */}
               {FEATURE_FLAGS.japan && (
-              <Field className="max-w-[12rem]" label="통화" group={choiceAsButtons(CURRENCY_OPTS.length, false, 'currency')}>
+              <Field className="col-span-4" label="통화" group={choiceAsButtons(CURRENCY_OPTS.length, false, 'currency')}>
                 {({ id, labelId }) => (
                   <ChoiceField
                     fieldKey="currency"
@@ -2312,8 +2311,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 )}
               </Field>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <Field label="판매 가격" required>
+                <Field className="col-span-2" label="판매 가격" required>
                   {({ id }) => (
                     <div className="relative">
                       <Input
@@ -2321,37 +2319,30 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                         aria-required
                         value={price}
                         onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ''))}
-                        className="pl-3 pr-12"
+                        className="pl-3 pr-11"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">{CURRENCY_SYMBOLS[currency]}</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-14 text-muted pointer-events-none">{CURRENCY_SYMBOLS[currency]}</span>
                     </div>
                   )}
                 </Field>
-                <Field label="정가">
+                <Field className="col-span-2" label="정가">
                   {({ id }) => (
                     <div className="relative">
                       <Input
                         id={id}
                         value={comparePrice}
                         onChange={(e) => setComparePrice(e.target.value.replace(/[^0-9]/g, ''))}
-                        className="pl-3 pr-12"
+                        className="pl-3 pr-11"
                       />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">{CURRENCY_SYMBOLS[currency]}</span>
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-14 text-muted pointer-events-none">{CURRENCY_SYMBOLS[currency]}</span>
                     </div>
                   )}
                 </Field>
-              </div>
               {/* 가격 제안 — FEATURE_FLAGS.commerce 꺼지면 숨김, false 저장 */}
               {FEATURE_FLAGS.commerce && (
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={acceptOffers}
-                  onChange={(e) => setAcceptOffers(e.target.checked)}
-                  className="accent-fg w-4 h-4"
-                />
-                <span className="font-bold">구매자의 가격 제안 받기</span>
-              </label>
+              <div className="col-span-4">
+                <FormCheckbox checked={acceptOffers} onChange={setAcceptOffers}>구매자의 가격 제안 받기</FormCheckbox>
+              </div>
               )}
             </div>
           </FormSection>
@@ -2473,10 +2464,11 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           })()}
 
           <FormSection id="shipping" title="배송">
+            <div className="grid grid-cols-4 gap-4">
             {/* 배송 방식 — 예전 라디오 카드 3개 → 선택 부품(ChoiceField, 3개라 버튼). 저장값 그대로(free, flat, calculated, 안 고르면 '')
                 라디오처럼 한 번 고르면 해제 없음(allowClear false). 고른 방식의 설명 한 줄은 칸 아래 안내(hint)로 */}
             <Field
-              className="mb-4"
+              className="col-span-4"
               label="배송 방식"
               group={choiceAsButtons(SHIPPING_OPTS.length, false, 'shippingType')}
               hint={SHIPPING_OPTS.find((o) => o.value === shippingType)?.desc}
@@ -2500,30 +2492,26 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 />
               )}
             </Field>
+            {/* 고정 배송비 — 고정 배송비를 골랐을 때만, 2칸, 단위 '원'은 칸 안 오른쪽 */}
             {shippingType === 'flat' && (
-              <Field label="고정 배송비">
+              <Field className="col-span-2" label="고정 배송비">
                 {({ id }) => (
-                  <div className="relative max-w-xs">
+                  <div className="relative">
                     <Input
                       id={id}
                       value={shippingCost}
                       onChange={(e) => setShippingCost(e.target.value.replace(/[^0-9]/g, ''))}
-                      className="pl-3 pr-12"
+                      className="pl-3 pr-11"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">원</span>
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-14 text-muted pointer-events-none">원</span>
                   </div>
                 )}
               </Field>
             )}
-            <label className="flex items-center gap-2 cursor-pointer mt-4 pt-4 border-t border-line">
-              <input
-                type="checkbox"
-                checked={localPickup}
-                onChange={(e) => setLocalPickup(e.target.checked)}
-                className="accent-fg w-4 h-4"
-              />
-              <span className="font-bold">직거래 가능</span>
-            </label>
+            <div className="col-span-4">
+              <FormCheckbox checked={localPickup} onChange={setLocalPickup}>직거래 가능</FormCheckbox>
+            </div>
+            </div>
             {/* 국가 + 지역 — 선택 사항. 지역 선택지는 국가에 따라(한국 17개 시/도, 일본 47개 도도부현). DB location 칸 하나에 국가 접두 키로 저장(kr_seoul, jp_tokyo) */}
             {(FEATURE_FLAGS.japan || FEATURE_FLAGS.listingRegion) && (
             <div className="mt-4 grid grid-cols-2 gap-4 max-w-md">
