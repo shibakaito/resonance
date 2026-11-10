@@ -13,6 +13,7 @@
 //     → 24, 위 선, 24 → 가격 32/700 → 4 → 정가(있을 때만, 14 muted 줄 그음) → 24 → 메시지 보내기(FEATURE_FLAGS.messaging)
 //     → 8 → [관심 제품][주소 복사 40] → 24 → 위 선 → 메타 표(라벨 96 + 값 14, 줄 40): 등록일, 배송, 직거래(가능일 때만), 지역(있을 때만)
 //   바로 구매, 장바구니 담기, 가격 제안, 판매자 저장은 FEATURE_FLAGS.commerce 로 숨김 (docs/hidden.md)
+//   메타 아래 24에 판매자 칸(seller-box.tsx) — FEATURE_FLAGS.seller 꺼지면 없음. 판매자 데이터는 src/lib/sellers.ts (지금은 표본)
 //   정보 구간(구간 위 48, 제목 줄 40(20/700) 아래 16). 표 줄 = 라벨 168(14/500 muted) + 값 16, 줄 최소 40, 위아래 8, 줄 아래 선
 //     제품 정보: 브랜드, 모델, 카테고리, 출시 연도, 제조국, 구성품, 상태, 외관 상태, 작동 상태 중 값 있는 줄. 처음 5줄 + '더 보기 (N)'
 //     기술 사양: 카테고리 스키마 순서(사양 추가 카테고리는 핵심 칸 + 크기 + 무게) + 추가 사양(입력 순서). 처음 4줄 + '더 보기 (N)'
@@ -29,6 +30,7 @@ import { Heart, Check, Link as LinkIcon, MessageCircle, ChevronDown, ChevronUp, 
 import type { Listing } from './browse-filters';
 import { fmtPrice, fmtDate, yearText, WORKING_WARN_KEYS } from './browse-filters';
 import { fetchListingById, fetchRelatedListings } from '@/lib/listings';
+import { fetchSellerOfListing, type Seller } from '@/lib/sellers';
 import { SPEC_FIELDS } from '@/app/data/spec-fields';
 import { SPEC_FIELDS_BY_CATEGORY, hiddenByDetailMode, optLabel, type SelectOption, type CategorySpecField } from '@/app/data/category-specs';
 import { topCategoryOf } from '@/app/data/catalog';
@@ -39,6 +41,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Card } from './ui/card';
 import { ConditionBadge } from './condition-badge';
+import { SellerBox } from './seller-box';
 
 // 대분류 → 둘러보기 주소 (경로 줄)
 const browseHref = (top: string) => {
@@ -111,6 +114,7 @@ export function ListingDetail({ id }: { id?: string }) {
   const [listing, setListing] = useState<Listing | null>(null);
   const [loadState, setLoadState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [related, setRelated] = useState<Listing[]>([]); // 아래 '다른 매물' (매물을 받은 뒤 요청 1번 더)
+  const [seller, setSeller] = useState<Seller | null>(null); // 판매자 칸 (FEATURE_FLAGS.seller 켜졌을 때만 읽음)
   useEffect(() => {
     if (!id) return;
     let active = true;
@@ -123,6 +127,11 @@ export function ListingDetail({ id }: { id?: string }) {
           fetchRelatedListings(row)
             .then((list) => { if (active) setRelated(list); })
             .catch((err) => console.error('다른 매물 불러오기 실패:', err));
+        }
+        if (row && FEATURE_FLAGS.seller) {
+          fetchSellerOfListing(row)
+            .then((s) => { if (active) setSeller(s); })
+            .catch((err) => console.error('판매자 불러오기 실패:', err));
         }
       })
       .catch((err) => {
@@ -430,6 +439,9 @@ export function ListingDetail({ id }: { id?: string }) {
               </div>
             ))}
           </dl>
+
+          {/* 판매자 칸 — FEATURE_FLAGS.seller 꺼지면 없음 (docs/hidden.md) */}
+          {FEATURE_FLAGS.seller && seller && <SellerBox seller={seller} />}
         </div>
 
         {/* 정보 구간 — 제품 정보, 기술 사양, 설명, 유튜브 영상 */}
