@@ -9,7 +9,6 @@ import {
   Tag,
   Check,
   ChevronDown,
-  Youtube,
   HelpCircle
 } from 'lucide-react';
 import { TOP_CATEGORIES, subcategoriesFor, CATEGORY_TREE, flattenSubs, isCategoryVisible, ALL_BRAND_NAMES, searchBrands, CATALOG } from '../data/catalog';
@@ -2243,24 +2242,20 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           >
 
             {/* 설명 — 서식 버튼(굵게, 기울임, 목록)은 누르는 동작이 없어 삭제(2026-11-10 디자인 3a). 글은 줄바꿈 그대로 저장 */}
-            <Textarea id="description-text" aria-describedby="description-count" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" />
-            <p id="description-count" className="mt-1 text-12 text-muted">{description.length}자 입력됨</p>
+            {/* 텍스트영역 최소 160, 안 여백 8 12. 아래 4에 글자 수(14 muted) */}
+            <Textarea id="description-text" aria-describedby="description-count" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" className="block min-h-40" />
+            <p id="description-count" className="mt-1 text-14 text-muted">{description.length}자 입력됨</p>
 
-            <div className="mt-4 pt-4 border-t border-line">
-              <label className="flex items-start gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={asDescribed}
-                  onChange={(e) => setAsDescribed(e.target.checked)}
-                  className="mt-1 accent-fg w-4 h-4"
-                />
-                <div>
-                  <p className="font-bold text-14">사진과 설명이 실제 상태와 같음을 확인합니다<RequiredMark /></p>
-                  <p className="text-12 text-muted mt-1">
-                    실제와 다른 점이 있으면 거래 취소나 분쟁의 원인이 돼요. 흠집, 수리 이력, 소리 이상은 미리 적어 두는 게 안전해요
-                  </p>
-                </div>
-              </label>
+            {/* 아래 24에 확인 체크(필수) + 도움말. 사이에 있던 구분선은 삭제 */}
+            <div className="mt-6">
+              <FormCheckbox
+                checked={asDescribed}
+                onChange={setAsDescribed}
+                required
+                help="실제와 다른 점이 있으면 거래 취소나 분쟁의 원인이 돼요. 흠집, 수리 이력, 소리 이상은 미리 적어 두는 게 안전해요"
+              >
+                사진과 설명이 실제 상태와 같음을 확인합니다
+              </FormCheckbox>
             </div>
 
             {/* SKU — FEATURE_FLAGS.sku 꺼지면 숨김, 빈 값 저장 */}
@@ -2289,9 +2284,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
           </FormSection>
 
           <FormSection id="youtube" title="유튜브 영상">
-            <div className="space-y-3">
-              <Field label="영상 주소를 붙여 넣으세요">
-                <Input value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
+            <div className="grid grid-cols-4 gap-4">
+              <Field className="col-span-4" label="영상 주소">
+                <Input value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} placeholder="https://www.youtube.com/watch?v=…" />
               </Field>
             </div>
           </FormSection>
