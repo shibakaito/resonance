@@ -83,12 +83,36 @@ const PHOTO_EXAMPLES = [
   { label: '디테일', img: '/images/Detail.png' }
 ];
 
+// 왼쪽 목록 = 폼 구간 7개 (2026-11-10 시안: 상자 없이 한 층). 구간 id 는 form-{id}
 const STEPS = [
   { id: 'info', label: '제품 정보' },
-  { id: 'photos', label: '사진 및 설명' },
+  { id: 'spec', label: '기술 사양' },
+  { id: 'photos', label: '사진' },
+  { id: 'description', label: '설명' },
+  { id: 'youtube', label: '유튜브 영상' },
   { id: 'price', label: '가격' },
-  { id: 'shipping', label: '배송' }
+  { id: 'shipping', label: '배송' },
 ];
+
+// 폼 구간 하나 (2026-11-10 시안) — 카드 상자, 테두리, 배경 없음. 첫 구간 말고는 위에 1px line, 선 위아래 48
+//   제목 줄 높이 40(글자 20/700), 제목 아래 16. heading 을 주면 기본 제목 대신 그것을 씀(접기 버튼, label 제목)
+//   scroll-mt-24: 왼쪽 목록으로 이동할 때 위에 고정된 사이트 헤더에 제목이 가리지 않게 (왼쪽 목록 sticky top-24 와 같은 값)
+function FormSection({
+  id,
+  title,
+  heading,
+  first = false,
+  children,
+  className = '',
+  ...rest
+}: { id: string; title?: React.ReactNode; heading?: React.ReactNode; first?: boolean; children?: React.ReactNode } & Omit<React.HTMLAttributes<HTMLElement>, 'title'>) {
+  return (
+    <section id={`form-${id}`} className={`scroll-mt-24 ${first ? '' : 'mt-12 border-t border-line pt-12'} ${className}`} {...rest}>
+      {heading ?? <h2 className="mb-4 flex h-10 items-center text-20 font-bold">{title}</h2>}
+      {children}
+    </section>
+  );
+}
 
 
 /**
@@ -1018,106 +1042,60 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
 
   const removeImage = (idx: number) => setImages(images.filter((_, i) => i !== idx));
 
+  // 왼쪽 목록 누르기 → 그 구간으로 바로 이동(움직임 없음), 누른 것이 지금 구간. 보고 있는 구간을 스크롤로 따라가는 판정은 없음
   const scrollToStep = (id: string) => {
     setActiveStep(id);
-    document.getElementById(`section-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
-
-  const stepCompleted = (id: string) => {
-    if (id === 'info') return Boolean(brand && model && category);
-    if (id === 'photos') return images.length > 0; // 설명은 필수 아님
-    if (id === 'price') return Boolean(price);
-    if (id === 'shipping') return Boolean(shippingType);
-    return false;
+    document.getElementById(`form-${id}`)?.scrollIntoView({ block: 'start' });
   };
 
   return (
-    <main className="bg-surface min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-      <nav className="flex items-center gap-1 text-14 text-fg mb-4">
-        <span className="text-fg font-medium truncate max-w-md">
-          {title || '새 상품 등록'}
-        </span>
-      </nav>
-      {/* 임시 저장본 이어서 작성 안내 */}
-      {draftPrompt && (
-        <div className="mb-4 border border-fg bg-bg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-3">
-          <div className="flex-1">
-            <p className="font-bold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
-            <p className="text-12 text-muted mt-1">
-              {new Date(draftPrompt.savedAt).toLocaleString('ko-KR')}에 저장됨. 사진은 저장되지 않아 다시 올려야 해요.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="primary" onClick={restoreDraft}>
-              이어서 작성
-            </Button>
-            <Button onClick={discardDraft}>
-              버리기
-            </Button>
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <aside className="lg:col-span-3">
-          <div className="sticky top-24 space-y-1">
-            <ol className="relative">
-              {STEPS.map((step, idx) => {
+    <main className="bg-bg min-h-screen">
+      {/* 겉틀 (2026-11-10 시안): 가운데 1000 = 왼쪽 목록 200 + 사이 80 + 폼 720. 위 48, 아래 80. 좁은 화면(lg 아래)은 목록이 위, 폼이 전체 폭 */}
+      <div className="mx-auto w-full max-w-250 px-4 pt-12 pb-20 lg:px-0">
+      <div className="lg:flex lg:gap-20">
+        {/* 왼쪽 목록 — 제목 '매물 등록'(16/700, 줄 40) 아래 8에 구간 7개(14 muted, 줄 36). 지금 구간만 fg 700. 번호, 연결선, 완료 표시 없음 */}
+        <aside className="mb-12 lg:mb-0 lg:w-50 lg:shrink-0">
+          <nav aria-label="등록 구간" className="lg:sticky lg:top-24">
+            <p className="flex h-10 items-center text-16 font-bold">매물 등록</p>
+            <ul className="mt-2">
+              {STEPS.map((step) => {
                 const isActive = activeStep === step.id;
-                const isDone = stepCompleted(step.id);
                 return (
-                  <li key={step.id} className="relative pl-10 pb-6 last:pb-0">
-                    {idx < STEPS.length - 1 && (
-                      <span
-                        className={`absolute left-3 top-6 bottom-0 w-0.5 -ml-px ${
-                          isDone ? 'bg-fg' : 'bg-line'
-                        }`}
-                      />
-                    )}
-                    {/* 단계 이동 목록 — 글자 목록 모양이라 공통 Button 아님(2026-11-10 디자인 3a: transition 뺌) */}
+                  <li key={step.id}>
+                    {/* 목록 줄 — 글자 목록 모양이라 공통 Button 아님 */}
                     <button
                       type="button"
                       onClick={() => scrollToStep(step.id)}
                       aria-current={isActive ? 'step' : undefined}
-                      className="flex items-center gap-3 w-full text-left group"
+                      className={`flex h-9 w-full items-center text-left text-14 ${isActive ? 'font-bold text-fg' : 'text-muted hover:text-fg'}`}
                     >
-                      <span
-                        className={`absolute left-0 top-0 w-6 h-6 flex items-center justify-center border-2 ${
-                          isDone
-                            ? 'bg-fg border-fg text-bg'
-                            : isActive
-                            ? 'bg-bg border-fg text-fg'
-                            : 'bg-bg border-line text-muted'
-                        }`}
-                      >
-                        {isDone ? (
-                          <Check aria-hidden className="w-3.5 h-3.5" />
-                        ) : (
-                          <span className="text-12 font-bold">{idx + 1}</span>
-                        )}
-                      </span>
-                      <span
-                        className={`font-bold ${
-                          isActive ? 'text-fg' : 'text-muted group-hover:text-fg'
-                        }`}
-                      >
-                        {step.label}
-                      </span>
+                      {step.label}
                     </button>
                   </li>
                 );
               })}
-            </ol>
-          </div>
+            </ul>
+          </nav>
         </aside>
 
-        <div className="lg:col-span-9 space-y-6">
-          <section
-            id="section-info"
-            className="bg-bg border border-line rounded-none py-6 px-10"
-          >
-            <h2 className="text-24 font-bold mb-2">제품 정보</h2>
+        <div className="min-w-0 lg:w-180">
+          {/* 임시 저장본 이어서 작성 안내 — 폼 맨 위(아래 48). 버튼은 둘 다 secondary(primary 는 등록하기 하나) */}
+          {draftPrompt && (
+            <div className="mb-12 border border-fg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-4">
+              <div className="flex-1">
+                <p className="text-16 font-bold">작성하던 내용이 있어요. 이어서 작성할까요?</p>
+                <p className="text-14 text-muted mt-1">
+                  {new Date(draftPrompt.savedAt).toLocaleString('ko-KR')}에 저장됨. 사진은 저장되지 않아 다시 올려야 해요.
+                </p>
+              </div>
+              <div className="flex gap-4">
+                <Button onClick={restoreDraft}>이어서 작성</Button>
+                <Button onClick={discardDraft}>버리기</Button>
+              </div>
+            </div>
+          )}
+
+          <FormSection id="info" title="제품 정보" first>
             <div className="space-y-4">
               {/* 카테고리 — 풀패스("앰프 > 프리앰프")로 검색·표시. 선택 시 상위/하위 분리 저장 (공통 부품 Field + Autocomplete, 2026-11-10 디자인 3a) */}
               <Field label="카테고리" required>
@@ -1462,23 +1440,28 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </Field>
               )}
             </div>
-          </section>
+          </FormSection>
 
-          {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백 */}
-          {/* 좌우 여백 48px(px-12): 줄 끝 삭제 버튼(32px) + 간격 8px 이 여백으로 나가고(-mr-10) 카드 테두리와 8px 띄움 */}
-          <section className="bg-bg border border-line rounded-none py-6 px-12">
-            {/* 접기 머리 — 제목 줄 모양이라 공통 Button 아님 */}
-            <button
-              type="button"
-              onClick={() => setTechExpanded((v) => !v)}
-              aria-expanded={techExpanded}
-              className="w-full flex items-center justify-between text-left"
-            >
-              <h2 className="text-24 font-bold">기술 사양</h2>
-              <ChevronDown aria-hidden className={`w-6 h-6 text-muted ${techExpanded ? 'rotate-180' : ''}`} />
-            </button>
+          {/* 기술 사양 — 카테고리별 스키마가 있으면 그걸로(앰프 등), 없으면 기존 SPEC_FIELDS 폴백
+              제목 줄이 접기 버튼: 폭 100%, 높이 40, 테두리 없음, 글자 왼쪽 20/700, 화살표 20 오른쪽 끝 (공통 Button 아님 — 제목 줄 모양) */}
+          <FormSection
+            id="spec"
+            heading={
+              <h2 className={techExpanded ? 'mb-4' : ''}>
+                <button
+                  type="button"
+                  onClick={() => setTechExpanded((v) => !v)}
+                  aria-expanded={techExpanded}
+                  className="flex h-10 w-full items-center justify-between text-left text-20 font-bold"
+                >
+                  기술 사양
+                  <ChevronDown aria-hidden className={`w-5 h-5 text-muted ${techExpanded ? 'rotate-180' : ''}`} />
+                </button>
+              </h2>
+            }
+          >
             {techExpanded && (
-            <div className="mt-4">
+            <div>
             {SPEC_FIELDS_BY_CATEGORY[category] ? (
               <div className="space-y-4">
                 {(() => {
@@ -2150,19 +2133,9 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             )}
             </div>
             )}
-          </section>
+          </FormSection>
 
-          <h2 className="text-24 font-bold pl-2 pt-2">사진 및 설명</h2>
-
-          <section
-            id="section-photos"
-            className="bg-bg border border-line rounded-none p-6"
-          >
-            <div className="flex items-baseline justify-between mb-1">
-              <h3 className="text-20 font-bold">
-                사진<RequiredMark />
-              </h3>
-            </div>
+          <FormSection id="photos" title={<>사진<RequiredMark /></>}>
             {/* 안내 문구 3곳(이 설명, 예시 이름, 5장 권장)은 FEATURE_FLAGS.photoSectionHints 꺼지면 숨김 (2026-11-10) */}
             {FEATURE_FLAGS.photoSectionHints && (
               <p className="text-14 text-fg mb-5">
@@ -2247,11 +2220,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
                 </div>
               </div>
             )}
-          </section>
+          </FormSection>
 
-          <section className="bg-bg border border-line rounded-none p-6">
-            {/* 구간 제목 '설명'이 칸 이름(label htmlFor) — 칸 위 이름 글자는 2026-11-10 삭제 */}
-            <h3 className="mb-4"><label htmlFor="description-text" className="text-20 font-bold">설명</label></h3>
+          {/* 설명 — 구간 제목 '설명'이 칸 이름(label htmlFor) */}
+          <FormSection
+            id="description"
+            heading={
+              <h2 className="mb-4 flex h-10 items-center">
+                <label htmlFor="description-text" className="text-20 font-bold">설명</label>
+              </h2>
+            }
+          >
 
             {/* 설명 — 서식 버튼(굵게, 기울임, 목록)은 누르는 동작이 없어 삭제(2026-11-10 디자인 3a). 글은 줄바꿈 그대로 저장 */}
             <Textarea id="description-text" aria-describedby="description-count" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} placeholder="사용 기간, 보관 상태, 흠집이나 작동 이상이 있으면 적어 주세요" />
@@ -2297,24 +2276,17 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
             </div>
             )}
-          </section>
+          </FormSection>
 
-          <section className="bg-bg border border-line rounded-none p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <Youtube className="w-5 h-5 text-fg" />
-              <h3 className="text-20 font-bold">유튜브 영상</h3>
-            </div>
+          <FormSection id="youtube" title="유튜브 영상">
             <div className="space-y-3">
               <Field label="영상 주소를 붙여 넣으세요">
                 <Input value={youtubeLink} onChange={(e) => setYoutubeLink(e.target.value)} />
               </Field>
             </div>
-          </section>
+          </FormSection>
 
-          <h2 id="section-price" className="text-24 font-bold pl-2 pt-2">
-            가격
-          </h2>
-          <section className="bg-bg border border-line rounded-none p-6">
+          <FormSection id="price" title="가격">
             <div className="space-y-4">
               {/* 통화 — 판매 가격과 정가에 같이 적용. 환산 표시는 아직 없음(베타 3) */}
               {/* 선택 부품: 2개라 버튼(늘 하나는 골라져 있어 해제 없음) */}
@@ -2382,7 +2354,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               </label>
               )}
             </div>
-          </section>
+          </FormSection>
 
           {/* ============================================================
             * 시장 가격 비교 카드
@@ -2500,10 +2472,7 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             );
           })()}
 
-          <h2 id="section-shipping" className="text-24 font-bold pl-2 pt-2">
-            배송
-          </h2>
-          <section className="bg-bg border border-line rounded-none p-6">
+          <FormSection id="shipping" title="배송">
             {/* 배송 방식 — 예전 라디오 카드 3개 → 선택 부품(ChoiceField, 3개라 버튼). 저장값 그대로(free, flat, calculated, 안 고르면 '')
                 라디오처럼 한 번 고르면 해제 없음(allowClear false). 고른 방식의 설명 한 줄은 칸 아래 안내(hint)로 */}
             <Field
@@ -2594,9 +2563,10 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
               )}
             </div>
             )}
-          </section>
+          </FormSection>
 
-          <div className="bg-bg border border-line rounded-none p-6">
+          {/* 맨 아래 — border-top 1px line, 위 24. 왼쪽 자동 저장 안내(14 muted), 오른쪽 등록하기(primary, 168). 예전 아래 상자는 삭제 */}
+          <div className="mt-12 border-t border-line pt-6">
             {/* 안내 상자 — 판매 수수료, 배송 라벨(FEATURE_FLAGS.commerce), 등록 팁(formTips). 둘 다 꺼지면 상자째 숨김 */}
             {(FEATURE_FLAGS.commerce || FEATURE_FLAGS.formTips) && (
             <div className="rounded-none bg-gradient-to-br from-surface/60 via-bg to-surface border border-line p-4 space-y-3 mb-5">
@@ -2636,20 +2606,20 @@ export function UploadPage({ initialData }: UploadPageProps = {}) {
             </div>
             )}
 
+            {/* 제출 오류 — 14 danger, 맨 아래 줄 바로 위 */}
             {submitError && (
-              <div className="mb-3 rounded-none border border-line bg-bg px-4 py-3 text-14 text-danger">
+              <p role="alert" className="mb-4 text-14 text-danger">
                 {submitError}
-              </div>
+              </p>
             )}
-            <p className="text-12 text-muted mb-2">
-              작성 중인 내용은 이 브라우저에 자동 저장돼요{draftSavedAt ? ` (${new Date(draftSavedAt).toLocaleTimeString('ko-KR')} 저장)` : ''}. 사진은 저장되지 않아요.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="flex-1">
-                <Plus aria-hidden className="w-5 h-5" />
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-14 text-muted">
+                작성 중인 내용은 이 브라우저에 자동 저장돼요{draftSavedAt ? ` (${new Date(draftSavedAt).toLocaleTimeString('ko-KR')} 저장)` : ''}. 사진은 저장되지 않아요.
+              </p>
+              {/* '임시 저장' 단추는 2026-11-10 삭제 — 자동 저장(1초 뒤)과 이어서 작성 안내는 그대로 */}
+              <Button variant="primary" onClick={handleSubmit} disabled={submitting} className="w-42 shrink-0">
                 {submitting ? '등록 중…' : '등록하기'}
               </Button>
-              {/* '임시 저장' 단추는 2026-11-10 삭제 — 자동 저장(1초 뒤)과 이어서 작성 안내는 그대로 */}
             </div>
           </div>
         </div>
