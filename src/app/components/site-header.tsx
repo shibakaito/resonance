@@ -72,10 +72,11 @@ export function SiteHeader() {
   const isSell = pathname.startsWith('/sell');
 
   return (
-    <header className="border-b border-line bg-bg sticky top-0 z-50">
+    <header className="sticky top-0 z-50 h-16 border-b border-line bg-bg">
+      {/* 높이 64 (아래 선 포함, 2026-11-10). 상세 오른쪽 열 sticky top 88 = 64 + 24 */}
       {/* 겉틀 — 공통 Container (최대 1440, 좌우 80, 내용 1280). 페이지 본문, 푸터와 좌우 끝이 같음 */}
-      <Container className="py-4">
-        <div className="flex items-center justify-between">
+      <Container className="h-full">
+        <div className="flex h-full items-center justify-between">
           <div className="flex items-center gap-6">
             <button onClick={() => router.push('/')} className="text-24 font-bold text-fg">Resonance</button>
 
