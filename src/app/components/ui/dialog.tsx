@@ -5,6 +5,8 @@
 // Radix Dialog 위에 토큰만 입힘: role="dialog" + aria-modal, Esc 로 닫기, 포커스 가두기, 바깥(배경) 누르면 닫기는 Radix 가 처리
 // 각진 흰 면 + border-line, 그림자 없음, 애니메이션 없음. 바깥 배경은 fg 40%
 // 안쪽 스크롤이 페이지로 번지지 않게 overscroll-contain
+// 닫히면 열기 전에 포커스가 있던 곳(연 단추)으로 포커스를 돌려줌 (2026-11-10).
+//   Radix 는 Dialog.Trigger 를 쓸 때만 돌려주는데, 둘러보기 '필터' 단추처럼 단추를 따로 두는 경우를 위해 열 때 자리를 기억해 둠
 // ============================================================================
 import * as React from 'react';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
@@ -26,12 +28,22 @@ export function Dialog({
   footer?: React.ReactNode;  // 아래 고정 줄 (예: 초기화, 적용하기)
   className?: string;        // 너비 등 (기본 최대 512px)
 }) {
+  const returnTo = React.useRef<HTMLElement | null>(null); // 열기 전에 포커스가 있던 요소
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-fg/40" />
         <DialogPrimitive.Content
           aria-describedby={undefined}
+          onOpenAutoFocus={() => {
+            returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+          }}
+          onCloseAutoFocus={(e) => {
+            if (returnTo.current?.isConnected) {
+              e.preventDefault();
+              returnTo.current.focus();
+            }
+          }}
           className={`fixed left-1/2 top-1/2 z-50 flex max-h-[85vh] w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col border border-line bg-bg rounded-none overscroll-contain ${className}`}
         >
           <div className="flex h-14 shrink-0 items-center justify-between border-b border-line px-5">

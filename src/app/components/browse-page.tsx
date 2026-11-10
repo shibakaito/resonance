@@ -713,24 +713,18 @@ export function BrowsePage({ category, initialSubCategory, searchQuery, onSearch
         </div>
       </div>
 
-      {/* 필터 모달 */}
+      {/* 좁은 화면 필터 대화상자 — 사이드바와 같은 묶음. 열린 동안만 그려서 열 때마다 지금 필터로 초안 시작 */}
       {modalOpen && (
         <FilterModal
           filters={filters}
-          counts={counts}
-          category={category ?? null}
-          isAmp={isAmp}
-          isSpeaker={isSpeaker}
-          isSource={isSource}
-          isAccessory={isAccessory}
-          isTtAccessory={isTtAccessory}
-          isCable={isCable}
           subCategories={subCategories}
-          categoryOptions={categorySubs}
-          listings={baseCategoryListings}
+          category={category ?? null}
+          counts={counts}
+          categoryOptions={categoryOptions}
           brandOptions={brandsByCount}
+          listings={baseCategoryListings}
           onApply={(next, subs) => {
-            setFilters(pruneHiddenFilters(next, filterVisibility(category, subs))); // 모달에서도 사라진 칸 값은 비워서 넘어오지만 한 번 더
+            setFilters(pruneHiddenFilters(next, filterVisibility(category, subs))); // 대화상자에서도 사라진 칸 값은 비워서 넘어오지만 한 번 더
             setSubCategories(subs);
           }}
           onClose={() => setModalOpen(false)}
